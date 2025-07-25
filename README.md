@@ -61,15 +61,23 @@ Updated probability of survival: 98.78%
 
 ```
 Probability-Calculator/
-│
-├── data/                 # Sample hospital datasets
-├── src/                  # Source code and logic
-│   └── calculator.py     # Main Bayes calculator script
-├── tests/                # Unit and validation tests
-├── README.md             # Project documentation
-├── CONTRIBUTING.md       # Guidelines for contributors
-├── requirements.txt      # Python dependencies
-└── LICENSE               # Open source license (MIT)
+├── app.py                       # Main Flask application
+├── hospital_data.csv           # Dataset used for probability calculations
+├── src/
+│   └── calculator.py           # Core logic using Bayes' Theorem
+├── static/
+│   ├── script.js               # JavaScript for frontend interaction
+│   └── style.css               # Styling for the frontend
+├── templates/
+│   └── index.html              # HTML page served by Flask
+├── tests/
+│   └── test_calculator.py      # Unit tests for the calculator logic
+├── README.md                   # Project overview and usage
+├── LICENSE                     # License file
+├── .gitignore                  # Git ignored files
+├── CODE_OF_CONDUCT.md         # Contributor behavior guidelines
+├── CONTRIBUTING.md            # Contribution instructions
+
 ```
 
 ---
@@ -84,12 +92,17 @@ cd Probability-Calculator
 
 ### 2. Install Requirements
 ```bash
-pip install -r requirements.txt
+pip install Flask
 ```
 
-### 3. Run the Calculator
+### 3. Run the App
 ```bash
-python src/calculator.py
+python app.py
+```
+
+### 4. Open in Browser
+```bash
+http://127.0.0.1:5000/
 ```
 
 ---
