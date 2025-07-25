@@ -1,0 +1,4 @@
+Disease,Prevalence,Sensitivity,FalsePositive
+Influenza,0.05,0.9,0.1
+COVID-19,0.02,0.95,0.02
+Malaria,0.1,0.88,0.05
