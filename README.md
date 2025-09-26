@@ -1,7 +1,7 @@
-# Probability-Calculator
+# Disease-prediction
 A probability calculator using Baye's Theorem to estimate survival chances of a disease based on past hospital data.
 
-# 🧮 Probability Calculator
+# 🧮 Disease prediction
 
 A project that applies **Bayes' Theorem** to estimate the **percentage chance of survival** from a disease using historical hospital data. Designed to help understand real-world applications of Bayesian probability in medical diagnosis and survival prediction.
 
@@ -86,7 +86,7 @@ Probability-Calculator/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/Probability-Calculator.git
+git clone https://github.com/your-username/Disease-prediction.git
 cd Probability-Calculator
 ```
 
