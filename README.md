@@ -118,6 +118,10 @@ Probability-Calculator/
 
 
 ```
+For a detailed, beginner-friendly explanation of what each file does, please read our guide:
+
+➡️ **[View the Project Structure Guide](./PROJECT_STRUCTURE.md)**
+
 
 ---
 
