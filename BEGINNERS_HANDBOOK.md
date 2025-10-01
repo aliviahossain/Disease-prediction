@@ -723,5 +723,3 @@ You've made it through the Beginner's Handbook! You now understand:
 **Happy coding!** 💻✨
 
 ---
-
-*This handbook was created as part of Issue #21 to help beginners understand the Disease Prediction App project. If you have suggestions for improvements, please feel free to contribute!*
