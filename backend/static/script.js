@@ -58,7 +58,7 @@ function calculateDisease() {
     if (data.error) {
       resultDiv.innerText = 'Error: ' + data.error;
     } else {
-      resultDiv.innerText = `Probability of disease given positive test: ${data.p_d_given_pos}`;
+      resultDiv.innerText = `Probability of disease given positive test: ${data.p_d_given_result}`;
     }
   })
   .catch(error => {
