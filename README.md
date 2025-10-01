@@ -127,6 +127,19 @@ Read the [CONTRIBUTING.md](CONTRIBUTING.md) file before making a pull request.
 
 ---
 
+## ⚠️ Disclaimer
+
+This project is intended **for educational and demonstration purposes only**.  
+It is **not a medical device** and must **not be used for clinical decision-making** or patient care.
+
+Probabilities and outputs are based on simplified statistical assumptions and example data.  
+Real clinical practice requires professional judgment, validated tools, and regulatory approval.
+
+If you are a patient, please consult a qualified healthcare provider.  
+If you are a developer or student, treat this project as a learning resource for Bayes’ theorem, not as a diagnostic instrument.
+
+---
+
 ## 📜 License
 
 This project is licensed under the [MIT License](LICENSE).
