@@ -1,26 +1,106 @@
 body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
+  font-family: Arial, sans-serif;                   
+  background-color: rgba(244, 192, 96, 0.885);
+  display: flex;
+  justify-content: center;            
+  align-items: center;                                     
+  flex-direction: column;            
 }
 
-label {
-  display: block;
-  margin: 8px 0;
+.heading {
+  font-size: 1.5rem;
+  margin-bottom: 10px;        
+  text-align: center;
 }
 
-input, select {
-  padding: 6px;
-  margin-left: 8px;
-  width: 150px;
+.first {
+  background-color: rgba(233, 150, 27, 0.889);
+  width: 550px;
+  height: 250px;
+  display: flex;                 
+  justify-content: center;
+  align-items: center;           
+  border-radius: 15px;
+  box-shadow: 4px 4px 12px 4px rgb(60, 59, 59);
+  flex-direction: column;        
+  text-align: center;            
+  font-size: 1.4rem;
 }
 
-button {
-  margin-top: 10px;
-  padding: 8px 16px;
+#diseaseSelect{
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 15px;
+  height: 45px;
+  border-radius: 5px;
+  border: 2px solid black;
+}
+
+.result{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-content: center;
+  margin-top: 20px;
+  height: 40px;
+  width: 110px;
+  font-size: 1.1rem;
+  border-radius: 5px;
+  background-color: rgb(239, 193, 107);
+}
+
+.result:hover{
+  transform: scale(1.05);
+  background-color: rgb(251, 186, 65);
   cursor: pointer;
 }
 
-hr {
-  margin: 30px 0;
+.second {
+  margin-top: 30px;
+  background-color: rgba(233, 150, 27, 0.889);
+  width: 550px;                   
+  display: flex;
+  flex-direction: column;            
+  align-items: center;               
+  border-radius: 15px;
+  box-shadow: 4px 4px 12px 4px rgb(60, 59, 59);
+  font-size: 1.2rem;
 }
 
+.second label {
+  margin: 1px 0;
+  display: flex;
+  justify-content: space-between;    
+  align-items: center;
+  width: 100%;                       
+  max-width: 400px;    
+  font-weight: 700;              
+}
+
+.second input {
+  margin-left: 10px;
+  padding: 6px;
+  width: 150px;
+  border-radius: 8px;
+  border: 2px solid #010101;
+
+}
+
+.probability{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-content: center;
+  margin-bottom: 10px;
+  height: 60px;
+  width: 110px;
+  font-size: 1.1rem;
+  border-radius: 5px;
+  background-color: rgb(239, 193, 107);
+}
+
+.probability:hover{
+  transform: scale(1.05);
+  background-color: rgb(251, 186, 65);
+  cursor: pointer;
+}

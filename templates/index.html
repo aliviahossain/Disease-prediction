@@ -7,24 +7,24 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 </head>
 <body>
-  <h1>Probability Calculator with Disease Detection</h1>
+  <div class="heading">
+    <h1>Probability Calculator with Disease Detection</h1>
+  </div> 
 
-  <section>
+  <div class="first">
     <h2>Use Existing Hospital Data</h2>
-    <label for="diseaseSelect">Select Disease:</label>
+    <label for="diseaseSelect" style="font-size: 1.3rem;">Select A Disease:</label>
     <select id="diseaseSelect">
       <option value="">-- Select a disease --</option>
       <option value="Influenza">Influenza</option>
       <option value="COVID-19">COVID-19</option>
       <option value="Malaria">Malaria</option>
     </select>
-    <button type="button" onclick="usePreset()">Use Sample Data</button>
-  </section>
+    <button type="button" onclick="usePreset()" class="result">Get Results</button>
+  </div>
 
-  <hr />
-
-  <section>
-    <h2>Or Enter New Disease Data</h2>
+  <div class="second">
+    <h2 style="font-size: 2rem;">Enter New Disease Data</h2>
     <label>
       P(Disease): 
       <input type="number" id="pD" step="0.01" min="0" max="1" placeholder="e.g. 0.01" />
@@ -37,10 +37,8 @@
       P(Positive | No Disease): 
       <input type="number" id="falsePositive" step="0.01" min="0" max="1" placeholder="e.g. 0.05" />
     </label><br />
-    <button type="button" onclick="calculateDisease()">Calculate Probability</button>
-  </section>
-
-  <hr />
+    <button type="button" onclick="calculateDisease()" class="probability">Calculate Probability</button>
+  </div>
 
   <div id="result" style="font-weight: bold; font-size: 1.2em; margin-top: 1em;"></div>
 
