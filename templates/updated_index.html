@@ -16,20 +16,35 @@
   <div class="container">
     <h1>Bayesian Post-Test Probability Calculator</h1>
 
+    <h4 class= 'result'>Given P(A|B) = [P(B|A) * P(A)] / [P(B|A) * P(A) + P(B|~A) * P(~A)]</h4>
+
+    <ul class = 'result'>
+    <li>P(A) = Prior probability</li>
+    <li>P(B|A) = Sensitivity</li>
+    <li>P(~A)= Specificity</li>
+    <li>P(A|B) = Posterior probability</li>
+    <ul>
+
+
+
+
     {% if error %}
       <div class="error">{{ error }}</div>
     {% endif %}
 
     <form method="post">
-      <label for="prior_probability">Prior probability (0–1)</label>
+      <label for="prior_probability">Prior probability (0–1)   <h4 class='result'>P(disease) or prevalence</h4></label>
+    
       <input type="number" step="any" min="0" max="1" name="prior_probability" id="prior_probability"
              value="{{ values.prior_probability }}"/>
 
-      <label for="test_sensitivity">Sensitivity (0–1)</label>
+      <label for="test_sensitivity">Sensitivity (0–1) <h4 class='result'>P(test positive | disease)</h4></label>
+      
       <input type="number" step="any" min="0" max="1" name="test_sensitivity" id="test_sensitivity"
              value="{{ values.test_sensitivity }}"/>
 
       <label for="test_specificity">Specificity (0–1)</label>
+      <h4 class='result'>P(test negative | no disease) </h4>
       <input type="number" step="any" min="0" max="1" name="test_specificity" id="test_specificity"
              value="{{ values.test_specificity }}"/>
 
@@ -44,7 +59,8 @@
 
     {% if result is not none %}
       <div class="result">
-        <strong>Posterior probability:</strong> {{ '{:.4f}'.format(result) }} ({{ '{:.2%}'.format(result) }})
+        <strong>Posterior probability: <h4 class='result'>P(A|B)</h4></strong> {{ '{:.4f}'.format(result) }} ({{ '{:.2%}'.format(result) }})
+        
       </div>
     {% endif %}
   </div>
