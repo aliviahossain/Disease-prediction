@@ -116,21 +116,23 @@ Updated probability of survival: 98.78%
 ```
 Probability-Calculator/
 ├── app.py                       # Main Flask application
-├── hospital_data.csv           # Dataset used for probability calculations
+├── hospital_data.csv             # Dataset used for probability calculations
 ├── src/
-│   └── calculator.py           # Core logic using Bayes' Theorem
+│   └── calculator.py             # Core logic using Bayes' Theorem
 ├── static/
-│   ├── script.js               # JavaScript for frontend interaction
-│   └── style.css               # Styling for the frontend
+│   ├── script.js                 # JavaScript for frontend interaction
+│   └── style.css                 # Styling for the frontend
 ├── templates/
-│   └── index.html              # HTML page served by Flask
+│   └── index.html                # HTML page served by Flask
 ├── tests/
-│   └── test_calculator.py      # Unit tests for the calculator logic
-├── README.md                   # Project overview and usage
-├── LICENSE                     # License file
-├── .gitignore                  # Git ignored files
-├── CODE_OF_CONDUCT.md         # Contributor behavior guidelines
-├── CONTRIBUTING.md            # Contribution instructions
+│   ├── test_calculator.py        # Unit tests for calculator logic
+│   └── test_integration.py       # Integration tests for Flask app
+├── README.md                     # Project overview and usage
+├── LICENSE                       # License file
+├── .gitignore                    # Git ignored files
+├── CODE_OF_CONDUCT.md            # Contributor behavior guidelines
+├── CONTRIBUTING.md               # Contribution instructions
+
 
 ```
 
