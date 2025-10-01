@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Disease Prediction (Bayes)</title>
+  <style>
+    .error { background: #ffe8e8; color: #900; padding: 10px; border-radius: 6px; margin-bottom: 12px; }
+    .result { background: #eef8ff; color: #034; padding: 10px; border-radius: 6px; margin-top: 12px; }
+    label { display:block; margin: 8px 0 4px; }
+    input, select { width: 100%; padding: 6px; }
+    .container { max-width: 520px; margin: 32px auto; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    button { margin-top: 12px; padding: 8px 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Bayesian Post-Test Probability Calculator</h1>
+
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post">
+      <label for="prior_probability">Prior probability (0–1)</label>
+      <input type="number" step="any" min="0" max="1" name="prior_probability" id="prior_probability"
+             value="{{ values.prior_probability }}"/>
+
+      <label for="test_sensitivity">Sensitivity (0–1)</label>
+      <input type="number" step="any" min="0" max="1" name="test_sensitivity" id="test_sensitivity"
+             value="{{ values.test_sensitivity }}"/>
+
+      <label for="test_specificity">Specificity (0–1)</label>
+      <input type="number" step="any" min="0" max="1" name="test_specificity" id="test_specificity"
+             value="{{ values.test_specificity }}"/>
+
+      <label for="test_result">Test result</label>
+      <select name="test_result" id="test_result">
+        <option value="positive" {% if values.test_result == "positive" %}selected{% endif %}>Positive</option>
+        <option value="negative" {% if values.test_result == "negative" %}selected{% endif %}>Negative</option>
+      </select>
+
+      <button type="submit">Calculate</button>
+    </form>
+
+    {% if result is not none %}
+      <div class="result">
+        <strong>Posterior probability:</strong> {{ '{:.4f}'.format(result) }} ({{ '{:.2%}'.format(result) }})
+      </div>
+    {% endif %}
+  </div>
+</body>
+</html>
