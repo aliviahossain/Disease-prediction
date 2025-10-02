@@ -97,25 +97,28 @@ Updated probability of survival: 98.78%
 ## 🗂️ Project Structure
 
 ```
-Probability-Calculator/
-├── app.py                       # Main Flask application
+Disease-prediction/
+├── run.py                        # Application entry point
 ├── hospital_data.csv             # Dataset used for probability calculations
-├── src/
-│   └── calculator.py             # Core logic using Bayes' Theorem
-├── static/
-│   ├── script.js                 # JavaScript for frontend interaction
-│   └── style.css                 # Styling for the frontend
-├── templates/
-│   └── index.html                # HTML page served by Flask
-├── tests/
-│   ├── test_calculator.py        # Unit tests for calculator logic
-│   └── test_integration.py       # Integration tests for Flask app
+├── backend/
+│   ├── __init__.py               # Flask app factory
+│   ├── routes/
+│   │   └── disease_routes.py     # API endpoints and routing logic
+│   ├── utils/
+│   │   └── calculator.py         # Core Bayes' Theorem calculation logic
+│   ├── static/
+│   │   ├── script.js             # JavaScript for frontend interaction
+│   │   └── style.css             # Styling for the frontend
+│   └── templates/
+│       ├── index.html            # Main HTML page served by Flask
+│       └── updated_index.html    # Alternative HTML template
 ├── README.md                     # Project overview and usage
-├── LICENSE                       # License file
-├── .gitignore                    # Git ignored files
-├── CODE_OF_CONDUCT.md            # Contributor behavior guidelines
+├── PROJECT_STRUCTURE.md          # Detailed guide explaining each file
 ├── CONTRIBUTING.md               # Contribution instructions
-
+├── CODE_OF_CONDUCT.md            # Contributor behavior guidelines
+├── LICENSE                       # License file
+├── Scalability_report.txt        # Future expansion and scalability plans
+└── .gitignore                    # Git ignored files
 
 ```
 For a detailed, beginner-friendly explanation of what each file does, please read our guide:
