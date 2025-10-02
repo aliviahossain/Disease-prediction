@@ -43,6 +43,33 @@ def bayes_theorem(prior_probability, test_sensitivity, test_specificity, test_re
     return posterior_probability
 
 
+# second form of Bayes' Theorem
+
+def second_form_of_bayes_theorem(prior_probability2, test_sensitivity2, p_b):
+    
+    """ Second form has P(B) which is P(positive in population or marginal likelihood) 
+    Args : prior probability : P(A)
+           test_sensitivity2: P(B|A) 
+           p_b: when P(B) is known
+           
+    returns : P(A|B) or posterior probability
+    """
+    
+    _assert_prob("prior_probability", prior_probability2)
+    _assert_prob("test_sensitivity", test_sensitivity2)
+    _assert_prob("p_b", p_b)
+    
+    numerator = test_sensitivity2 * prior_probability2
+    denominator = p_b
+    if denominator == 0:
+        raise ValueError(
+            "Inputs lead to an undefined calculation (division by zero). "
+            "Try avoiding degenerate combinations (e.g., prior=0 with specificity=1 on a negative path, or similar)."
+        )
+    second_form_posterior_probability = numerator / denominator
+    return second_form_posterior_probability
+
+
 # Backwards-compatible alias
 def survival_chance(prior, sensitivity, specificity, test_result):
     """Deprecated alias for bayes_theorem (kept for backwards compatibility)."""
@@ -82,8 +109,40 @@ def index():
         except Exception:
             error = "Unexpected error: please check your inputs."
 
-    return render_template("index.html", result=result, error=error, values=form_values)
+    return render_template("updated_index.html", result=result, error=error, values=form_values)
 
+@app.route('/alternate', methods=['GET', 'POST'])
+def alternate():
+    error = None
+    result = None
+    # Pre-fill reasonable defaults for a quick demo
+    defaults = {
+        "prior_probability": "0.10",
+        "test_sensitivity2": "0.90",
+        "p_b": "0.25",
+
+    }
+    form_values = dict(defaults)
+    
+    if request.method == "POST":
+        form_values["prior_probability2"] = request.form.get("prior_probability2", "").strip()
+        form_values["test_sensitivity2"] = request.form.get("test_sensitivity2", "").strip()
+        form_values["p_b"] = request.form.get("p_b", "").strip()
+
+
+        try:
+            prior = float(form_values["prior_probability2"])
+            sens = float(form_values["test_sensitivity2"])
+            p_b = float(form_values["p_b"])
+
+            result = second_form_of_bayes_theorem(prior, sens, p_b)
+            print(result)
+        except ValueError as e:
+            error = str(e)
+        except Exception:
+            error = "Unexpected error: please check your inputs."
+            
+    return render_template("index_Bayes_form2.html", result=result, error=error, values=form_values)
 
 if __name__ == "__main__":
     app.run(debug=True)

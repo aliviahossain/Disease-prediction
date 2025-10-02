@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Disease Prediction (Bayes)</title>
+  <style>
+    .error { background: #ffe8e8; color: #900; padding: 10px; border-radius: 6px; margin-bottom: 12px; }
+    .result { background: #eef8ff; color: #034; padding: 10px; border-radius: 6px; margin-top: 12px; }
+    label { display:block; margin: 8px 0 4px; }
+    input, select { width: 100%; padding: 6px; }
+    .container { max-width: 520px; margin: 32px auto; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    button { margin-top: 12px; padding: 8px 12px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+    <h4 class='result'>The alternate Bayes' Formula is used in conditional probability given: P(A|B) = P(B|A) * P(A) / P(B) where P(B) is known</h4>
+  
+    <ul class = 'result'>
+    <li>P(A) = prior probability (prevalence)</li>
+    <li>P(B) = positives tests in population (marginal likelihood)</li>
+    <li>P(B|A) = probability of disease given positive (sensitivity)</li>
+    </ul>
+  
+    <form method="post">
+      <label for="prior_probability">Prior probability (0–1)   <h4 class='result'>P(A) - Prevalence</h4></label>
+    
+      <input type="number" step="any" min="0" max="1" name="prior_probability2" id="prior_probability2"
+             value="{{ values.prior_probability2 }}"/>
+  
+      <label for="test_sensitivity">Sensitivity (0–1) <h4 class='result'>P(B|A)</h4></label>
+      
+      <input type="number" step="any" min="0" max="1" name="test_sensitivity2" id="test_sensitivity2"
+             value="{{ values.test_sensitivity2 }}"/>
+  
+      <label for="marginal likelihood">P(positives in population) (0–1)</label>
+      <h4 class='result'>P(B) - marginal likelihood</h4>
+      <input type="number" step="any" min="0" max="1" name="p_b" id="p_b"
+             value="{{ values.p_b }}"/>
+  
+  
+      <button type="submit">Calculate</button>
+    </form>
+    {% if result is not none %}
+    <div class="result">
+      <strong>Posterior probability: <h4 class='result'>P(A|B)</h4></strong> {{ '{:.4f}'.format(result) }} ({{ '{:.2%}'.format(result) }})
+    </div>
+  {% endif %}
+  </div>
+  
+
+</body>
+</html>
