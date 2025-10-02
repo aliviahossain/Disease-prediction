@@ -99,7 +99,7 @@ function calculateDisease() {
     if (data.error) {
       showResult('Error: ' + data.error);
     } else {
-      showResult(`Probability of disease given positive test: ${data.p_d_given_pos}`);
+      showResult(`Probability of disease given positive test: ${data.p_d_given_result}`);
     }
   })
   .catch(error => {

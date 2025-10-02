@@ -16,6 +16,43 @@ Use Bayes' Theorem to:
 
 ---
 
+## What this project does
+
+This project is a **Bayesian post-test probability calculator** for diagnostic tests.  
+It demonstrates how Bayes’ theorem updates the probability of disease once you know a test result.
+
+It is **not** a lifetime disease risk predictor or a survival model.  
+Instead, it focuses on a fundamental clinical reasoning process:
+
+> “How much more (or less) likely is this disease after seeing the test result?”
+
+---
+
+## How it works
+
+Given:
+- **Prior probability** – baseline chance of having the disease (e.g., prevalence or pre-test clinical suspicion)
+- **Test sensitivity** – P(test positive | disease present)
+- **Test specificity** – P(test negative | disease absent)
+- **Observed test result** – either “positive” or “negative”
+
+The calculator applies **Bayes’ theorem** to compute the **posterior probability**:
+the updated probability that the patient has the disease *given the test result*.
+
+---
+
+## Why this matters
+
+Diagnostic tests don’t provide certainty — they **shift probabilities**.  
+This tool makes that reasoning explicit and transparent.
+
+It can be useful as:
+- An **educational resource** for medical students and data scientists learning Bayes’ theorem
+- A **demo app** for understanding how diagnostic tests affect decision-making
+- A foundation to expand toward multi-feature or longitudinal models later
+
+---
+
 ## 💡 What is Bayes' Theorem?
 
 Bayes' Theorem describes the probability of an event, based on prior knowledge of conditions related to the event. In medical terms, it helps in refining the **probability of survival or disease detection** after new data (like a test result) is observed.
@@ -62,23 +99,29 @@ Updated probability of survival: 98.78%
 ```
 Probability-Calculator/
 ├── app.py                       # Main Flask application
-├── hospital_data.csv           # Dataset used for probability calculations
+├── hospital_data.csv             # Dataset used for probability calculations
 ├── src/
-│   └── calculator.py           # Core logic using Bayes' Theorem
+│   └── calculator.py             # Core logic using Bayes' Theorem
 ├── static/
-│   ├── script.js               # JavaScript for frontend interaction
-│   └── style.css               # Styling for the frontend
+│   ├── script.js                 # JavaScript for frontend interaction
+│   └── style.css                 # Styling for the frontend
 ├── templates/
-│   └── index.html              # HTML page served by Flask
+│   └── index.html                # HTML page served by Flask
 ├── tests/
-│   └── test_calculator.py      # Unit tests for the calculator logic
-├── README.md                   # Project overview and usage
-├── LICENSE                     # License file
-├── .gitignore                  # Git ignored files
-├── CODE_OF_CONDUCT.md         # Contributor behavior guidelines
-├── CONTRIBUTING.md            # Contribution instructions
+│   ├── test_calculator.py        # Unit tests for calculator logic
+│   └── test_integration.py       # Integration tests for Flask app
+├── README.md                     # Project overview and usage
+├── LICENSE                       # License file
+├── .gitignore                    # Git ignored files
+├── CODE_OF_CONDUCT.md            # Contributor behavior guidelines
+├── CONTRIBUTING.md               # Contribution instructions
+
 
 ```
+For a detailed, beginner-friendly explanation of what each file does, please read our guide:
+
+➡️ **[View the Project Structure Guide](./PROJECT_STRUCTURE.md)**
+
 
 ---
 
@@ -92,7 +135,7 @@ cd Probability-Calculator
 
 ### 2. Install Requirements
 ```bash
-pip install Flask
+pip install -r requirements.txt
 ```
 
 ### 3. Run the App
