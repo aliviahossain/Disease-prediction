@@ -1,9 +1,10 @@
 # Disease-prediction
-A probability calculator using Baye's Theorem to estimate survival chances of a disease based on past hospital data.
+A probability calculator using Bayes' Theorem to estimate survival chances of a disease based on past hospital data.
 
-# 🧮 Disease prediction
+# 🧮 Disease Prediction
 
-A project that applies **Bayes' Theorem** to estimate the **percentage chance of survival** from a disease using historical hospital data. Designed to help understand real-world applications of Bayesian probability in medical diagnosis and survival prediction.
+A project that applies **Bayes' Theorem** to estimate the **percentage chance of survival** from a disease using historical hospital data.  
+Designed to help understand real-world applications of Bayesian probability in medical diagnosis and survival prediction.
 
 ---
 
@@ -63,6 +64,7 @@ Bayes' Theorem describes the probability of an event, based on prior knowledge o
 P(A|B) = [P(B|A) * P(A)] / [P(B|A) * P(A) + P(B|¬A) * P(¬A)]
 ```
 
+
 Where:
 - **P(A)** = Prior probability (e.g., survival rate)
 - **P(B|A)** = Probability of a positive test given survival
@@ -75,7 +77,8 @@ Where:
 
 - 🧠 Implements Bayesian inference with custom inputs
 - 📊 Accepts and processes CSV-based hospital data
-- ⚙️ Simple, extensible Python script
+- ⚙️ Flask-based web application
+- 🧪 Includes unit & integration tests
 - 👶 Beginner-friendly for open source contributors
 
 ---
@@ -92,36 +95,25 @@ Where:
 Updated probability of survival: 98.78%
 ```
 
+
 ---
 
 ## 🗂️ Project Structure
 
-```
-Probability-Calculator/
-├── app.py                       # Main Flask application
-├── hospital_data.csv             # Dataset used for probability calculations
-├── src/
-│   └── calculator.py             # Core logic using Bayes' Theorem
-├── static/
-│   ├── script.js                 # JavaScript for frontend interaction
-│   └── style.css                 # Styling for the frontend
-├── templates/
-│   └── index.html                # HTML page served by Flask
-├── tests/
-│   ├── test_calculator.py        # Unit tests for calculator logic
-│   └── test_integration.py       # Integration tests for Flask app
-├── README.md                     # Project overview and usage
-├── LICENSE                       # License file
-├── .gitignore                    # Git ignored files
-├── CODE_OF_CONDUCT.md            # Contributor behavior guidelines
-├── CONTRIBUTING.md               # Contribution instructions
-
-
-```
-For a detailed, beginner-friendly explanation of what each file does, please read our guide:
-
-➡️ **[View the Project Structure Guide](./PROJECT_STRUCTURE.md)**
-
+Disease-prediction/
+├── backend/ # Core application logic
+│ └── calculator.py # Bayes’ theorem implementation
+├── hospital_data.csv # Dataset used for probability calculations
+├── run.py # Main Flask application
+├── tests/ # Unit and integration tests
+├── static/ # JS & CSS for frontend (if any)
+├── templates/ # HTML templates for Flask
+├── README.md # Project overview and usage
+├── requirements.txt # Python dependencies
+├── LICENSE # License file
+├── CODE_OF_CONDUCT.md # Contributor guidelines
+├── CONTRIBUTING.md # Contribution instructions
+├── PROJECT_STRUCTURE.md # Detailed project structure explanation
 
 ---
 
@@ -130,52 +122,48 @@ For a detailed, beginner-friendly explanation of what each file does, please rea
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/your-username/Disease-prediction.git
-cd Probability-Calculator
-```
+cd Disease-prediction
 
-### 2. Install Requirements
-```bash
+2. Install Requirements
 pip install -r requirements.txt
-```
 
-### 3. Run the App
-```bash
-python app.py
-```
+3. Run the App
+python run.py
 
-### 4. Open in Browser
-```bash
+4. Open in Browser
 http://127.0.0.1:5000/
-```
 
----
 
-## ✅ Contributing
+
+✅ Contributing
 
 New to open source? We welcome all contributors! Here's how to get started:
-- 🌱 Check out `Issues`
-- 🛠 Add features or improve existing ones
-- 📝 Help with documentation
-- 🧪 Add new test cases
 
-Read the [CONTRIBUTING.md](CONTRIBUTING.md) file before making a pull request.
+🌱 Check out Issues
 
----
+🛠 Add features or improve existing ones
 
-## 🎓 Ideal For
+📝 Help with documentation
 
-- Students learning probability & statistics
-- Open source contributors
-- Anyone interested in real-world applications of Bayes’ Theorem
+🧪 Add new test cases
 
----
+Read the CONTRIBUTING.md
+ file before making a pull request.
 
-## 📜 License
+🎓 Ideal For
 
-This project is licensed under the [MIT License](LICENSE).
+Students learning probability & statistics
 
----
+Open source contributors
 
-## 🙌 Acknowledgements
+Anyone interested in real-world applications of Bayes’ Theorem
 
-This project was created and maintained by Alivia Hossain. Inspired by practical applications of statistics in healthcare.
+📜 License
+
+This project is licensed under the MIT License
+.
+
+🙌 Acknowledgements
+
+This project was created and maintained by Alivia Hossain.
+Inspired by practical applications of statistics in healthcare.

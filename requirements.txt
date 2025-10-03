@@ -1,4 +1,5 @@
 flask
 pytest
 pytest-flask
+pandas
 os
