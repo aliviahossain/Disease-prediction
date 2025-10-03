@@ -78,3 +78,7 @@ def disease():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+        @disease_bp.route("/scalability")
+        def scalability():
+         return render_template("scalability.html")
+
