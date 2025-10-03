@@ -35,4 +35,3 @@ Please check all that apply before submitting your pull request:
 - [ ] I have performed a self-review of my code
 - [ ] I have commented code in hard-to-understand areas
 - [ ] My changes generate no new warnings
-- [ ] I am submitting this PR as a GSSOC’25 contributor
