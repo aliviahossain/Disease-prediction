@@ -65,7 +65,11 @@ function usePreset() {
     if (data.error) {
       showResult('Error: ' + data.error);
     } else {
+      const prior = data.prior;
+      const posterior = data.p_d_given_pos;
+      const posteriorPct = (posterior * 100).toFixed(2);
       showResult(`Probability of disease given positive test for ${selectedDisease}: ${data.p_d_given_pos}`);
+      renderChart(data.prior, data.p_d_given_pos);
     }
   })
   .catch(error => {
@@ -99,12 +103,47 @@ function calculateDisease() {
     if (data.error) {
       showResult('Error: ' + data.error);
     } else {
+      const prior = parseFloat(pDInput.value);
+      const posterior = data.p_d_given_result;
+      const posteriorPct = (posterior * 100).toFixed(2);
       showResult(`Probability of disease given positive test: ${data.p_d_given_result}`);
+      renderChart(prior, posterior);
     }
   })
   .catch(error => {
     showResult('Fetch error: ' + error);
   });
+}
+
+function renderChart(prior, posterior) {
+  const canvas = document.getElementById('probChart');
+    if (!canvas) return;
+
+    const ctx = document.getElementById('probChart').getContext('2d');
+
+    if (window.probChart && typeof window.probChart.destroy === 'function') {
+        window.probChart.destroy();
+    }
+
+    window.probChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Prior Probability', 'Posterior Probability'],
+            datasets: [{
+                label: 'Probability (%)',
+                data: [prior * 100, posterior * 100],
+                backgroundColor: ['#60a5fa', '#34d399']
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
 }
 
 // Attach reset logic after page loads
