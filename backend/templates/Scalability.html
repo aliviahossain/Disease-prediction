@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scalability & Future Scope - Disease Probability Project</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='scalability.css') }}" />
+</head>
+<body>
+  <!-- Full-width Navbar -->
+  <nav>
+    <a href="/">Home</a>
+    <a href="/scalability">Scalability</a>
+  </nav>
+
+  <div class="container">
+    <h1>Future Scalability & Scope of Disease Probability Project</h1>
+
+    <section>
+      <h2>1. Introduction</h2>
+      <p>
+        The <strong>Disease Probability Project</strong> is a Bayesian post-test probability calculator designed to estimate the likelihood of survival for a disease based on historical hospital data.
+        It demonstrates the practical application of <strong>Bayes’ Theorem</strong>, providing an educational and interactive experience for understanding probabilistic reasoning in clinical contexts.
+      </p>
+      <p>
+        Currently, the tool supports a <strong>single diagnostic test</strong> input and calculates the posterior probability of survival. While functional as an educational resource, the project has substantial <strong>potential for functional and technical scalability</strong>.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. Functional Scalability</h2>
+
+      <h3>2.1 Multi-Test and Multi-Symptom Integration</h3>
+      <p><strong>What:</strong></p>
+      <ul>
+        <li>Handle multiple diagnostic tests simultaneously, accounting for interactions.</li>
+        <li>Incorporate symptom-based inputs for holistic patient assessment.</li>
+      </ul>
+      <p><strong>How:</strong></p>
+      <ul>
+        <li>Expand <code>calculator.py</code> to compute joint probabilities using Bayesian networks.</li>
+        <li>Update the frontend with dynamic forms to accept multiple tests and symptoms.</li>
+        <li>Introduce weighting mechanisms for clinical relevance.</li>
+      </ul>
+      <p><strong>Impact:</strong></p>
+      <ul>
+        <li>More realistic survival estimates accounting for multiple diagnostic factors.</li>
+        <li>Foundation for educational exercises in complex probabilistic reasoning.</li>
+      </ul>
+
+      <h3>2.2 Real-Time Hospital Data Integration</h3>
+      <p><strong>What:</strong></p>
+      <ul>
+        <li>Use live or regularly updated hospital datasets instead of static CSV files.</li>
+      </ul>
+      <p><strong>How:</strong></p>
+      <ul>
+        <li>Use a database backend (SQL/NoSQL) for large volumes of historical and live data.</li>
+        <li>Implement data pipelines to fetch, clean, and integrate new data automatically.</li>
+        <li>Track data changes with versioning for reproducibility.</li>
+      </ul>
+      <p><strong>Impact:</strong></p>
+      <ul>
+        <li>Up-to-date probability estimates.</li>
+        <li>Supports regional or hospital-specific datasets.</li>
+      </ul>
+
+      <h3>2.3 Educational and Analytical Features</h3>
+      <p><strong>What:</strong> Step-by-step explanations and visualizations of prior, likelihood, and posterior probabilities.</p>
+      <p><strong>How:</strong></p>
+      <ul>
+        <li>Integrate interactive charting libraries (Plotly, Chart.js, D3.js).</li>
+        <li>Include tooltips, collapsible sections, or guided walkthroughs.</li>
+      </ul>
+      <p><strong>Impact:</strong></p>
+      <ul>
+        <li>Valuable learning resource for students and researchers.</li>
+        <li>Improves comprehension through visual demonstration of Bayesian reasoning.</li>
+      </ul>
+
+      <h3>2.4 Multi-Language and Regional Support</h3>
+      <p><strong>What:</strong> Expand accessibility to multiple languages and regional prevalence data.</p>
+      <p><strong>How:</strong></p>
+      <ul>
+        <li>Implement i18n support in Flask templates and frontend components.</li>
+        <li>Allow dynamic selection of datasets based on geography or demographics.</li>
+      </ul>
+      <p><strong>Impact:</strong></p>
+      <ul>
+        <li>Enhances international educational reach.</li>
+        <li>Supports localized predictions for region-specific insights.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>3. Technical Scalability</h2>
+
+      <h3>3.1 Cloud Deployment & Multi-User Support</h3>
+      <ul>
+        <li>Deploy on cloud platforms using Docker and Kubernetes for automatic scaling.</li>
+        <li>Implement caching (Redis) to reduce repeated calculations.</li>
+        <li>Use load balancing to manage high traffic.</li>
+      </ul>
+
+      <h3>3.2 Modular Architecture</h3>
+      <ul>
+        <li>Separate core calculation logic, data processing, and frontend components.</li>
+        <li>Provide REST/GraphQL APIs for external programmatic access.</li>
+        <li>Allow plugin-based development for future features.</li>
+      </ul>
+
+      <h3>3.3 Machine Learning Integration</h3>
+      <ul>
+        <li>Train ML models to enhance predictive power beyond Bayes’ theorem.</li>
+        <li>Implement hybrid approaches where ML adjusts priors or likelihoods.</li>
+      </ul>
+
+      <h3>3.4 Security and Privacy</h3>
+      <ul>
+        <li>Encrypt data in transit and at rest.</li>
+        <li>Anonymize datasets to comply with HIPAA/GDPR.</li>
+        <li>Implement role-based access control for sensitive functions.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. Conclusion</h2>
+      <p>
+        The project can evolve from a single-test educational tool to a comprehensive multi-feature platform for clinical reasoning, healthcare analytics, and education.  
+        Functional expansions and technical improvements will allow it to serve a broader audience with realistic, data-driven probability calculations while remaining open-source and accessible.
+      </p>
+    </section>
+
+  </div>
+</body>
+</html>

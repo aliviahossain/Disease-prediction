@@ -7,4 +7,7 @@ def create_app():
     from backend.routes.disease_routes import disease_bp
     app.register_blueprint(disease_bp)
 
+    from backend.routes.scalability_routes import scalability_bp
+    app.register_blueprint(scalability_bp)
+
     return app
