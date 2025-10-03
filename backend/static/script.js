@@ -117,34 +117,43 @@ function calculateDisease() {
 
 function renderChart(prior, posterior) {
   const canvas = document.getElementById('probChart');
-    if (!canvas) return;
+  if (!canvas) return;
 
-    const ctx = document.getElementById('probChart').getContext('2d');
+  if (typeof prior !== 'number' || isNaN(prior) || typeof posterior !== 'number' || isNaN(posterior)) {
+      // Optionally, clear chart or show empty chart
+      if (window.probChart && typeof window.probChart.destroy === 'function') {
+          window.probChart.destroy();
+      }
+      return;
+  }
 
-    if (window.probChart && typeof window.probChart.destroy === 'function') {
-        window.probChart.destroy();
-    }
+  const ctx = document.getElementById('probChart').getContext('2d');
 
-    window.probChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Prior Probability', 'Posterior Probability'],
-            datasets: [{
-                label: 'Probability (%)',
-                data: [prior * 100, posterior * 100],
-                backgroundColor: ['#60a5fa', '#34d399']
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100
-                }
-            }
-        }
-    });
+  if (window.probChart && typeof window.probChart.destroy === 'function') {
+      window.probChart.destroy();
+  }
+
+  window.probChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+          labels: ['Prior Probability', 'Posterior Probability'],
+          datasets: [{
+              label: 'Probability (%)',
+              data: [prior * 100, posterior * 100],
+              backgroundColor: ['#60a5fa', '#34d399']
+          }]
+      },
+      options: {
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  max: 100
+              }
+          }
+      }
+  });
 }
+
 
 // Attach reset logic after page loads
 window.addEventListener("DOMContentLoaded", attachResetOnInput);
