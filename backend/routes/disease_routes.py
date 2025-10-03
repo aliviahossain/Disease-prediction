@@ -8,7 +8,7 @@ disease_bp = Blueprint("disease", __name__)
 
 @disease_bp.route("/")
 def home():
-    return render_template("index.html")
+    return render_template("main.html")
 
 
 @disease_bp.route("/preset", methods=["POST"])
@@ -28,8 +28,10 @@ def preset():
                     p_pos = (sensitivity * p_d) + (false_pos * (1 - p_d))
                     p_d_given_pos = bayesian_survival(p_d, sensitivity, false_pos)
 
+                    # FIXED: Added "prior" to the response for the chart
                     return jsonify({
-                        "p_d_given_pos": round(p_d_given_pos, 4)
+                        "p_d_given_pos": round(p_d_given_pos, 4),
+                        "prior": p_d 
                     })
 
         return jsonify({"error": "Disease not found"}), 404
@@ -78,7 +80,5 @@ def disease():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
-        @disease_bp.route("/scalability")
-        def scalability():
-         return render_template("scalability.html")
+        
 
