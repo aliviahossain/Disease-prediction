@@ -1,3 +1,4 @@
 flask
 pytest
 pytest-flask
+gunicorn
