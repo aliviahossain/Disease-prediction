@@ -51,13 +51,14 @@ def clean_data(df, strict=False):
 def add_posterior_column(df):
 
     df = df.copy()
-    df['posterior'] = (
-        df['sensitivity'] * df['prior']
-        / (
-            (df['sensitivity'] * df['prior'])
-            + ((1 - df['specificity']) * (1 - df['prior']))
-        )
-    ).fillna(0.0)
+
+    numerator = df['sensitivity'] * df['prior']
+    denominator = numerator + ((1 - df['specificity']) * (1 - df['prior']))
+
+    # Avoid division by zero: where denominator == 0, set posterior = 0
+    df['posterior'] = numerator / denominator
+    df.loc[denominator == 0, 'posterior'] = 0.0
+
     return df
 
 
