@@ -24,6 +24,7 @@ jobs:
             if curl -fs http://127.0.0.1:5000 > /dev/null; then
               echo "Server is up!"
               kill $server_pid
+              echo "No issues found!"
               exit 0
             fi
             echo "Waiting for server... (attempt $i/15)"
