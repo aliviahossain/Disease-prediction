@@ -1,0 +1,38 @@
+name: CI
+on: [push,pull_request]
+jobs:
+  CI_HEALTH_CHECK:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5.0.0
+        with:
+          path: .
+      - name: Setting Python
+        uses: actions/setup-python@v6.0.0
+        with:
+          python-version: 3.12
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run and check
+        run:  |
+          python run.py > server.log 2>&1 &
+          server_pid=$!
+          echo "Server started with PID: $server_pid"
+          
+          for i in {1..15}; do
+            if curl -fs http://127.0.0.1:5000 > /dev/null; then
+              echo "Server is up!"
+              kill $server_pid
+              echo "No issues found!"
+              exit 0
+            fi
+            echo "Waiting for server... (attempt $i/15)"
+            sleep 2
+          done
+          
+          echo "Server failed to start. Printing logs:"
+          cat server.log
+          kill $server_pid
+          exit 1
+      
