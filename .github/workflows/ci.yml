@@ -1,4 +1,4 @@
-name: Disease-Prediction
+name: CI
 on: [push,pull_request]
 jobs:
   CI_HEALTH_CHECK:
