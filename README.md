@@ -133,17 +133,30 @@ For a detailed, beginner-friendly explanation of what each file does, please rea
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/your-username/Disease-prediction.git
-cd Probability-Calculator
+cd Disease-prediction
+```
+
+### (Optional) Create and activate a virtual environment
+It's recommended to use a virtual environment to keep dependencies isolated.
+
+- On Windows (PowerShell):
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+```
+- On macOS / Linux:
+```bash
+python3 -m venv venv
+source venv/bin/activate
 ```
 
 ### 2. Install Requirements
 ```bash
 pip install -r requirements.txt
 ```
-
 ### 3. Run the App
 ```bash
-python app.py
+python run.py
 ```
 
 ### 4. Open in Browser
