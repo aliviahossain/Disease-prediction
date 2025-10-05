@@ -10,20 +10,23 @@
     <!-- Section 1: Use Existing Data -->
     <div class="col-lg-6 col-md-12">
         <div class="card h-100 shadow-sm card-hover">
-            <div class="card-body p-4">
+            <div class="card-body d-flex flex-column p-4">
                 <h2 class="card-title h4 text-center mb-4">Use Pre-loaded Hospital Data</h2>
                 <div class="mb-3">
-                    <label for="diseaseSelect" class="form-label">Select Disease or Choose one:</label>
-                    <select id="diseaseSelect" class="form-select form-select-lg">
+                    <label for="diseaseSelect" class="form-label">Select Disease :</label>
+                    <select id="diseaseSelect" class="form-select form-select-lg"
+                        data-placeholder="Select disease from Hospital Data...">
+                        <option value="" disabled selected></option>
                         {% for disease in diseases %}
                         <option value="{{ disease }}">{{ disease }}</option>
                         {% endfor %}
                     </select>
-
-
                 </div>
-                <div class="d-grid">
-                    <button type="button" class="btn btn-primary btn-lg" onclick="usePreset()">Calculate with Sample Data</button>
+
+
+                <div class="d-grid mt-auto text-center ">
+                    <button type="button" class="btn btn-primary btn-lg" onclick="usePreset()">Calculate with Sample
+                        Data</button>
                 </div>
             </div>
         </div>
@@ -36,18 +39,22 @@
                 <h2 class="card-title h4 text-center mb-4">Enter Custom Disease Data</h2>
                 <div class="mb-3">
                     <label for="pD" class="form-label">Prior Probability of Disease - P(D)</label>
-                    <input type="number" id="pD" class="form-control form-control-lg" step="0.01" min="0" max="1" placeholder="e.g., 0.01">
+                    <input type="number" id="pD" class="form-control form-control-lg" step="0.01" min="0" max="1"
+                        placeholder="e.g., 0.01">
                 </div>
                 <div class="mb-3">
                     <label for="sensitivity" class="form-label">Test Sensitivity - P(Pos | D)</label>
-                    <input type="number" id="sensitivity" class="form-control form-control-lg" step="0.01" min="0" max="1" placeholder="e.g., 0.99">
+                    <input type="number" id="sensitivity" class="form-control form-control-lg" step="0.01" min="0"
+                        max="1" placeholder="e.g., 0.99">
                 </div>
                 <div class="mb-3">
                     <label for="falsePositive" class="form-label">False Positive Rate - P(Pos | No D)</label>
-                    <input type="number" id="falsePositive" class="form-control form-control-lg" step="0.01" min="0" max="1" placeholder="e.g., 0.05">
+                    <input type="number" id="falsePositive" class="form-control form-control-lg" step="0.01" min="0"
+                        max="1" placeholder="e.g., 0.05">
                 </div>
                 <div class="d-grid">
-                    <button type="button" class="btn btn-success btn-lg" onclick="calculateDisease()">Calculate Probability</button>
+                    <button type="button" class="btn btn-success btn-lg" onclick="calculateDisease()">Calculate
+                        Probability</button>
                 </div>
             </div>
         </div>
@@ -70,17 +77,30 @@
 </div>
 
 
-
 <script>
-$(document).ready(function() {
-    $('#diseaseSelect').select2({
-        placeholder: "Type to search disease...",
+    $(document).ready(function () {
+    const diseaseSelect = $('#diseaseSelect').select2({
         width: '100%',
-        allowClear: true
+        allowClear: true,
+        dropdownAutoWidth: true,
+        placeholder: $('#diseaseSelect').data('placeholder') // ← now reads HTML
+    });
+
+    // Autofocus search field when open
+    $(document).on('select2:open', function () {
+        let searchField = document.querySelector('.select2-container--open .select2-search__field');
+        if (searchField) {
+            searchField.focus();
+        }
     });
 });
+
 </script>
+
+
 
 <!-- IMPORTANT: Add Chart.js library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
 {% endblock %}
