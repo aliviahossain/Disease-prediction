@@ -8,7 +8,17 @@ disease_bp = Blueprint("disease", __name__)
 
 @disease_bp.route("/")
 def home():
-    return render_template("main.html")
+    # Read all diseases from CSV
+    csv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "hospital_data.csv")
+    diseases = []
+    try:
+        with open(csv_path, newline="") as csvfile:
+            reader = csv.DictReader(csvfile)
+            diseases = [row["Disease"] for row in reader]
+    except Exception as e:
+        print("Error loading diseases:", e)
+
+    return render_template("main.html", diseases=diseases)
 
 
 @disease_bp.route("/preset", methods=["POST"])

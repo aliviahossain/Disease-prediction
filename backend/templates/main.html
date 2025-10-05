@@ -13,13 +13,14 @@
             <div class="card-body p-4">
                 <h2 class="card-title h4 text-center mb-4">Use Pre-loaded Hospital Data</h2>
                 <div class="mb-3">
-                    <label for="diseaseSelect" class="form-label">Select Disease:</label>
+                    <label for="diseaseSelect" class="form-label">Select Disease or Choose one:</label>
                     <select id="diseaseSelect" class="form-select form-select-lg">
-                        <option value="" selected>-- Select a disease --</option>
-                        <option value="Influenza">Influenza</option>
-                        <option value="COVID-19">COVID-19</option>
-                        <option value="Malaria">Malaria</option>
+                        {% for disease in diseases %}
+                        <option value="{{ disease }}">{{ disease }}</option>
+                        {% endfor %}
                     </select>
+
+
                 </div>
                 <div class="d-grid">
                     <button type="button" class="btn btn-primary btn-lg" onclick="usePreset()">Calculate with Sample Data</button>
@@ -67,6 +68,18 @@
         </div>
     </div>
 </div>
+
+
+
+<script>
+$(document).ready(function() {
+    $('#diseaseSelect').select2({
+        placeholder: "Type to search disease...",
+        width: '100%',
+        allowClear: true
+    });
+});
+</script>
 
 <!-- IMPORTANT: Add Chart.js library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

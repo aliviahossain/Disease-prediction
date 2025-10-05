@@ -202,3 +202,23 @@ function renderChart(prior, posterior) {
 
 // Attach reset logic after page loads
 window.addEventListener("DOMContentLoaded", attachResetOnInput);
+
+$('#diseaseSelect').select2({
+    placeholder: "Type to search disease...",
+    width: '100%',
+    allowClear: true,
+    dropdownParent: $('#diseaseSelect').parent(),
+}).on('select2:open', function() {
+    // Use a timeout to ensure the search field is fully rendered
+    setTimeout(function() {
+        // Find the search field inside the currently open dropdown
+        const searchField = $('.select2-container--open .select2-search__field');
+
+        // Set the placeholder text for the search box
+        searchField.attr('placeholder', 'Type here to search...');
+
+        // Set focus to place the cursor in the search box
+        searchField.focus();
+        
+    }, 50); // A 50ms delay for reliability
+});
