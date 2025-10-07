@@ -78,8 +78,10 @@ def disease():
             numerator = (1 - sensitivity) * p_d
             denominator = numerator + specificity * (1 - p_d)
 
-        if denominator == 0:
-            raise ValueError("Inputs lead to an undefined calculation (division by zero).")
+        if denominator == 0:##in case the denomintor comes out tb be 0.
+            return jsonify({
+                "error": "Calculation error: Division by zero. Please check your input values."
+            }), 400
 
         p_d_given_result = numerator / denominator
 
@@ -90,5 +92,5 @@ def disease():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
-        
+
 

@@ -52,6 +52,13 @@
                     <input type="number" id="falsePositive" class="form-control form-control-lg" step="0.01" min="0"
                         max="1" placeholder="e.g., 0.05">
                 </div>
+                <div class="mb-3">
+                    <label for="testResult" class="form-label">Test Result</label>
+                    <select id="testResult" class="form-select form-select-lg">
+                        <option value="positive" selected>Positive</option>
+                        <option value="negative">Negative</option>
+                    </select>
+                </div>
                 <div class="d-grid">
                     <button type="button" class="btn btn-success btn-lg" onclick="calculateDisease()">Calculate
                         Probability</button>
