@@ -126,6 +126,7 @@ function calculateDisease() {
   const pDInput = document.getElementById('pD');
   const sensInput = document.getElementById('sensitivity');
   const fpInput = document.getElementById('falsePositive');
+  const testResultInput = document.getElementById('testResult');
 
   const validP = validateInput(pDInput);
   const validSens = validateInput(sensInput);
@@ -139,7 +140,8 @@ function calculateDisease() {
     body: JSON.stringify({
       pD: parseFloat(pDInput.value),
       sensitivity: parseFloat(sensInput.value),
-      falsePositive: parseFloat(fpInput.value)
+      falsePositive: parseFloat(fpInput.value),
+      testResult: testResultInput.value
     })
   })
   .then(response => response.json())
@@ -148,11 +150,11 @@ function calculateDisease() {
       showResult('Error: ' + data.error);
     } else {
       console.log("-----------------------------------------------------------------------");
-      console.log(`++++++++++++++  Probability of disease given positive test: ${data.p_d_given_result}`);
+      console.log(`Probability of disease given ${data.test_result} test: ${data.p_d_given_result}`);
       console.log("-----------------------------------------------------------------------");
-      showResult(`Probability of disease given positive test: ${data.p_d_given_result}`);
+      showResult(`Probability of disease given ${data.test_result} test: ${data.p_d_given_result}`);
       const prior = parseFloat(pDInput.value);
-        renderProbabilityChart(prior, data.p_d_given_result);
+      renderProbabilityChart(prior, data.p_d_given_result);
     }
   })
   .catch(error => {
