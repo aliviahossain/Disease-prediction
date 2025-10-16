@@ -16,6 +16,12 @@ Use Bayes' Theorem to:
 
 ---
 
+## 📌 Render Link
+
+https://disease-prediction-dbgi.onrender.com/
+
+---
+
 ## What this project does
 
 This project is a **Bayesian post-test probability calculator** for diagnostic tests.  
