@@ -1,202 +1,183 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Glossary / Help Section</title>
-  <style>
-    /* Clean white modern theme */
-    body {
-      font-family: "Poppins", sans-serif;
-      background-color: #f8fafc;
-      color: #1e293b;
-      margin: 0;
-      line-height: 1.6;
-    }
+{% extends "base.html" %}
+{% block title %}Glossary / Help Section{% endblock %}
 
-    /* Hero Section */
-    .hero {
-      text-align: center;
-      background: #2F3E4F;
-      padding: 2rem 1rem;
+{% block content %}
+<style>
+  /* Clean white modern theme */
+  body {
+    font-family: "Poppins", sans-serif;
+    background-color: #f8fafc;
+    color: #1e293b;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  /* Hero Section */
+  .hero {
+    text-align: center;
+    background: #2F3E4F;
+    padding: 2rem 1rem;
+  }
+  .hero h1 {
+    font-size: 2rem;
+    color: white;
+    margin-bottom: 0.5rem;
+  }
+  .hero p {
+    color: #e2e8f0;
+    margin: 0;
+  }
+
+  /* FAQ Section */
+  .faq-container {
+    max-width: 900px;
+    margin: 3rem auto;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  .faq {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1.2rem 0;
+    transition: background 0.3s;
+  }
+
+  .faq:hover {
+    background-color: #f9fafb;
+  }
+
+  .faq:last-child {
+    border-bottom: none;
+  }
+
+  .faq-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #0f172a;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: color 0.3s;
+  }
+
+  .faq-title:hover {
+    color: #2F3E4F;
+  }
+
+  .faq-icon {
+    font-weight: bold;
+    font-size: 1.4rem;
+    color: #2F3E4F;
+    margin-left: 10px;
+    transition: transform 0.3s ease;
+  }
+
+  .faq-text {
+    max-height: 0;
+    overflow: hidden;
+    color: #475569;
+    margin-top: 0;
+    line-height: 1.6;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
+    opacity: 0;
+  }
+
+  .faq.active .faq-text {
+    max-height: 300px;
+    opacity: 1;
+    margin-top: 0.8rem;
+  }
+
+  .faq.active .faq-icon {
+    transform: rotate(45deg);
+  }
+
+  .faq a {
+    color: #0ea5e9;
+    text-decoration: none;
+  }
+
+  .faq a:hover {
+    text-decoration: underline;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .faq-container {
+      margin: 2rem 1rem;
+      padding: 1.5rem;
     }
     .hero h1 {
-      font-size: 2rem;
-      color: white;
-      margin-bottom: 0.5rem;
+      font-size: 1.6rem;
     }
-    .hero p {
-      color: #e2e8f0;
-      margin: 0;
-    }
+  }
+</style>
 
-    /* FAQ Section */
-    .faq-container {
-      max-width: 900px;
-      margin: 3rem auto;
-      background: #ffffff;
-      border-radius: 12px;
-      padding: 2rem;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-    }
+<!-- Hero -->
+<section class="hero">
+  <h1>Glossary / Help Section</h1>
+  <p>Understand the key terms used in probability and diagnostic calculations.</p>
+</section>
 
-    .faq {
-      border-bottom: 1px solid #e2e8f0;
-      padding: 1.2rem 0;
-      transition: background 0.3s;
-    }
+<!-- FAQ / Glossary Section -->
+<section class="faq-container">
+  <div class="faq">
+    <h3 class="faq-title">What is Prior Probability?<span class="faq-icon">+</span></h3>
+    <p class="faq-text">
+      It’s the probability of a condition or event before new evidence (like a test result) is considered.
+      For example, the chance someone has a disease before any medical test.
+      <a href="https://en.wikipedia.org/wiki/Prior_probability" target="_blank">Learn more →</a>
+    </p>
+  </div>
 
-    .faq:hover {
-      background-color: #f9fafb;
-    }
+  <div class="faq">
+    <h3 class="faq-title">What is Sensitivity?<span class="faq-icon">+</span></h3>
+    <p class="faq-text">
+      Sensitivity measures how well a test identifies true positives.
+      A test with 95% sensitivity correctly detects 95 out of 100 people who have the disease.
+      <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" target="_blank">Learn more →</a>
+    </p>
+  </div>
 
-    .faq:last-child {
-      border-bottom: none;
-    }
+  <div class="faq">
+    <h3 class="faq-title">What is Specificity?<span class="faq-icon">+</span></h3>
+    <p class="faq-text">
+      Specificity measures how well a test identifies true negatives.
+      A 90% specific test correctly clears 90 out of 100 healthy people.
+      <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" target="_blank">Learn more →</a>
+    </p>
+  </div>
 
-    .faq-title {
-      margin: 0;
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #0f172a;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: color 0.3s;
-    }
+  <div class="faq">
+    <h3 class="faq-title">What is False Positive Rate?<span class="faq-icon">+</span></h3>
+    <p class="faq-text">
+      It’s the percentage of people incorrectly marked as positive when they are actually negative.
+      Calculated as (1 - Specificity).
+      <a href="https://en.wikipedia.org/wiki/False_positive_rate" target="_blank">Learn more →</a>
+    </p>
+  </div>
 
-    .faq-title:hover {
-      color: #2F3E4F;
-    }
+  <div class="faq">
+    <h3 class="faq-title">What is Posterior Probability?<span class="faq-icon">+</span></h3>
+    <p class="faq-text">
+      The updated probability of a condition after considering new evidence, like test results.
+      It’s calculated using Bayes’ theorem.
+      <a href="https://en.wikipedia.org/wiki/Posterior_probability" target="_blank">Learn more →</a>
+    </p>
+  </div>
+</section>
 
-    .faq-icon {
-      font-weight: bold;
-      font-size: 1.4rem;
-      color: #2F3E4F;
-      margin-left: 10px;
-      transition: transform 0.3s ease;
-    }
-
-    .faq-text {
-      max-height: 0;
-      overflow: hidden;
-      color: #475569;
-      margin-top: 0;
-      line-height: 1.6;
-      transition: max-height 0.4s ease, opacity 0.3s ease;
-      opacity: 0;
-    }
-
-    .faq.active .faq-text {
-      max-height: 300px;
-      opacity: 1;
-      margin-top: 0.8rem;
-    }
-
-    .faq.active .faq-icon {
-      transform: rotate(45deg);
-    }
-
-    .faq a {
-      color: #0ea5e9;
-      text-decoration: none;
-    }
-
-    .faq a:hover {
-      text-decoration: underline;
-    }
-
-    /* Footer */
-    footer {
-      text-align: center;
-      padding: 1.5rem;
-      color: white;
-      background: #2F3E4F;
-      border-top: 1px solid #e2e8f0;
-      font-size: 0.9rem;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      .faq-container {
-        margin: 2rem 1rem;
-        padding: 1.5rem;
-      }
-      .hero h1 {
-        font-size: 1.6rem;
-      }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Hero -->
-  <section class="hero">
-    <h1>Glossary / Help Section</h1>
-    <p>Understand the key terms used in probability and diagnostic calculations.</p>
-  </section>
-
-  <!-- FAQ / Glossary Section -->
-  <section class="faq-container">
-    <div class="faq">
-      <h3 class="faq-title">What is Prior Probability?<span class="faq-icon">+</span></h3>
-      <p class="faq-text">
-        It’s the probability of a condition or event before new evidence (like a test result) is considered.
-        For example, the chance someone has a disease before any medical test.
-        <a href="https://en.wikipedia.org/wiki/Prior_probability" target="_blank">Learn more →</a>
-      </p>
-    </div>
-
-    <div class="faq">
-      <h3 class="faq-title">What is Sensitivity?<span class="faq-icon">+</span></h3>
-      <p class="faq-text">
-        Sensitivity measures how well a test identifies true positives.
-        A test with 95% sensitivity correctly detects 95 out of 100 people who have the disease.
-        <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" target="_blank">Learn more →</a>
-      </p>
-    </div>
-
-    <div class="faq">
-      <h3 class="faq-title">What is Specificity?<span class="faq-icon">+</span></h3>
-      <p class="faq-text">
-        Specificity measures how well a test identifies true negatives.
-        A 90% specific test correctly clears 90 out of 100 healthy people.
-        <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" target="_blank">Learn more →</a>
-      </p>
-    </div>
-
-    <div class="faq">
-      <h3 class="faq-title">What is False Positive Rate?<span class="faq-icon">+</span></h3>
-      <p class="faq-text">
-        It’s the percentage of people incorrectly marked as positive when they are actually negative.
-        Calculated as (1 - Specificity).
-        <a href="https://en.wikipedia.org/wiki/False_positive_rate" target="_blank">Learn more →</a>
-      </p>
-    </div>
-
-    <div class="faq">
-      <h3 class="faq-title">What is Posterior Probability?<span class="faq-icon">+</span></h3>
-      <p class="faq-text">
-        The updated probability of a condition after considering new evidence, like test results.
-        It’s calculated using Bayes’ theorem.
-        <a href="https://en.wikipedia.org/wiki/Posterior_probability" target="_blank">Learn more →</a>
-      </p>
-    </div>
-  </section>
-
-  <footer>
-    <p>© 2025 Disease Prediction | An Open Source Project</p>
-  </footer>
-
-  <script>
-    // Accordion toggle with smooth expand/collapse
-    document.querySelectorAll(".faq-title").forEach((title) => {
-      title.addEventListener("click", () => {
-        const faq = title.parentElement;
-        faq.classList.toggle("active");
-      });
+<script>
+  // Accordion toggle with smooth expand/collapse
+  document.querySelectorAll(".faq-title").forEach((title) => {
+    title.addEventListener("click", () => {
+      const faq = title.parentElement;
+      faq.classList.toggle("active");
     });
-  </script>
-</body>
-</html>
+  });
+</script>
+{% endblock %}
