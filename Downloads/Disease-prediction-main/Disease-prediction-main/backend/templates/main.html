@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center mb-5 animate-fade-in">
+    <h1 class="display-5 fw-bold">Disease Probability Calculator</h1>
+    <p class="lead text-muted">Leveraging Bayes' Theorem for accurate diagnostic insights.</p>
+</div>
+
+<div class="row g-4 justify-content-center">
+    <!-- Section 1: Use Existing Data -->
+    <div class="col-lg-6 col-md-12">
+        <div class="card h-100 shadow-sm card-hover">
+            <div class="card-body d-flex flex-column p-4">
+                <h2 class="card-title h4 text-center mb-4">Use Pre-loaded Hospital Data</h2>
+                <div class="mb-3">
+                    <label for="diseaseSelect" class="form-label">Select Disease :</label>
+                    <select id="diseaseSelect" class="form-select form-select-lg"
+                        data-placeholder="Select disease from Hospital Data...">
+                        <option value="" disabled selected></option>
+                        {% for disease in diseases %}
+                        <option value="{{ disease }}">{{ disease }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+
+                <div class="d-grid mt-auto text-center ">
+                    <button type="button" class="btn btn-primary btn-lg" onclick="usePreset()">Calculate with Sample
+                        Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Enter New Data -->
+    <div class="col-lg-6 col-md-12">
+        <div class="card h-100 shadow-sm card-hover">
+            <div class="card-body p-4">
+                <h2 class="card-title h4 text-center mb-4">Enter Custom Disease Data</h2>
+                <div class="mb-3">
+                    <label for="pD" class="form-label">Prior Probability of Disease - P(D)</label>
+                    <input type="number" id="pD" class="form-control form-control-lg" step="0.01" min="0" max="1"
+                        placeholder="e.g., 0.01">
+                </div>
+                <div class="mb-3">
+                    <label for="sensitivity" class="form-label">Test Sensitivity - P(Pos | D)</label>
+                    <input type="number" id="sensitivity" class="form-control form-control-lg" step="0.01" min="0"
+                        max="1" placeholder="e.g., 0.99">
+                </div>
+                <div class="mb-3">
+                    <label for="falsePositive" class="form-label">False Positive Rate - P(Pos | No D)</label>
+                    <input type="number" id="falsePositive" class="form-control form-control-lg" step="0.01" min="0"
+                        max="1" placeholder="e.g., 0.05">
+                </div>
+                <div class="mb-3">
+                    <label for="testResult" class="form-label">Test Result</label>
+                    <select id="testResult" class="form-select form-select-lg">
+                        <option value="positive" selected>Positive</option>
+                        <option value="negative">Negative</option>
+                    </select>
+                </div>
+                <div class="d-grid">
+                    <button type="button" class="btn btn-success btn-lg" onclick="calculateDisease()">Calculate
+                        Probability</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Result Display Area -->
+<div id="result" class="alert alert-success fs-4 mt-5 p-4 text-center shadow-lg " role="alert">
+    <!-- Result will be injected here by script.js -->
+</div>
+
+<!-- NEW: Chart Display Area -->
+<div id="chartContainer" class="card shadow-lg mt-4" style="display: none;">
+    <div class="card-body p-4">
+        <h3 class="card-title text-center mb-3">Probability Comparison</h3>
+        <div class="chart-wrapper" style="height: 300px;">
+            <canvas id="probabilityChartCanvas"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- AI Recommendations Section -->
+<div id="recommendationsContainer" class="card shadow-lg mt-4" style="display: none;">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap">
+            <h3 class="card-title mb-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2" style="display: inline-block; vertical-align: middle;">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+                AI-Powered Recommendations
+            </h3>
+            <div class="d-flex gap-2 align-items-center">
+                <select id="languageSelect" class="form-select form-select-sm" style="width: auto; min-width: 150px;">
+                    <option value="english" selected>🇬🇧 English</option>
+                    <option value="hindi">🇮🇳 हिंदी (Hindi)</option>
+                    <option value="gujarati">🇮🇳 ગુજરાતી (Gujarati)</option>
+                    <option value="tamil">🇮🇳 தமிழ் (Tamil)</option>
+                </select>
+                <button class="btn btn-sm btn-outline-primary" id="getRecommendationsBtn" onclick="getAIRecommendations()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Get Recommendations
+                </button>
+            </div>
+        </div>
+        
+        <div id="recommendationsLoading" class="text-center py-4" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">Generating AI recommendations...</p>
+        </div>
+        
+        <div id="recommendationsContent" class="recommendations-text" style="display: none;">
+            <!-- AI recommendations will be inserted here -->
+        </div>
+        
+        <div class="alert alert-info mt-3 mb-0" id="recommendationsDisclaimer" style="display: none;">
+            <small>
+                <strong>Note:</strong> These recommendations are generated by AI for educational purposes only. 
+                Always consult with healthcare professionals for medical advice.
+            </small>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+    const diseaseSelect = $('#diseaseSelect').select2({
+        width: '100%',
+        allowClear: true,
+        dropdownAutoWidth: true,
+        placeholder: $('#diseaseSelect').data('placeholder') // ← now reads HTML
+    });
+
+    // Autofocus search field when open
+    $(document).on('select2:open', function () {
+        let searchField = document.querySelector('.select2-container--open .select2-search__field');
+        if (searchField) {
+            searchField.focus();
+        }
+    });
+});
+
+</script>
+
+
+
+<!-- IMPORTANT: Add Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+{% endblock %}

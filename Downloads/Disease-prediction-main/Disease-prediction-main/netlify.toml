@@ -1,0 +1,9 @@
+# This site redirects to the Render deployment
+# Flask applications cannot run as Netlify serverless functions
+# Python is not supported - only TypeScript, JavaScript, and Go
+
+[[redirects]]
+  from = "/*"
+  to = "https://disease-prediction-dbgi.onrender.com/:splat"
+  status = 200
+  force = true
