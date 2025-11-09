@@ -1,0 +1,98 @@
+Disease,Prevalence,Sensitivity,FalsePositive
+Influenza,0.05,0.9,0.1
+COVID-19,0.02,0.95,0.02
+Malaria,0.1,0.88,0.05
+Diabetes Type 2,0.09,0.85,0.08
+Hypertension,0.32,0.78,0.12
+Breast Cancer,0.003,0.91,0.06
+Lung Cancer,0.0015,0.87,0.04
+Colorectal Cancer,0.004,0.89,0.07
+Prostate Cancer,0.002,0.88,0.08
+Heart Disease,0.07,0.82,0.09
+Stroke,0.025,0.79,0.11
+Pneumonia,0.08,0.92,0.05
+Tuberculosis,0.001,0.94,0.03
+Hepatitis B,0.003,0.96,0.02
+Hepatitis C,0.002,0.95,0.03
+HIV/AIDS,0.001,0.99,0.01
+Alzheimer's Disease,0.011,0.76,0.14
+Parkinson's Disease,0.002,0.73,0.16
+Multiple Sclerosis,0.0009,0.84,0.12
+Epilepsy,0.006,0.86,0.09
+Asthma,0.08,0.89,0.07
+Chronic Obstructive Pulmonary Disease,0.06,0.81,0.13
+Kidney Disease,0.037,0.83,0.10
+Liver Disease,0.003,0.87,0.06
+Osteoarthritis,0.22,0.74,0.18
+Rheumatoid Arthritis,0.008,0.79,0.15
+Osteoporosis,0.19,0.72,0.20
+Migraine,0.14,0.85,0.08
+Depression,0.17,0.81,0.12
+Anxiety Disorder,0.18,0.78,0.14
+Bipolar Disorder,0.026,0.76,0.16
+Schizophrenia,0.007,0.82,0.11
+Celiac Disease,0.01,0.93,0.04
+Crohn's Disease,0.0015,0.88,0.07
+Ulcerative Colitis,0.0012,0.86,0.08
+Gout,0.038,0.91,0.05
+Psoriasis,0.025,0.89,0.06
+Lupus,0.001,0.85,0.09
+Fibromyalgia,0.02,0.71,0.21
+Iron Deficiency Anemia,0.15,0.92,0.04
+Vitamin D Deficiency,0.42,0.88,0.08
+Hypothyroidism,0.05,0.94,0.03
+Hyperthyroidism,0.012,0.91,0.05
+Adrenal Insufficiency,0.0008,0.87,0.07
+Pituitary Disorders,0.0005,0.83,0.09
+Glaucoma,0.031,0.86,0.08
+Cataracts,0.17,0.94,0.03
+Macular Degeneration,0.08,0.89,0.06
+Hearing Loss,0.15,0.91,0.05
+Tinnitus,0.14,0.78,0.15
+Sleep Apnea,0.26,0.84,0.09
+Insomnia,0.30,0.73,0.18
+Gastroesophageal Reflux Disease,0.20,0.85,0.08
+Irritable Bowel Syndrome,0.11,0.72,0.19
+Gallstones,0.10,0.93,0.04
+Kidney Stones,0.11,0.89,0.06
+Urinary Tract Infection,0.13,0.94,0.03
+Benign Prostatic Hyperplasia,0.25,0.87,0.07
+Endometriosis,0.10,0.82,0.11
+Polycystic Ovary Syndrome,0.06,0.79,0.13
+Preeclampsia,0.05,0.91,0.06
+Gestational Diabetes,0.06,0.93,0.04
+Myocardial Infarction,0.008,0.95,0.03
+Atrial Fibrillation,0.04,0.88,0.08
+Heart Failure,0.02,0.84,0.10
+Peripheral Artery Disease,0.06,0.82,0.12
+Deep Vein Thrombosis,0.001,0.96,0.02
+Pulmonary Embolism,0.0005,0.94,0.04
+Sepsis,0.003,0.89,0.07
+Meningitis,0.0001,0.97,0.02
+Encephalitis,0.00005,0.92,0.04
+Appendicitis,0.007,0.93,0.05
+Cholecystitis,0.003,0.91,0.06
+Pancreatitis,0.002,0.88,0.08
+Gastritis,0.08,0.85,0.09
+Peptic Ulcer,0.015,0.87,0.07
+Diverticulitis,0.035,0.89,0.06
+Hemorrhoids,0.40,0.91,0.04
+Hernia,0.03,0.94,0.03
+Fracture,0.05,0.96,0.02
+Spinal Stenosis,0.09,0.83,0.11
+Herniated Disc,0.02,0.86,0.08
+Scoliosis,0.03,0.91,0.05
+Tendonitis,0.08,0.87,0.07
+Bursitis,0.04,0.84,0.10
+Carpal Tunnel Syndrome,0.035,0.89,0.06
+Plantar Fasciitis,0.10,0.92,0.04
+Shingles,0.03,0.95,0.03
+Herpes Simplex,0.12,0.94,0.04
+Chickenpox,0.005,0.98,0.01
+Measles,0.001,0.97,0.02
+Mumps,0.0005,0.95,0.03
+Rubella,0.0003,0.96,0.02
+Whooping Cough,0.0008,0.93,0.04
+Diptheria,0.0001,0.97,0.02
+Tetanus,0.00005,0.98,0.01
+Polio,0.00001,0.99,0.01

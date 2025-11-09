@@ -1,0 +1,345 @@
+# Disease-prediction
+A probability calculator using Baye's Theorem to estimate survival chances of a disease based on past hospital data.
+
+# 🧮 Disease prediction
+
+A project that applies **Bayes' Theorem** to estimate the **percentage chance of survival** from a disease using historical hospital data. Designed to help understand real-world applications of Bayesian probability in medical diagnosis and survival prediction.
+
+---
+
+## 📌 Project Goal
+
+Use Bayes' Theorem to:
+- Calculate updated probabilities of survival based on prior knowledge and test results
+- Demonstrate how probabilistic reasoning can be applied to healthcare analytics
+- Provide an open-source tool for learning, research, or further development
+
+---
+
+## 📌 Render Link
+
+https://disease-prediction-dbgi.onrender.com/
+
+---
+
+## What this project does
+
+This project is a **Bayesian post-test probability calculator** for diagnostic tests.  
+It demonstrates how Bayes’ theorem updates the probability of disease once you know a test result.
+
+It is **not** a lifetime disease risk predictor or a survival model.  
+Instead, it focuses on a fundamental clinical reasoning process:
+
+> “How much more (or less) likely is this disease after seeing the test result?”
+
+---
+
+## How it works
+
+Given:
+- **Prior probability** – baseline chance of having the disease (e.g., prevalence or pre-test clinical suspicion)
+- **Test sensitivity** – P(test positive | disease present)
+- **Test specificity** – P(test negative | disease absent)
+- **Observed test result** – either “positive” or “negative”
+
+The calculator applies **Bayes’ theorem** to compute the **posterior probability**:
+the updated probability that the patient has the disease *given the test result*.
+
+---
+
+## Why this matters
+
+Diagnostic tests don’t provide certainty — they **shift probabilities**.  
+This tool makes that reasoning explicit and transparent.
+
+It can be useful as:
+- An **educational resource** for medical students and data scientists learning Bayes’ theorem
+- A **demo app** for understanding how diagnostic tests affect decision-making
+- A foundation to expand toward multi-feature or longitudinal models later
+
+---
+
+## 💡 What is Bayes' Theorem?
+
+Bayes' Theorem describes the probability of an event, based on prior knowledge of conditions related to the event. In medical terms, it helps in refining the **probability of survival or disease detection** after new data (like a test result) is observed.
+
+> **Formula:**
+
+```
+P(A|B) = [P(B|A) * P(A)] / [P(B|A) * P(A) + P(B|¬A) * P(¬A)]
+```
+
+Where:
+- **P(A)** = Prior probability (e.g., survival rate)
+- **P(B|A)** = Probability of a positive test given survival
+- **P(B|¬A)** = Probability of a positive test given no survival (false positive)
+- **P(A|B)** = Updated probability (posterior) of survival after test
+
+---
+
+## 🛠️ Features
+
+- 🧠 Implements Bayesian inference with custom inputs
+- 📊 Accepts and processes CSV-based hospital data
+- 🤖 **NEW!** AI-powered recommendations using Google Gemini API
+- 🌐 **NEW!** Multi-language support (English, Hindi, Gujarati, Tamil)
+- 🌙 Dark mode toggle for better viewing experience
+- ⚙️ Simple, extensible Python script
+- 👶 Beginner-friendly for open source contributors
+
+---
+
+## 🎉 Recent Updates
+
+### Gemini API Integration Improvements
+- ✨ **Auto-Model Selection**: The app now automatically selects the best available Gemini model from your API subscription
+- 🔄 **Model Fallback**: Seamless fallback between gemini-2.5-flash, gemini-1.5-flash, and gemini-pro
+- 🚀 **Enhanced Compatibility**: Updated to support the latest Gemini 2.5 models for faster and more accurate AI recommendations
+- ✅ **Better Error Handling**: Improved API key validation and clearer error messages
+- 🌐 **Multi-Language Support**: Get AI recommendations in your preferred language - English, Hindi, Gujarati, or Tamil
+
+These improvements ensure that the AI-powered recommendations work reliably regardless of which Gemini models you have access to.
+
+---
+
+## 🔍 Sample Use Case
+
+> Given:
+- Survival rate (prior): 90%
+- Test correctly detects survival (sensitivity): 80%
+- Test gives false survival prediction in death cases: 10%
+
+### Output:
+```
+Updated probability of survival: 98.78%
+```
+
+---
+
+## 🗂️ Project Structure
+
+```
+Disease-prediction/
+├── run.py                        # Application entry point
+├── hospital_data.csv             # Dataset used for probability calculations
+├── .env                          # Environment variables (API keys) - create this file
+├── backend/
+│   ├── __init__.py               # Flask app factory
+│   ├── routes/
+│   │   └── disease_routes.py     # API endpoints and routing logic
+│   ├── utils/
+│   │   ├── calculator.py         # Core Bayes' Theorem calculation logic
+│   │   └── gemini_helper.py      # Gemini AI integration for recommendations
+│   ├── static/
+│   │   ├── script.js             # JavaScript for frontend interaction
+│   │   └── style.css             # Styling for the frontend
+│   └── templates/
+│       ├── base.html             # Base HTML template
+│       ├── main.html             # Main application page
+│       └── help.html             # Help and documentation page
+├── README.md                     # Project overview and usage
+├── GEMINI_SETUP.md               # Detailed Gemini API setup guide
+├── PROJECT_STRUCTURE.md          # Detailed guide explaining each file
+├── CONTRIBUTING.md               # Contribution instructions
+├── CODE_OF_CONDUCT.md            # Contributor behavior guidelines
+├── LICENSE                       # License file
+├── requirements.txt              # Python dependencies
+├── Scalability_report.txt        # Future expansion and scalability plans
+└── .gitignore                    # Git ignored files
+
+```
+For a detailed, beginner-friendly explanation of what each file does, please read our guide:
+
+➡️ **[View the Project Structure Guide](./PROJECT_STRUCTURE.md)**
+
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/your-username/Disease-prediction.git
+cd Disease-prediction
+```
+
+### (Optional) Create and activate a virtual environment
+It's recommended to use a virtual environment to keep dependencies isolated.
+
+- On Windows (PowerShell):
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+```
+- On macOS / Linux:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 2. Install Requirements
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Set Up Gemini API (Optional but Recommended)
+To enable AI-powered recommendations:
+
+#### Step 1: Get Your API Key
+Get a free API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
+
+#### Step 2: Configure the API Key
+
+**Option A: Using .env file (Recommended)**
+Create a `.env` file in the project root directory:
+```bash
+GEMINI_API_KEY=your_api_key_here
+```
+
+**Option B: Set Environment Variable**
+- **Windows (PowerShell):**
+  ```powershell
+  $env:GEMINI_API_KEY="your_api_key_here"
+  ```
+- **Linux/Mac:**
+  ```bash
+  export GEMINI_API_KEY=your_api_key_here
+  ```
+
+#### Step 3: Verify API Key Setup
+After setting up your API key, you can verify it's working by checking the application logs when you start the server. The app will automatically detect and use available Gemini models.
+
+**Supported Models:**
+The application automatically tries to use the best available Gemini model:
+- gemini-2.5-flash-preview-05-20 (newest)
+- gemini-2.5-flash
+- gemini-1.5-flash
+- gemini-pro (fallback)
+
+See [GEMINI_SETUP.md](GEMINI_SETUP.md) for detailed troubleshooting and advanced configuration.
+
+**Note:** The app works without the API key, but AI recommendations won't be available.
+
+### 4. Run the App
+```bash
+python run.py
+```
+
+### 5. Open in Browser
+```bash
+http://127.0.0.1:5000/
+```
+
+---
+
+## 🤖 Using AI-Powered Recommendations
+
+Once your Gemini API key is configured, you can get personalized medical recommendations:
+
+1. **Calculate Disease Probability**
+   - Select a disease from the dropdown or enter custom values
+   - Click "Calculate" to see the probability results
+
+2. **Choose Your Language** 🌐
+   - Select your preferred language from the dropdown:
+     - 🇬🇧 **English**
+     - 🇮🇳 **हिंदी (Hindi)**
+     - 🇮🇳 **ગુજરાતી (Gujarati)**
+     - 🇮🇳 **தமிழ் (Tamil)**
+
+3. **Get AI Recommendations**
+   - After calculation, look for the "AI-Powered Recommendations" section
+   - Choose your preferred language from the dropdown
+   - Click the "Get Recommendations" button
+   - Wait a few seconds for the AI to generate personalized advice
+
+4. **Review the Output**
+   The AI will provide:
+   - 📊 **Interpretation** of your probability results in plain language
+   - 🎯 **Recommended Next Steps** (e.g., further testing, specialist consultation)
+   - ⚠️ **Important Considerations** and medical disclaimers
+
+**Example Output (English):**
+```
+Interpretation:
+Before the test, the probability was 15%. After a positive test result, 
+the probability has increased to 85%, indicating a high likelihood.
+
+Recommended Next Steps:
+1. Consult a physician immediately for confirmatory tests
+2. Discuss specialist referral (e.g., endocrinologist for diabetes)
+3. Begin discussing lifestyle modifications with your doctor
+...
+```
+
+**Example Output (Hindi/हिंदी):**
+```
+व्याख्या:
+परीक्षण से पहले, संभावना 15% थी। सकारात्मक परीक्षण परिणाम के बाद, 
+संभावना बढ़कर 85% हो गई है, जो उच्च संभावना को दर्शाती है।
+
+अनुशंसित अगले कदम:
+1. पुष्टिकरण परीक्षणों के लिए तुरंत चिकित्सक से परामर्श लें
+2. विशेषज्ञ रेफरल पर चर्चा करें (जैसे मधुमेह के लिए एंडोक्राइनोलॉजिस्ट)
+3. अपने डॉक्टर के साथ जीवनशैली में बदलाव पर चर्चा शुरू करें
+...
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### API Key Issues
+
+**Problem: "API key not configured" error**
+- ✅ Ensure your `.env` file exists in the project root
+- ✅ Verify the API key has no extra spaces or quotes
+- ✅ Restart the application after adding the API key
+- ✅ Check that `python-dotenv` is installed: `pip install python-dotenv`
+
+**Problem: "Unable to generate recommendations" error**
+- ✅ Check your internet connection
+- ✅ Verify your API key is valid at [Google AI Studio](https://makersuite.google.com/app/apikey)
+- ✅ Check if you've exceeded your API quota (free tier: 60 requests/minute)
+- ✅ Try restarting the application
+
+**Problem: Environment variable not loading**
+- On Windows PowerShell, try setting it directly:
+  ```powershell
+  $env:GEMINI_API_KEY="your_api_key_here"
+  python run.py
+  ```
+
+For more detailed troubleshooting, see [GEMINI_SETUP.md](GEMINI_SETUP.md).
+
+---
+
+## ✅ Contributing
+
+New to open source? We welcome all contributors! Here's how to get started:
+- 🌱 Check out `Issues`
+- 🛠 Add features or improve existing ones
+- 📝 Help with documentation
+- 🧪 Add new test cases
+
+Read the [CONTRIBUTING.md](CONTRIBUTING.md) file before making a pull request.
+
+---
+
+## 🎓 Ideal For
+
+- Students learning probability & statistics
+- Open source contributors
+- Anyone interested in real-world applications of Bayes’ Theorem
+
+---
+
+## 📜 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## 🙌 Acknowledgements
+
+This project was created and maintained by Alivia Hossain. Inspired by practical applications of statistics in healthcare.

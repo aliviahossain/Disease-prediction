@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center mb-5 animate-fade-in">
+    <h1 class="display-5 fw-bold">Project Scalability & Future Scope</h1>
+    <p class="lead text-muted">From an educational tool to a comprehensive platform for clinical insights.</p>
+</div>
+
+<!-- Introduction Card -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h2 class="card-title h4">1. Introduction</h2>
+        <p class="card-text">The <strong>Disease Probability Project</strong> is a Bayesian post-test probability calculator designed to estimate the likelihood of a disease based on diagnostic test results. It demonstrates the practical application of <strong>Bayes’ Theorem</strong> in a clinical context.</p>
+        <p class="card-text">Currently, the tool supports a single diagnostic test input. While functional as an educational resource, the project has substantial potential for both functional and technical scalability.</p>
+    </div>
+</div>
+
+<!-- Functional Scalability Accordion -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h2 class="card-title h4 mb-3">2. Functional Scalability</h2>
+        <div class="accordion" id="functionalAccordion">
+
+            <!-- Item 1: Multi-Test Integration -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                        <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 18a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2"></path><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="12" y1="16" x2="12" y2="12"></line><line x1="8" y1="12" x2="8" y2="8"></line><line x1="16" y1="12" x2="16" y2="8"></line></svg>
+                        Multi-Test and Multi-Symptom Integration
+                    </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#functionalAccordion">
+                    <div class="accordion-body">
+                        <strong>What:</strong> Handle multiple diagnostic tests and symptoms simultaneously to provide a holistic assessment.<br><br>
+                        <strong>How:</strong> Expand the calculator to compute joint probabilities using Bayesian networks. Update the UI with dynamic forms.<br><br>
+                        <strong>Impact:</strong> Achieves more realistic survival estimates and provides a foundation for complex probabilistic reasoning exercises.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 2: Real-Time Data -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingTwo">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                         <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                        Real-Time Hospital Data Integration
+                    </button>
+                </h2>
+                <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#functionalAccordion">
+                    <div class="accordion-body">
+                        <strong>What:</strong> Use live or regularly updated hospital datasets instead of a static CSV file.<br><br>
+                        <strong>How:</strong> Implement a database backend (e.g., PostgreSQL) and create data pipelines to fetch, clean, and integrate new data automatically.<br><br>
+                        <strong>Impact:</strong> Provides up-to-date probability estimates and supports regional or hospital-specific datasets.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Item 3: Educational Features -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingThree">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                        <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        Educational and Analytical Features
+                    </button>
+                </h2>
+                <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#functionalAccordion">
+                    <div class="accordion-body">
+                        <strong>What:</strong> Add step-by-step explanations and visualizations of the calculations.<br><br>
+                        <strong>How:</strong> Integrate interactive charting libraries like Chart.js or D3.js to show how probabilities change. Include guided walkthroughs.<br><br>
+                        <strong>Impact:</strong> Creates a valuable learning resource for students and improves comprehension through visual demonstration.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Technical Scalability Accordion -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h2 class="card-title h4 mb-3">3. Technical Scalability</h2>
+        <div class="accordion" id="technicalAccordion">
+
+            <!-- Item 1: Cloud Deployment -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="techHeadingOne">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#techCollapseOne">
+                        <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+                        Cloud Deployment & Multi-User Support
+                    </button>
+                </h2>
+                <div id="techCollapseOne" class="accordion-collapse collapse show" data-bs-parent="#technicalAccordion">
+                    <div class="accordion-body">
+                        Deploy on cloud platforms (AWS, Azure) using Docker for consistency and Kubernetes for automatic scaling. Implement caching with Redis to reduce repeated calculations and use a load balancer to manage high traffic.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 2: Modular Architecture -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="techHeadingTwo">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#techCollapseTwo">
+                         <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        Modular Architecture & API
+                    </button>
+                </h2>
+                <div id="techCollapseTwo" class="accordion-collapse collapse" data-bs-parent="#technicalAccordion">
+                    <div class="accordion-body">
+                        Separate the core calculation logic, data processing, and frontend components into distinct services. Provide a REST API for external programmatic access, allowing other applications to use the calculator engine.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Item 3: Machine Learning -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="techHeadingThree">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#techCollapseThree">
+                        <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 12.5c0-1.5-1-2-2-2s-2 .5-2 2c0 1.5 1 2 2 2s2-.5 2-2z"></path><path d="M12.5 5.5c0-1.5-1-2-2-2s-2 .5-2 2c0 1.5 1 2 2 2s2-.5 2-2z"></path><path d="M4.5 19.5c0-1.5-1-2-2-2s-2 .5-2 2c0 1.5 1 2 2 2s2-.5 2-2z"></path><path d="M15 8.27A2.99 2.99 0 0 0 12.5 6c-1.66 0-3 1.34-3 3s1.34 3 3 3a2.99 2.99 0 0 0 2.5-1.73"></path><path d="M8.27 15A2.99 2.99 0 0 0 6 12.5c-1.66 0-3 1.34-3 3s1.34 3 3 3a2.99 2.99 0 0 0 2.27-5Z"></path><path d="m12.5 18 3.5-3.5"></path><path d="m18 12.5-3.5-3.5"></path></svg>
+                        Machine Learning Integration
+                    </button>
+                </h2>
+                <div id="techCollapseThree" class="accordion-collapse collapse" data-bs-parent="#technicalAccordion">
+                    <div class="accordion-body">
+                       Train ML models on historical data to identify complex patterns and enhance predictive power beyond standard Bayes' theorem. Implement hybrid approaches where ML models can dynamically adjust the prior probabilities or likelihoods used in the calculation.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Conclusion Card -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h2 class="card-title h4">4. Conclusion</h2>
+        <p class="card-text">The project can evolve from a simple educational tool into a comprehensive, multi-feature platform for clinical reasoning and healthcare analytics. The functional and technical improvements outlined here will allow it to serve a broader audience with realistic, data-driven probability calculations while remaining open-source and accessible.</p>
+    </div>
+</div>
+{% endblock %}

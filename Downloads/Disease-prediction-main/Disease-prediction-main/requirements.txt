@@ -1,0 +1,7 @@
+flask
+pytest
+pytest-flask
+gunicorn
+serverless-wsgi
+google-generativeai
+python-dotenv

@@ -1,0 +1,9 @@
+blank_issues_enabled: true
+contact_links:
+  - name: "Contributor Guide"
+    url: "https://github.com/aliviahossain/Disease-prediction#contributing"
+    about: "Read contribution guidelines (if available)."
+template_selector:
+  - "🐛 Bug report"
+  - "📚 Documentation update"
+  - "✨ Feature request"
