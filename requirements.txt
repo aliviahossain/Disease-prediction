@@ -3,3 +3,10 @@ pytest
 pytest-flask
 gunicorn
 serverless-wsgi
+streamlit
+scikit-learn
+joblib
+numpy
+pandas
+matplotlib
+shap
