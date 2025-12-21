@@ -2,182 +2,134 @@
 {% block title %}Glossary / Help Section{% endblock %}
 
 {% block content %}
-<style>
-  /* Clean white modern theme */
-  body {
-    font-family: "Poppins", sans-serif;
-    background-color: #f8fafc;
-    color: #1e293b;
-    margin: 0;
-    line-height: 1.6;
-  }
+<div class="text-center mb-5 animate-fade-in">
+    <h1 class="display-5 fw-bold">Glossary / Help Section</h1>
+    <p class="lead text-muted">Understand the key terms used in probability and diagnostic calculations.</p>
+</div>
 
-  /* Hero Section */
-  .hero {
-    text-align: center;
-    background: #2F3E4F;
-    padding: 2rem 1rem;
-  }
-  .hero h1 {
-    font-size: 2rem;
-    color: white;
-    margin-bottom: 0.5rem;
-  }
-  .hero p {
-    color: #e2e8f0;
-    margin: 0;
-  }
+<!-- FAQ / Glossary Accordion -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h2 class="card-title h4 mb-3">Key Terms & Concepts</h2>
+        <div class="accordion" id="glossaryAccordion">
 
-  /* FAQ Section */
-  .faq-container {
-    max-width: 900px;
-    margin: 3rem auto;
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  }
+            <!-- Item 1: Prior Probability -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                        <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 6v6l4 2"></path>
+                        </svg>
+                        What is Prior Probability?
+                    </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#glossaryAccordion">
+                    <div class="accordion-body">
+                        <strong>Definition:</strong> It's the probability of a condition or event before new evidence (like a test result) is considered.<br><br>
+                        <strong>Example:</strong> The chance someone has a disease before any medical test is performed.<br><br>
+                        <a href="https://en.wikipedia.org/wiki/Prior_probability" target="_blank" class="text-decoration-none">Learn more →</a>
+                    </div>
+                </div>
+            </div>
 
-  .faq {
-    border-bottom: 1px solid #e2e8f0;
-    padding: 1.2rem 0;
-    transition: background 0.3s;
-  }
+            <!-- Item 2: Sensitivity -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingTwo">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                        <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        What is Sensitivity?
+                    </button>
+                </h2>
+                <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                    <div class="accordion-body">
+                        <strong>Definition:</strong> Sensitivity measures how well a test identifies true positives.<br><br>
+                        <strong>Example:</strong> A test with 95% sensitivity correctly detects 95 out of 100 people who have the disease.<br><br>
+                        <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" target="_blank" class="text-decoration-none">Learn more →</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Item 3: Specificity -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingThree">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                        <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        What is Specificity?
+                    </button>
+                </h2>
+                <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                    <div class="accordion-body">
+                        <strong>Definition:</strong> Specificity measures how well a test identifies true negatives.<br><br>
+                        <strong>Example:</strong> A 90% specific test correctly clears 90 out of 100 healthy people.<br><br>
+                        <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" target="_blank" class="text-decoration-none">Learn more →</a>
+                    </div>
+                </div>
+            </div>
 
-  .faq:hover {
-    background-color: #f9fafb;
-  }
+            <!-- Item 4: False Positive Rate -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingFour">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">
+                        <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                        What is False Positive Rate?
+                    </button>
+                </h2>
+                <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                    <div class="accordion-body">
+                        <strong>Definition:</strong> It's the percentage of people incorrectly marked as positive when they are actually negative.<br><br>
+                        <strong>Formula:</strong> Calculated as (1 - Specificity).<br><br>
+                        <a href="https://en.wikipedia.org/wiki/False_positive_rate" target="_blank" class="text-decoration-none">Learn more →</a>
+                    </div>
+                </div>
+            </div>
 
-  .faq:last-child {
-    border-bottom: none;
-  }
+            <!-- Item 5: Posterior Probability -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingFive">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive">
+                        <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                        What is Posterior Probability?
+                    </button>
+                </h2>
+                <div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                    <div class="accordion-body">
+                        <strong>Definition:</strong> The updated probability of a condition after considering new evidence, like test results.<br><br>
+                        <strong>How it works:</strong> It's calculated using Bayes' theorem, which combines prior probability with new test data.<br><br>
+                        <a href="https://en.wikipedia.org/wiki/Posterior_probability" target="_blank" class="text-decoration-none">Learn more →</a>
+                    </div>
+                </div>
+            </div>
 
-  .faq-title {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #0f172a;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: color 0.3s;
-  }
+        </div>
+    </div>
+</div>
 
-  .faq-title:hover {
-    color: #2F3E4F;
-  }
-
-  .faq-icon {
-    font-weight: bold;
-    font-size: 1.4rem;
-    color: #2F3E4F;
-    margin-left: 10px;
-    transition: transform 0.3s ease;
-  }
-
-  .faq-text {
-    max-height: 0;
-    overflow: hidden;
-    color: #475569;
-    margin-top: 0;
-    line-height: 1.6;
-    transition: max-height 0.4s ease, opacity 0.3s ease;
-    opacity: 0;
-  }
-
-  .faq.active .faq-text {
-    max-height: 300px;
-    opacity: 1;
-    margin-top: 0.8rem;
-  }
-
-  .faq.active .faq-icon {
-    transform: rotate(45deg);
-  }
-
-  .faq a {
-    color: #0ea5e9;
-    text-decoration: none;
-  }
-
-  .faq a:hover {
-    text-decoration: underline;
-  }
-
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    .faq-container {
-      margin: 2rem 1rem;
-      padding: 1.5rem;
-    }
-    .hero h1 {
-      font-size: 1.6rem;
-    }
-  }
-</style>
-
-<!-- Hero -->
-<section class="hero">
-  <h1>Glossary / Help Section</h1>
-  <p>Understand the key terms used in probability and diagnostic calculations.</p>
-</section>
-
-<!-- FAQ / Glossary Section -->
-<section class="faq-container">
-  <div class="faq">
-    <h3 class="faq-title">What is Prior Probability?<span class="faq-icon">+</span></h3>
-    <p class="faq-text">
-      It’s the probability of a condition or event before new evidence (like a test result) is considered.
-      For example, the chance someone has a disease before any medical test.
-      <a href="https://en.wikipedia.org/wiki/Prior_probability" target="_blank">Learn more →</a>
-    </p>
-  </div>
-
-  <div class="faq">
-    <h3 class="faq-title">What is Sensitivity?<span class="faq-icon">+</span></h3>
-    <p class="faq-text">
-      Sensitivity measures how well a test identifies true positives.
-      A test with 95% sensitivity correctly detects 95 out of 100 people who have the disease.
-      <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" target="_blank">Learn more →</a>
-    </p>
-  </div>
-
-  <div class="faq">
-    <h3 class="faq-title">What is Specificity?<span class="faq-icon">+</span></h3>
-    <p class="faq-text">
-      Specificity measures how well a test identifies true negatives.
-      A 90% specific test correctly clears 90 out of 100 healthy people.
-      <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" target="_blank">Learn more →</a>
-    </p>
-  </div>
-
-  <div class="faq">
-    <h3 class="faq-title">What is False Positive Rate?<span class="faq-icon">+</span></h3>
-    <p class="faq-text">
-      It’s the percentage of people incorrectly marked as positive when they are actually negative.
-      Calculated as (1 - Specificity).
-      <a href="https://en.wikipedia.org/wiki/False_positive_rate" target="_blank">Learn more →</a>
-    </p>
-  </div>
-
-  <div class="faq">
-    <h3 class="faq-title">What is Posterior Probability?<span class="faq-icon">+</span></h3>
-    <p class="faq-text">
-      The updated probability of a condition after considering new evidence, like test results.
-      It’s calculated using Bayes’ theorem.
-      <a href="https://en.wikipedia.org/wiki/Posterior_probability" target="_blank">Learn more →</a>
-    </p>
-  </div>
-</section>
-
-<script>
-  // Accordion toggle with smooth expand/collapse
-  document.querySelectorAll(".faq-title").forEach((title) => {
-    title.addEventListener("click", () => {
-      const faq = title.parentElement;
-      faq.classList.toggle("active");
-    });
-  });
-</script>
+<!-- Additional Information Card -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h2 class="card-title h4">Understanding Bayes' Theorem</h2>
+        <p class="card-text">Bayes' theorem is a mathematical formula used to update the probability of a hypothesis based on new evidence. In medical diagnostics, it helps calculate the probability that a patient has a disease given a positive or negative test result.</p>
+        <p class="card-text">The theorem considers:</p>
+        <ul>
+            <li><strong>Prior Probability:</strong> Initial belief before the test</li>
+            <li><strong>Likelihood:</strong> Test accuracy (sensitivity and specificity)</li>
+            <li><strong>Posterior Probability:</strong> Updated belief after the test</li>
+        </ul>
+    </div>
+</div>
 {% endblock %}

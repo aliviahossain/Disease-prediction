@@ -23,8 +23,7 @@
                     </select>
                 </div>
 
-
-                <div class="d-grid mt-auto text-center ">
+                <div class="d-grid mt-auto text-center">
                     <button type="button" class="btn btn-primary btn-lg" onclick="usePreset()">Calculate with Sample
                         Data</button>
                 </div>
@@ -69,11 +68,11 @@
 </div>
 
 <!-- Result Display Area -->
-<div id="result" class="alert alert-success fs-4 mt-5 p-4 text-center shadow-lg " role="alert">
+<div id="result" class="alert alert-success fs-4 mt-5 p-4 text-center shadow-lg" role="alert">
     <!-- Result will be injected here by script.js -->
 </div>
 
-<!-- NEW: Chart Display Area -->
+<!-- Chart Display Area -->
 <div id="chartContainer" class="card shadow-lg mt-4" style="display: none;">
     <div class="card-body p-4">
         <h3 class="card-title text-center mb-3">Probability Comparison</h3>
@@ -131,31 +130,26 @@
     </div>
 </div>
 
-
 <script>
     $(document).ready(function () {
-    const diseaseSelect = $('#diseaseSelect').select2({
-        width: '100%',
-        allowClear: true,
-        dropdownAutoWidth: true,
-        placeholder: $('#diseaseSelect').data('placeholder') // ← now reads HTML
-    });
+        const diseaseSelect = $('#diseaseSelect').select2({
+            width: '100%',
+            allowClear: true,
+            dropdownAutoWidth: true,
+            placeholder: $('#diseaseSelect').data('placeholder')
+        });
 
-    // Autofocus search field when open
-    $(document).on('select2:open', function () {
-        let searchField = document.querySelector('.select2-container--open .select2-search__field');
-        if (searchField) {
-            searchField.focus();
-        }
+        // Autofocus search field when open
+        $(document).on('select2:open', function () {
+            let searchField = document.querySelector('.select2-container--open .select2-search__field');
+            if (searchField) {
+                searchField.focus();
+            }
+        });
     });
-});
-
 </script>
 
-
-
-<!-- IMPORTANT: Add Chart.js library -->
+<!-- Chart.js library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 
 {% endblock %}

@@ -9,6 +9,9 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <!-- Google Fonts (Poppins) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,14 +29,9 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-custom-dark shadow-sm">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="/">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round" class="me-2">
-                    <path
-                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
-                    </path>
-                </svg>
-                Disease-Prediction
+                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Disease Prediction Logo" 
+                     class="me-2" style="height: 40px; width: auto;">
+                <span class="fw-semibold">Disease-Prediction</span>
             </a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -41,15 +39,84 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">Home</a>
+                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                                 stroke-linejoin="round" class="me-1 align-text-bottom">
+                                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                            Home
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if '/scalability' in request.path %}active{% endif %}" href="/scalability">Scalability</a>
+                        <a class="nav-link {% if '/calculator' in request.path %}active{% endif %}" href="{{ url_for('disease.calculator') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                                 stroke-linejoin="round" class="me-1 align-text-bottom">
+                                <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+                                <line x1="8" y1="6" x2="16" y2="6"></line>
+                                <line x1="8" y1="10" x2="16" y2="10"></line>
+                                <line x1="8" y1="14" x2="12" y2="14"></line>
+                                <line x1="8" y1="18" x2="12" y2="18"></line>
+                                <circle cx="14" cy="16" r="2"></circle>
+                            </svg>
+                            Calculator
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if '/help' in request.path %}active{% endif %}" href="/help">Help</a>
+                        <!--<a class="nav-link {% if '/ml-prediction' in request.path %}active{% endif %}" href="{{ url_for('ml.ml_prediction_page') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                                 stroke-linejoin="round" class="me-1 align-text-bottom">
+                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                <path d="M9.5 8H17"></path>
+                                <path d="M6 15h10.5"></path>
+                            </svg>
+                            ML Prediction
+                        </a>-->
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/scalability' in request.path %}active{% endif %}" href="/scalability">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                                 stroke-linejoin="round" class="me-1 align-text-bottom">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg>
+                            Scalability
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/help' in request.path %}active{% endif %}" href="/help">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                                 stroke-linejoin="round" class="me-1 align-text-bottom">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                            Help
+                        </a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sun-icon">
+                                <circle cx="12" cy="12" r="5"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3"></line>
+                                <line x1="12" y1="21" x2="12" y2="23"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                <line x1="1" y1="12" x2="3" y2="12"></line>
+                                <line x1="21" y1="12" x2="23" y2="12"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="moon-icon" style="display: none;">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                            </svg>
+                        </button>
                     </li>
                 </ul>
             </div>

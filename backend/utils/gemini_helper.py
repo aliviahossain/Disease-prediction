@@ -37,7 +37,7 @@ def generate_recommendations(disease_name: Optional[str],
         
         # Create the model - use the latest available flash model
         # Try newer models first, fall back to older ones if needed
-        model_names = ['gemini-2.5-flash-preview-05-20', 'gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-pro']
+        model_names = [ 'gemini-2.5-flash', 'gemini-2.5-pro']
         model = None
         
         for model_name in model_names:
@@ -48,7 +48,7 @@ def generate_recommendations(disease_name: Optional[str],
                 continue
         
         if model is None:
-            model = genai.GenerativeModel('gemini-2.5-flash-preview-05-20')
+            model = genai.GenerativeModel('gemini-2.5-flash')
         
         # Construct the prompt
         disease_context = f"the disease '{disease_name}'" if disease_name else "a disease"

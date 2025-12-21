@@ -1,0 +1,226 @@
+{
+  "diabetes": {
+    "name": "Diabetes",
+    "description": "A metabolic disease that causes high blood sugar",
+    "symptoms": [
+      {
+        "key": "increased_thirst",
+        "name": "Increased thirst",
+        "severity": "common"
+      },
+      {
+        "key": "frequent_urination",
+        "name": "Frequent urination",
+        "severity": "common"
+      },
+      {
+        "key": "extreme_hunger",
+        "name": "Extreme hunger",
+        "severity": "common"
+      },
+      {
+        "key": "unexplained_weight_loss",
+        "name": "Unexplained weight loss",
+        "severity": "moderate"
+      },
+      {
+        "key": "fatigue",
+        "name": "Fatigue",
+        "severity": "common"
+      },
+      {
+        "key": "blurred_vision",
+        "name": "Blurred vision",
+        "severity": "moderate"
+      },
+      {
+        "key": "slow_healing_sores",
+        "name": "Slow-healing sores",
+        "severity": "moderate"
+      },
+      {
+        "key": "frequent_infections",
+        "name": "Frequent infections",
+        "severity": "moderate"
+      },
+      {
+        "key": "tingling_hands_feet",
+        "name": "Tingling in hands/feet",
+        "severity": "moderate"
+      },
+      {
+        "key": "darkened_skin",
+        "name": "Darkened skin areas",
+        "severity": "rare"
+      }
+    ]
+  },
+  "hypertension": {
+    "name": "Hypertension (High Blood Pressure)",
+    "description": "A condition where blood pressure is consistently too high",
+    "symptoms": [
+      {
+        "key": "severe_headache",
+        "name": "Severe headache",
+        "severity": "moderate"
+      },
+      {
+        "key": "chest_pain",
+        "name": "Chest pain",
+        "severity": "serious"
+      },
+      {
+        "key": "difficulty_breathing",
+        "name": "Difficulty breathing",
+        "severity": "serious"
+      },
+      {
+        "key": "irregular_heartbeat",
+        "name": "Irregular heartbeat",
+        "severity": "serious"
+      },
+      {
+        "key": "blood_in_urine",
+        "name": "Blood in urine",
+        "severity": "serious"
+      },
+      {
+        "key": "pounding_sensation",
+        "name": "Pounding sensation in chest/neck/ears",
+        "severity": "moderate"
+      },
+      {
+        "key": "vision_problems",
+        "name": "Vision problems",
+        "severity": "moderate"
+      },
+      {
+        "key": "fatigue",
+        "name": "Fatigue",
+        "severity": "common"
+      },
+      {
+        "key": "dizziness",
+        "name": "Dizziness",
+        "severity": "common"
+      },
+      {
+        "key": "nosebleeds",
+        "name": "Nosebleeds",
+        "severity": "rare"
+      }
+    ]
+  },
+  "covid19": {
+    "name": "COVID-19",
+    "description": "Coronavirus disease caused by SARS-CoV-2",
+    "symptoms": [
+      {
+        "key": "fever",
+        "name": "Fever",
+        "severity": "common"
+      },
+      {
+        "key": "dry_cough",
+        "name": "Dry cough",
+        "severity": "common"
+      },
+      {
+        "key": "fatigue",
+        "name": "Fatigue",
+        "severity": "common"
+      },
+      {
+        "key": "loss_taste_smell",
+        "name": "Loss of taste or smell",
+        "severity": "common"
+      },
+      {
+        "key": "sore_throat",
+        "name": "Sore throat",
+        "severity": "common"
+      },
+      {
+        "key": "headache",
+        "name": "Headache",
+        "severity": "common"
+      },
+      {
+        "key": "body_aches",
+        "name": "Body aches",
+        "severity": "common"
+      },
+      {
+        "key": "difficulty_breathing",
+        "name": "Difficulty breathing",
+        "severity": "serious"
+      },
+      {
+        "key": "chest_pain",
+        "name": "Chest pain",
+        "severity": "serious"
+      },
+      {
+        "key": "confusion",
+        "name": "Confusion",
+        "severity": "serious"
+      }
+    ]
+  },
+  "heart_disease": {
+    "name": "Heart Disease",
+    "description": "Conditions affecting the heart and blood vessels",
+    "symptoms": [
+      {
+        "key": "chest_pain",
+        "name": "Chest pain or discomfort",
+        "severity": "serious"
+      },
+      {
+        "key": "shortness_breath",
+        "name": "Shortness of breath",
+        "severity": "serious"
+      },
+      {
+        "key": "pain_arms_neck",
+        "name": "Pain in arms, neck, jaw, or back",
+        "severity": "serious"
+      },
+      {
+        "key": "dizziness",
+        "name": "Dizziness or lightheadedness",
+        "severity": "moderate"
+      },
+      {
+        "key": "rapid_heartbeat",
+        "name": "Rapid or irregular heartbeat",
+        "severity": "moderate"
+      },
+      {
+        "key": "fatigue",
+        "name": "Fatigue",
+        "severity": "common"
+      },
+      {
+        "key": "swelling_legs",
+        "name": "Swelling in legs, ankles, or feet",
+        "severity": "moderate"
+      },
+      {
+        "key": "cold_sweats",
+        "name": "Cold sweats",
+        "severity": "moderate"
+      },
+      {
+        "key": "nausea",
+        "name": "Nausea",
+        "severity": "common"
+      },
+      {
+        "key": "jaw_pain",
+        "name": "Jaw pain",
+        "severity": "moderate"
+      }
+    ]
+  }
+}

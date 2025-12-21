@@ -1,23 +1,66 @@
 /* --- Google Font Import --- */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
+/* --- CSS Variables for Light/Dark Mode --- */
+:root {
+    /* Light mode colors (default) */
+    --bg-primary: #f8f9fa;
+    --bg-secondary: #ffffff;
+    --text-primary: #34495e;
+    --text-secondary: #6c757d;
+    --text-muted: #6c757d;
+    --card-bg: #ffffff;
+    --navbar-bg: #2c3e50;
+    --footer-bg: #2c3e50;
+    --border-color: #dee2e6;
+    --input-bg: #ffffff;
+    --input-border: #ced4da;
+    --shadow-color: rgba(44, 62, 80, 0.15);
+    --error-bg: #fff6f5;
+    --accordion-bg: #f8f9fa;
+    --accordion-body-bg: #ffffff;
+}
+
+/* Dark mode colors */
+body.dark-mode {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --text-primary: #e0e0e0;
+    --text-secondary: #b0b0b0;
+    --text-muted: #9ca3af;
+    --card-bg: #2d2d2d;
+    --navbar-bg: #1f1f1f;
+    --footer-bg: #1f1f1f;
+    --border-color: #404040;
+    --input-bg: #3a3a3a;
+    --input-border: #4a4a4a;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --error-bg: #3a2525;
+    --accordion-bg: #2d2d2d;
+    --accordion-body-bg: #3a3a3a;
+}
+
 /* --- General Body Styling --- */
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #f8f9fa;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* --- Navbar Customization --- */
 .bg-custom-dark {
-    background-color: #2c3e50; /* A dark, professional blue-slate */
+    background-color: var(--navbar-bg);
+    transition: background-color 0.3s ease;
 }
 
 .navbar-brand {
     font-weight: 600;
     font-size: 1.4rem;
+    color: #ffffff !important;
 }
 
 .nav-link {
@@ -28,31 +71,62 @@ body {
     color: #1abc9c !important; /* A bright, hopeful teal for hover */
 }
 
+.nav-link.active {
+    color: #1abc9c !important;
+    font-weight: 600;
+}
+
+/* --- Dark Mode Toggle Button --- */
+.dark-mode-toggle {
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 0.5rem;
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+.dark-mode-toggle:hover {
+    transform: scale(1.1);
+}
+
 /* --- Card Styling & Hover Effects --- */
 .card {
-    border: none;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
     border-radius: 1rem; /* Softer corners */
 }
 
 .card-hover:hover {
     transform: translateY(-8px);
-    box-shadow: 0 1rem 3rem rgba(44, 62, 80, 0.15) !important;
+    box-shadow: 0 1rem 3rem var(--shadow-color) !important;
 }
 
 .card-title {
-    color: #34495e; /* A softer dark color than pure black */
+    color: var(--text-primary);
     font-weight: 600;
 }
 
 /* --- Form Elements --- */
 .form-control, .form-select {
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    border-color: var(--input-border);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
 }
 
 .form-control:focus, .form-select:focus {
+    background-color: var(--input-bg);
+    color: var(--text-primary);
     border-color: #1abc9c;
     box-shadow: 0 0 0 0.25rem rgba(26, 188, 156, 0.25);
+}
+
+.form-label {
+    color: var(--text-primary);
 }
 
 /* --- Custom Button Styles --- */
@@ -87,6 +161,18 @@ body {
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
+/* --- Button Group Toggle Styles --- */
+.btn-group .btn-outline-primary {
+    border-color: #3498db;
+    color: #3498db;
+}
+
+.btn-group .btn-outline-primary:hover {
+    background-color: #3498db;
+    color: white;
+    transform: translateY(-2px);
+}
+
 /* --- Result Display --- */
 #result {
     border-radius: 1rem;
@@ -96,7 +182,7 @@ body {
 /* Error validation styling */
 .form-control.error, .form-select.error {
     border-color: #e74c3c !important;
-    background-color: #fff6f5;
+    background-color: var(--error-bg);
 }
 
 .error-message {
@@ -104,6 +190,34 @@ body {
     font-size: 0.875em;
     margin-top: 0.25rem;
     display: block;
+}
+
+/* --- Alert Styling --- */
+.alert {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.alert-success {
+    background-color: rgba(26, 188, 156, 0.1);
+    border-color: #1abc9c;
+    color: var(--text-primary);
+}
+
+/* --- Footer Styling --- */
+footer {
+    background-color: var(--footer-bg) !important;
+    transition: background-color 0.3s ease;
+}
+
+/* --- Text Colors --- */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.lead {
+    color: var(--text-secondary);
 }
 
 /* --- Animations --- */
@@ -126,15 +240,16 @@ body {
 /* --- Scalability Page Styles --- */
 
 .accordion-item {
-    border: 1px solid #e0e6ed;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
     border-radius: 0.75rem !important; /* Overwrite bootstrap default */
     margin-bottom: 1rem;
     overflow: hidden; /* Ensures rounded corners are visible */
-    transition: box-shadow 0.3s ease-in-out;
+    transition: box-shadow 0.3s ease-in-out, background-color 0.3s ease;
 }
 
 .accordion-item:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0.5rem 1rem var(--shadow-color);
 }
 
 .accordion-header {
@@ -144,11 +259,12 @@ body {
 .accordion-button {
     font-weight: 600;
     font-size: 1.1rem;
-    color: #34495e; /* Softer dark text color */
-    background-color: #f8f9fa;
+    color: var(--text-primary);
+    background-color: var(--accordion-bg);
     box-shadow: none !important; /* Remove default focus shadow */
     border-radius: 0 !important;
     padding: 1.25rem 1.5rem;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Style for when the accordion item is OPEN */
@@ -159,14 +275,16 @@ body {
 
 /* Style for the accordion content area */
 .accordion-body {
-    background-color: #ffffff;
+    background-color: var(--accordion-body-bg);
+    color: var(--text-primary);
     font-size: 1rem;
     line-height: 1.7;
     padding: 1.5rem;
+    transition: background-color 0.3s ease;
 }
 
 .accordion-body strong {
-    color: #2c3e50;
+    color: var(--text-primary);
 }
 
 /* Icon styling */
@@ -233,7 +351,9 @@ body {
         position: relative;
         height: 55px;
         border-radius: 10px;
-        border: 1.5px solid #ced4da;
+        border: 1.5px solid var(--input-border);
+        background-color: var(--input-bg);
+        color: var(--text-primary);
         font-size: 18px;
         display: flex;
         align-items: center;
@@ -245,6 +365,32 @@ body {
     .select2-container--default .select2-selection--single:hover {
         border-color: #007bff;
         box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+    }
+
+    /* Dark mode for Select2 dropdown */
+    body.dark-mode .select2-dropdown {
+        background-color: var(--input-bg);
+        border-color: var(--border-color);
+    }
+
+    body.dark-mode .select2-results__option {
+        background-color: var(--input-bg);
+        color: var(--text-primary);
+    }
+
+    body.dark-mode .select2-results__option--highlighted {
+        background-color: #1abc9c;
+        color: #ffffff;
+    }
+
+    body.dark-mode .select2-search__field {
+        background-color: var(--input-bg);
+        color: var(--text-primary);
+        border-color: var(--border-color);
+    }
+
+    body.dark-mode .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: var(--text-primary);
     }
 
     /* Move dropdown arrow to the LEFT side */
@@ -306,4 +452,125 @@ body {
         /* space for left arrow */
         padding-right: 40px;
         /* space for right clear button */
+        color: var(--text-primary);
     }
+
+    /* Dark mode for chart container */
+    body.dark-mode #chartContainer {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    body.dark-mode #chartContainer .card-title {
+        color: var(--text-primary);
+    }
+
+/* --- AI Recommendations Section --- */
+.recommendations-text {
+    line-height: 1.8;
+    font-size: 1rem;
+    color: var(--text-primary);
+    background-color: var(--accordion-body-bg);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid #1abc9c;
+    transition: background-color 0.3s ease;
+}
+
+.recommendations-text h4,
+.recommendations-text strong {
+    color: #1abc9c;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.recommendations-text p {
+    margin-bottom: 0.75rem;
+}
+
+.recommendations-text ul,
+.recommendations-text ol {
+    margin-left: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+#recommendationsContainer .card-title svg {
+    color: #1abc9c;
+}
+
+#getRecommendationsBtn {
+    transition: all 0.3s ease;
+}
+
+#getRecommendationsBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Markdown-style formatting for AI response */
+.recommendations-text h1,
+.recommendations-text h2,
+.recommendations-text h3 {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-top: 1.2rem;
+    margin-bottom: 0.6rem;
+}
+
+.recommendations-text code {
+    background-color: var(--input-bg);
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.9em;
+}
+
+.recommendations-text blockquote {
+    border-left: 4px solid #1abc9c;
+    padding-left: 1rem;
+    margin: 1rem 0;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* --- ML Prediction Page Styles --- */
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* Ensure ML prediction page elements work with dark mode */
+body.dark-mode .symptoms-grid {
+    background: var(--input-bg);
+}
+
+body.dark-mode .symptom-checkbox {
+    background: var(--card-bg);
+}
+
+body.dark-mode .symptom-checkbox:hover {
+    background: var(--accordion-bg);
+}
+
+body.dark-mode .result-card {
+    background: linear-gradient(135deg, var(--card-bg) 0%, var(--accordion-bg) 100%);
+}
+
+body.dark-mode .info-text {
+    background: rgba(26, 188, 156, 0.1);
+    color: #1abc9c;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .btn-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-group .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
