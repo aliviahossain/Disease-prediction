@@ -1,5 +1,5 @@
 # Disease-prediction
-A probability calculator using Baye's Theorem to estimate survival chances of a disease based on past hospital data.
+A probability calculator using Bayes' Theorem to estimate the probability of disease presence after diagnostic testing, based on histrorical hospital data.
 
 # 🧮 Disease prediction
 
@@ -32,6 +32,16 @@ Instead, it focuses on a fundamental clinical reasoning process:
 
 > “How much more (or less) likely is this disease after seeing the test result?”
 
+## Terminology Clarification 
+This project applies Bayes' Theorem to calculate the **post-test probability of disease presence**.
+Some sections of the documentation reference "survival", while others describe disease presence. 
+The bayesian calculation itself applies to any binary medical outcome. 
+
+-Disease detection
+-Diagnostic test interpretation
+-Other binary medical outcomes
+
+This is **not** a time-based survival analysis or lifetime risk prediction model.
 ---
 
 ## How it works
@@ -41,6 +51,7 @@ Given:
 - **Test sensitivity** – P(test positive | disease present)
 - **Test specificity** – P(test negative | disease absent)
 - **Observed test result** – either “positive” or “negative”
+
 
 The calculator applies **Bayes’ theorem** to compute the **posterior probability**:
 the updated probability that the patient has the disease *given the test result*.
@@ -70,10 +81,10 @@ P(A|B) = [P(B|A) * P(A)] / [P(B|A) * P(A) + P(B|¬A) * P(¬A)]
 ```
 
 Where:
-- **P(A)** = Prior probability (e.g., survival rate)
-- **P(B|A)** = Probability of a positive test given survival
-- **P(B|¬A)** = Probability of a positive test given no survival (false positive)
-- **P(A|B)** = Updated probability (posterior) of survival after test
+- **P(A)** = Prior probability of disease
+- **P(B|A)** = Probability of a positive test given disease is present
+- **P(B|¬A)** = Probability of a positive test given disease is absent (false positive)
+- **P(A|B)** = Posterior probability of disease after observing the test result 
 
 ---
 
