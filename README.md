@@ -59,6 +59,14 @@ It can be useful as:
 
 ---
 
+## ⚠️ Limitations
+
+- Uses simplified assumptions and single-test Bayesian logic
+- Does not account for multiple symptoms or time-series data
+- Not intended for real medical diagnosis or clinical decision-making
+
+---
+
 ## 💡 What is Bayes' Theorem?
 
 Bayes' Theorem describes the probability of an event, based on prior knowledge of conditions related to the event. In medical terms, it helps in refining the **probability of survival or disease detection** after new data (like a test result) is observed.
@@ -76,6 +84,7 @@ Where:
 - **P(A|B)** = Updated probability (posterior) of survival after test
 
 ---
+
 
 ## 🛠️ Features
 
