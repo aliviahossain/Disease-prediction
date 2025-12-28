@@ -174,13 +174,74 @@ http://127.0.0.1:5000/
 
 ## ✅ Contributing
 
-New to open source? We welcome all contributors! Here's how to get started:
-- 🌱 Check out `Issues`
-- 🛠 Add features or improve existing ones
-- 📝 Help with documentation
-- 🧪 Add new test cases
+We love contributions—whether it's fixing a bug, improving docs, or adding a new feature. This quick guide will help you get started.
 
-Read the [CONTRIBUTING.md](CONTRIBUTING.md) file before making a pull request.
+### 1) Fork and clone the repository
+- Click the Fork button on GitHub to create your copy of the repo.
+- Clone your fork locally:
+```bash
+# Replace YOUR-USERNAME with your GitHub username
+git clone https://github.com/YOUR-USERNAME/Disease-prediction.git
+cd Disease-prediction
+```
+- (Optional) Add the original repository as "upstream" to keep your fork updated:
+```bash
+git remote add upstream https://github.com/ORIGINAL-OWNER/Disease-prediction.git
+# Verify remotes
+git remote -v
+```
+
+### 2) Create a new branch
+Create a branch for your change (do not work on main):
+```bash
+git checkout -b feat/short-description
+# examples: feat/new-calculator-tests, fix/edge-case-handling, docs/improve-readme
+```
+
+### 3) Make changes and commit them
+- Make your edits and run tests locally if applicable.
+- Stage and commit with a clear message:
+```bash
+git add -A
+git commit -m "feat: add XYZ with tests"  # use imperative, present tense
+```
+Tips:
+- Keep commits focused and small.
+- Write descriptive commit messages (use prefixes like feat, fix, docs, refactor, test, chore).
+
+### 4) Push your branch and open a Pull Request (PR)
+```bash
+git push origin feat/short-description
+```
+- Go to your fork on GitHub and click "Compare & pull request".
+- Provide a clear title and description:
+  - What changed and why
+  - Screenshots or logs if UI/behavior changed
+  - Any limitations or follow-ups
+
+### 5) Keep your branch up to date (optional but recommended)
+If someone else merged changes into the main branch, update your branch:
+```bash
+# Fetch latest main from upstream and rebase your branch on top
+git fetch upstream
+git checkout main
+git merge upstream/main
+# or rebase if you prefer: git rebase upstream/main
+
+git checkout feat/short-description
+git rebase main
+# Resolve conflicts if any, then continue: git add -A && git rebase --continue
+```
+
+### Basic contribution rules
+- Follow Python style (PEP 8) and keep code simple and readable.
+- Add or update tests when changing behavior.
+- Update documentation for user-facing changes.
+- One focused change per PR; smaller PRs are easier to review.
+- Be respectful and follow our Code of Conduct.
+- Before large features, open an issue to discuss the approach.
+
+For more details, see our full guide: [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
