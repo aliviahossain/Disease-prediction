@@ -65,7 +65,9 @@ def preset():
 
                     return jsonify({
                         "p_d_given_pos": round(p_d_given_pos, 4),
-                        "prior": p_d 
+                        "prior": p_d,
+                        "sensitivity": sensitivity,
+                        "falsePositive": false_pos
                     })
 
         return jsonify({"error": "Disease not found"}), 404
