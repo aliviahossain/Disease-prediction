@@ -5,3 +5,7 @@ gunicorn
 serverless-wsgi
 google-generativeai
 python-dotenv
+numpy
+pandas
+streamlit
+plotly

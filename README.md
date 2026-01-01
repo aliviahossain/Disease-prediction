@@ -198,6 +198,13 @@ python run.py
 http://127.0.0.1:5000/
 ```
 
+### 6. Run the Interactive Dashboard (Streamlit)
+For a quick, interactive way to test the model and explore symptom importance:
+```bash
+streamlit run dashboard.py
+```
+This will open a new tab in your browser with the dashboard interface.
+
 ---
 
 ## 🤖 Using AI-Powered Recommendations
