@@ -5,3 +5,6 @@ gunicorn
 serverless-wsgi
 google-generativeai
 python-dotenv
+numpy
+pandas
+scikit-learn

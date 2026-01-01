@@ -36,41 +36,42 @@
         <div class="card h-100 shadow-sm card-hover">
             <div class="card-body p-4">
                 <h2 class="card-title h4 text-center mb-4">Enter Custom Disease Data</h2>
-                <p class="text-center text-muted mb-4 small">Adjust sliders or enter values directly. Results update in real-time.</p>
-                
+                <p class="text-center text-muted mb-4 small">Adjust sliders or enter values directly. Results update in
+                    real-time.</p>
+
                 <div class="mb-3">
                     <label for="pD" class="form-label d-flex justify-content-between">
                         <span><strong>Prior Probability of Disease - P(D)</strong></span>
                         <span class="badge bg-primary" id="pDValue">0.01</span>
                     </label>
-                    <input type="range" class="form-range interactive-slider" id="pDSlider" 
-                           min="0" max="1" step="0.01" value="0.01">
+                    <input type="range" class="form-range interactive-slider" id="pDSlider" min="0" max="1" step="0.01"
+                        value="0.01">
                     <input type="number" id="pD" class="form-control form-control-lg mt-2" step="0.01" min="0" max="1"
                         placeholder="e.g., 0.01" value="0.01">
                 </div>
-                
+
                 <div class="mb-3">
                     <label for="sensitivity" class="form-label d-flex justify-content-between">
                         <span><strong>Test Sensitivity - P(Pos | D)</strong></span>
                         <span class="badge bg-success" id="sensitivityValue">0.99</span>
                     </label>
-                    <input type="range" class="form-range interactive-slider" id="sensitivitySlider" 
-                           min="0" max="1" step="0.01" value="0.99">
+                    <input type="range" class="form-range interactive-slider" id="sensitivitySlider" min="0" max="1"
+                        step="0.01" value="0.99">
                     <input type="number" id="sensitivity" class="form-control form-control-lg mt-2" step="0.01" min="0"
                         max="1" placeholder="e.g., 0.99" value="0.99">
                 </div>
-                
+
                 <div class="mb-3">
                     <label for="falsePositive" class="form-label d-flex justify-content-between">
                         <span><strong>False Positive Rate - P(Pos | No D)</strong></span>
                         <span class="badge bg-warning" id="falsePositiveValue">0.05</span>
                     </label>
-                    <input type="range" class="form-range interactive-slider" id="falsePositiveSlider" 
-                           min="0" max="1" step="0.01" value="0.05">
-                    <input type="number" id="falsePositive" class="form-control form-control-lg mt-2" step="0.01" min="0"
-                        max="1" placeholder="e.g., 0.05" value="0.05">
+                    <input type="range" class="form-range interactive-slider" id="falsePositiveSlider" min="0" max="1"
+                        step="0.01" value="0.05">
+                    <input type="number" id="falsePositive" class="form-control form-control-lg mt-2" step="0.01"
+                        min="0" max="1" placeholder="e.g., 0.05" value="0.05">
                 </div>
-                
+
                 <div class="mb-3">
                     <label for="testResult" class="form-label"><strong>Test Result</strong></label>
                     <select id="testResult" class="form-select form-select-lg">
@@ -78,19 +79,28 @@
                         <option value="negative">Negative</option>
                     </select>
                 </div>
-                
+
                 <!-- Real-Time Result Display -->
                 <div class="mt-4 p-3 rounded" id="interactiveResult" style="display: none;">
                     <div class="row align-items-center">
                         <div class="col-12 mb-2">
-                            <h6 class="mb-1">Prior Probability: <span id="priorValueDisplay" class="fw-bold">0.00</span></h6>
-                            <h6 class="mb-2">Posterior Probability: <span id="posteriorValue" class="fw-bold">0.00</span></h6>
+                            <h6 class="mb-1">
+                                Prior Probability: <span id="priorValueDisplay" class="fw-bold">0.00</span>
+                                <span id="updatingIndicator" class="badge bg-secondary ms-2"
+                                    style="display: none; font-size: 0.7em;" aria-live="polite">
+                                    <span class="spinner-border spinner-border-sm" role="status"
+                                        aria-hidden="true"></span>
+                                    Updating...
+                                </span>
+                            </h6>
+                            <h6 class="mb-2">Posterior Probability: <span id="posteriorValue"
+                                    class="fw-bold">0.00</span></h6>
                         </div>
                         <div class="col-12 mb-2">
                             <div class="progress" style="height: 30px;">
-                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                                     id="posteriorProgressBar" role="progressbar" 
-                                     style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                    id="posteriorProgressBar" role="progressbar" style="width: 0%" aria-valuenow="0"
+                                    aria-valuemin="0" aria-valuemax="100">
                                     <span id="posteriorPercentage">0%</span>
                                 </div>
                             </div>
@@ -102,7 +112,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="d-grid mt-3">
                     <button type="button" class="btn btn-success btn-lg" onclick="calculateDisease()">Calculate
                         Probability</button>
@@ -132,7 +142,9 @@
     <div class="card-body p-4">
         <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap">
             <h3 class="card-title mb-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2" style="display: inline-block; vertical-align: middle;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2"
+                    style="display: inline-block; vertical-align: middle;">
                     <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                 </svg>
                 AI-Powered Recommendations
@@ -144,8 +156,11 @@
                     <option value="gujarati">🇮🇳 ગુજરાતી (Gujarati)</option>
                     <option value="tamil">🇮🇳 தமிழ் (Tamil)</option>
                 </select>
-                <button class="btn btn-sm btn-outline-primary" id="getRecommendationsBtn" onclick="getAIRecommendations()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                <button class="btn btn-sm btn-outline-primary" id="getRecommendationsBtn"
+                    onclick="getAIRecommendations()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="me-1">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -154,21 +169,21 @@
                 </button>
             </div>
         </div>
-        
+
         <div id="recommendationsLoading" class="text-center py-4" style="display: none;">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
             <p class="mt-2 text-muted">Generating AI recommendations...</p>
         </div>
-        
+
         <div id="recommendationsContent" class="recommendations-text" style="display: none;">
             <!-- AI recommendations will be inserted here -->
         </div>
-        
+
         <div class="alert alert-info mt-3 mb-0" id="recommendationsDisclaimer" style="display: none;">
             <small>
-                <strong>Note:</strong> These recommendations are generated by AI for educational purposes only. 
+                <strong>Note:</strong> These recommendations are generated by AI for educational purposes only.
                 Always consult with healthcare professionals for medical advice.
             </small>
         </div>

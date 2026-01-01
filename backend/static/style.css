@@ -68,7 +68,8 @@ body {
 }
 
 .nav-link:hover {
-    color: #1abc9c !important; /* A bright, hopeful teal for hover */
+    color: #1abc9c !important;
+    /* A bright, hopeful teal for hover */
 }
 
 .nav-link.active {
@@ -97,7 +98,8 @@ body {
     color: var(--text-primary);
     border: 1px solid var(--border-color);
     transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-    border-radius: 1rem; /* Softer corners */
+    border-radius: 1rem;
+    /* Softer corners */
 }
 
 .card-hover:hover {
@@ -111,14 +113,16 @@ body {
 }
 
 /* --- Form Elements --- */
-.form-control, .form-select {
+.form-control,
+.form-select {
     background-color: var(--input-bg);
     color: var(--text-primary);
     border-color: var(--input-border);
     transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     background-color: var(--input-bg);
     color: var(--text-primary);
     border-color: #1abc9c;
@@ -138,7 +142,8 @@ body {
 }
 
 .btn-primary {
-    background-color: #3498db; /* A friendly, trustworthy blue */
+    background-color: #3498db;
+    /* A friendly, trustworthy blue */
     border-color: #3498db;
 }
 
@@ -146,11 +151,12 @@ body {
     background-color: #2980b9;
     border-color: #2980b9;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .btn-success {
-    background-color: #1abc9c; /* Teal for success */
+    background-color: #1abc9c;
+    /* Teal for success */
     border-color: #1abc9c;
 }
 
@@ -158,7 +164,7 @@ body {
     background-color: #16a085;
     border-color: #16a085;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* --- Button Group Toggle Styles --- */
@@ -176,11 +182,13 @@ body {
 /* --- Result Display --- */
 #result {
     border-radius: 1rem;
-    display: none; /* Initially hidden, JS will manage visibility */
+    display: none;
+    /* Initially hidden, JS will manage visibility */
 }
 
 /* Error validation styling */
-.form-control.error, .form-select.error {
+.form-control.error,
+.form-select.error {
     border-color: #e74c3c !important;
     background-color: var(--error-bg);
 }
@@ -230,6 +238,7 @@ footer {
         opacity: 0;
         transform: translateY(-20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -242,9 +251,11 @@ footer {
 .accordion-item {
     border: 1px solid var(--border-color);
     background-color: var(--card-bg);
-    border-radius: 0.75rem !important; /* Overwrite bootstrap default */
+    border-radius: 0.75rem !important;
+    /* Overwrite bootstrap default */
     margin-bottom: 1rem;
-    overflow: hidden; /* Ensures rounded corners are visible */
+    overflow: hidden;
+    /* Ensures rounded corners are visible */
     transition: box-shadow 0.3s ease-in-out, background-color 0.3s ease;
 }
 
@@ -261,7 +272,8 @@ footer {
     font-size: 1.1rem;
     color: var(--text-primary);
     background-color: var(--accordion-bg);
-    box-shadow: none !important; /* Remove default focus shadow */
+    box-shadow: none !important;
+    /* Remove default focus shadow */
     border-radius: 0 !important;
     padding: 1.25rem 1.5rem;
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -270,7 +282,8 @@ footer {
 /* Style for when the accordion item is OPEN */
 .accordion-button:not(.collapsed) {
     color: #ffffff;
-    background: linear-gradient(135deg, #1abc9c, #16a085); /* Main theme teal gradient */
+    background: linear-gradient(135deg, #1abc9c, #16a085);
+    /* Main theme teal gradient */
 }
 
 /* Style for the accordion content area */
@@ -292,12 +305,15 @@ footer {
     margin-right: 1rem;
     width: 22px;
     height: 22px;
-    color: #3498db; /* Primary theme blue for icons */
-    flex-shrink: 0; /* Prevents icon from shrinking */
+    color: #3498db;
+    /* Primary theme blue for icons */
+    flex-shrink: 0;
+    /* Prevents icon from shrinking */
 }
 
 .accordion-button:not(.collapsed) .accordion-icon {
-    color: #ffffff; /* White icon on active background */
+    color: #ffffff;
+    /* White icon on active background */
 }
 
 /* Customizing the accordion's default arrow icon */
@@ -313,7 +329,7 @@ footer {
 }
 
 .accordion-button:not(.collapsed)::after {
-     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffffff'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ffffff'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
 }
 
 
@@ -322,7 +338,8 @@ footer {
 /* Set a consistent height for all text inputs and Select2 boxes */
 .form-control,
 .select2-container--default .select2-selection--single {
-    height: 50px !important; /* Standard height for all inputs */
+    height: 50px !important;
+    /* Standard height for all inputs */
     display: flex;
     align-items: center;
 }
@@ -330,8 +347,10 @@ footer {
 /* Ensure placeholder and value text is vertically centered */
 .form-control::placeholder,
 .select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 50px !important; /* Match the height */
+    line-height: 50px !important;
+    /* Match the height */
 }
+
 /* --- Select2 Dropdown Search Box --- */
 
 /* Increase placeholder text size and adjust color */
@@ -339,131 +358,134 @@ footer {
 
 /* Increases the height and padding of the search input field */
 .select2-search--dropdown .select2-search__field {
-    height: 48px;       /* Set a specific height for the box */
-    padding: 0 15px;    /* Adds horizontal spacing for the text */
-    font-size: 1rem;    /* Sets the size for the text you type */
+    height: 48px;
+    /* Set a specific height for the box */
+    padding: 0 15px;
+    /* Adds horizontal spacing for the text */
+    font-size: 1rem;
+    /* Sets the size for the text you type */
 }
 
 
 /* select2 custom css for cross and dropdown arrow ---------------------------------------------------------------- */
 
-    .select2-container--default .select2-selection--single {
-        position: relative;
-        height: 55px;
-        border-radius: 10px;
-        border: 1.5px solid var(--input-border);
-        background-color: var(--input-bg);
-        color: var(--text-primary);
-        font-size: 18px;
-        display: flex;
-        align-items: center;
-        padding: 6px 14px;
-        transition: all 0.2s ease-in-out;
-    }
+.select2-container--default .select2-selection--single {
+    position: relative;
+    height: 55px;
+    border-radius: 10px;
+    border: 1.5px solid var(--input-border);
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    padding: 6px 14px;
+    transition: all 0.2s ease-in-out;
+}
 
-    /* Hover effect */
-    .select2-container--default .select2-selection--single:hover {
-        border-color: #007bff;
-        box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
-    }
+/* Hover effect */
+.select2-container--default .select2-selection--single:hover {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
 
-    /* Dark mode for Select2 dropdown */
-    body.dark-mode .select2-dropdown {
-        background-color: var(--input-bg);
-        border-color: var(--border-color);
-    }
+/* Dark mode for Select2 dropdown */
+body.dark-mode .select2-dropdown {
+    background-color: var(--input-bg);
+    border-color: var(--border-color);
+}
 
-    body.dark-mode .select2-results__option {
-        background-color: var(--input-bg);
-        color: var(--text-primary);
-    }
+body.dark-mode .select2-results__option {
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+}
 
-    body.dark-mode .select2-results__option--highlighted {
-        background-color: #1abc9c;
-        color: #ffffff;
-    }
+body.dark-mode .select2-results__option--highlighted {
+    background-color: #1abc9c;
+    color: #ffffff;
+}
 
-    body.dark-mode .select2-search__field {
-        background-color: var(--input-bg);
-        color: var(--text-primary);
-        border-color: var(--border-color);
-    }
+body.dark-mode .select2-search__field {
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
 
-    body.dark-mode .select2-container--default .select2-selection--single .select2-selection__rendered {
-        color: var(--text-primary);
-    }
+body.dark-mode .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: var(--text-primary);
+}
 
-    /* Move dropdown arrow to the LEFT side */
-    .select2-container--default .select2-selection--single .select2-selection__arrow {
-        position: absolute;
-        left: 15px;
-        right: auto;
-        top: 40%;
-        transform: translateY(-50%);
-        height: auto;
-        width: auto;
-    }
+/* Move dropdown arrow to the LEFT side */
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    position: absolute;
+    left: 15px;
+    right: auto;
+    top: 40%;
+    transform: translateY(-50%);
+    height: auto;
+    width: auto;
+}
 
-    /* Increase arrow size */
-    .select2-container--default .select2-selection--single .select2-selection__arrow b {
-        border-width: 18px 12px 0 12px;
-        border-color: #6c757d transparent transparent transparent;
-        display: block;
-        transition: transform 0.2s ease;
-    }
+/* Increase arrow size */
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-width: 18px 12px 0 12px;
+    border-color: #6c757d transparent transparent transparent;
+    display: block;
+    transition: transform 0.2s ease;
+}
 
-    /* Arrow hover effect */
-    .select2-container--default .select2-selection--single:hover .select2-selection__arrow b {
-        transform: scale(1.2);
-        border-color: #007bff transparent transparent transparent;
-    }
+/* Arrow hover effect */
+.select2-container--default .select2-selection--single:hover .select2-selection__arrow b {
+    transform: scale(1.2);
+    border-color: #007bff transparent transparent transparent;
+}
 
-    /* Search input inside dropdown */
-    .select2-search__field {
-        font-size: 16px;
-        padding: 8px;
-        border-radius: 6px;
-    }
+/* Search input inside dropdown */
+.select2-search__field {
+    font-size: 16px;
+    padding: 8px;
+    border-radius: 6px;
+}
 
-    /* Clear (×) icon — move to right side */
-    .select2-container--default .select2-selection--single .select2-selection__clear {
-        position: absolute;
-        right: 10px;
-        /* align to right */
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 28px;
-        line-height: 1;
-        color: #000000;
-        font-weight: bold;
-        cursor: pointer;
-        z-index: 5;
-        transition: transform 0.2s ease;
-    }
+/* Clear (×) icon — move to right side */
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    position: absolute;
+    right: 10px;
+    /* align to right */
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 28px;
+    line-height: 1;
+    color: #000000;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 5;
+    transition: transform 0.2s ease;
+}
 
-    .select2-container--default .select2-selection--single .select2-selection__clear:hover {
-        transform: translateY(-50%) scale(1.2);
-        color: #b02a37;
-    }
+.select2-container--default .select2-selection--single .select2-selection__clear:hover {
+    transform: translateY(-50%) scale(1.2);
+    color: #b02a37;
+}
 
-    /* Adjust padding so text doesn't overlap arrow or cross */
-    .select2-container--default .select2-selection--single .select2-selection__rendered {
-        padding-left: 40px;
-        /* space for left arrow */
-        padding-right: 40px;
-        /* space for right clear button */
-        color: var(--text-primary);
-    }
+/* Adjust padding so text doesn't overlap arrow or cross */
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    padding-left: 40px;
+    /* space for left arrow */
+    padding-right: 40px;
+    /* space for right clear button */
+    color: var(--text-primary);
+}
 
-    /* Dark mode for chart container */
-    body.dark-mode #chartContainer {
-        background-color: var(--card-bg);
-        border-color: var(--border-color);
-    }
+/* Dark mode for chart container */
+body.dark-mode #chartContainer {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
 
-    body.dark-mode #chartContainer .card-title {
-        color: var(--text-primary);
-    }
+body.dark-mode #chartContainer .card-title {
+    color: var(--text-primary);
+}
 
 /* --- AI Recommendations Section --- */
 .recommendations-text {
@@ -504,7 +526,7 @@ footer {
 
 #getRecommendationsBtn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Markdown-style formatting for AI response */
@@ -568,7 +590,7 @@ body.dark-mode .info-text {
         flex-direction: column;
         width: 100%;
     }
-    
+
     .btn-group .btn {
         width: 100%;
         margin-bottom: 0.5rem;
@@ -651,9 +673,12 @@ body.dark-mode .info-text {
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 1;
     }
+
     50% {
         opacity: 0.8;
     }
@@ -661,7 +686,7 @@ body.dark-mode .info-text {
 
 /* Progress Bar Color Transitions */
 .progress-bar {
-    transition: width 0.5s ease, background-color 0.5s ease;
+    transition: width 0.3s ease-out, background-color 0.3s ease;
 }
 
 .progress-bar.bg-success {
@@ -687,6 +712,12 @@ body.dark-mode .info-text {
     border-radius: 0.75rem;
     animation: slideIn 0.5s ease;
     margin-top: 1rem;
+    transition: opacity 0.3s ease-in-out;
+}
+
+#interactiveResult.updating {
+    opacity: 0.5;
+    pointer-events: none;
 }
 
 @keyframes slideIn {
@@ -694,6 +725,7 @@ body.dark-mode .info-text {
         opacity: 0;
         transform: translateY(-10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
