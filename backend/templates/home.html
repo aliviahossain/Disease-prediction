@@ -16,7 +16,7 @@
                 <h2 class="h4 mb-4">
                     <i class="fas fa-stethoscope me-2"></i>Symptom Input
                 </h2>
-                
+
                 <div class="mb-4">
                     <label for="disease-select" class="form-label">
                         <i class="fas fa-disease me-1"></i> Select Disease
@@ -33,8 +33,8 @@
                         <i class="fas fa-list-check me-1"></i> Select Symptoms
                         <span id="symptom-count" class="badge bg-primary ms-2">0 selected</span>
                     </label>
-                    <div class="symptoms-grid border rounded p-3" id="symptoms-container" 
-                         style="max-height: 400px; overflow-y: auto; background-color: #f9f9f9;">
+                    <div class="symptoms-grid border rounded p-3" id="symptoms-container"
+                        style="max-height: 400px; overflow-y: auto; background-color: #f9f9f9;">
                         <!-- Symptoms will be loaded here dynamically -->
                         <p class="text-muted text-center">Select a disease to see symptoms</p>
                     </div>
@@ -48,7 +48,8 @@
 
                 <div class="alert alert-info mt-3 mb-0">
                     <i class="fas fa-info-circle me-2"></i>
-                    <small><strong>Note:</strong> ML prediction feature is under development. Currently showing mock data for demonstration purposes.</small>
+                    <small><strong>Note:</strong> ML prediction feature is under development. Currently showing mock
+                        data for demonstration purposes.</small>
                 </div>
             </div>
         </div>
@@ -61,7 +62,7 @@
                 <h2 class="h4 mb-4">
                     <i class="fas fa-chart-line me-2"></i>Prediction Results
                 </h2>
-                
+
                 <div class="text-center py-5" id="loading" style="display: none;">
                     <div class="spinner-border text-primary mb-3" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -87,7 +88,7 @@
                             <h3 class="h6 mb-3">
                                 <i class="fas fa-calculator me-2"></i>Bayesian Analysis
                             </h3>
-                            
+
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between mb-1">
                                     <small>Prior Probability</small>
@@ -114,7 +115,9 @@
                                     <small class="fw-bold text-primary" id="posterior-value">--</small>
                                 </div>
                                 <div class="progress" style="height: 25px;">
-                                    <div class="progress-bar" id="posterior-bar" style="width: 0%; background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);"></div>
+                                    <div class="progress-bar" id="posterior-bar"
+                                        style="width: 0%; background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -142,176 +145,176 @@
 </div>
 
 <style>
-.symptom-checkbox {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    margin-bottom: 8px;
-    background: white;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
+    .symptom-checkbox {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        margin-bottom: 8px;
+        background: white;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
 
-.symptom-checkbox:hover {
-    background: #e3f2fd;
-    transform: translateX(5px);
-}
+    .symptom-checkbox:hover {
+        background: #e3f2fd;
+        transform: translateX(5px);
+    }
 
-.symptom-checkbox input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    margin-right: 12px;
-    cursor: pointer;
-}
+    .symptom-checkbox input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin-right: 12px;
+        cursor: pointer;
+    }
 
-.symptom-checkbox label {
-    cursor: pointer;
-    margin: 0;
-    font-weight: normal;
-    flex: 1;
-}
+    .symptom-checkbox label {
+        cursor: pointer;
+        margin: 0;
+        font-weight: normal;
+        flex: 1;
+    }
 </style>
 
 <script>
-// Mock symptoms data - replace with actual data from your ML model
-const mockSymptomsData = {
-    'default': [
-        'Fever', 'Cough', 'Fatigue', 'Headache', 'Sore Throat',
-        'Body Aches', 'Nausea', 'Dizziness', 'Shortness of Breath',
-        'Loss of Taste', 'Loss of Smell', 'Chest Pain', 'Chills',
-        'Runny Nose', 'Muscle Pain', 'Joint Pain', 'Weakness'
-    ]
-};
+    // Mock symptoms data - replace with actual data from your ML model
+    const mockSymptomsData = {
+        'default': [
+            'Fever', 'Cough', 'Fatigue', 'Headache', 'Sore Throat',
+            'Body Aches', 'Nausea', 'Dizziness', 'Shortness of Breath',
+            'Loss of Taste', 'Loss of Smell', 'Chest Pain', 'Chills',
+            'Runny Nose', 'Muscle Pain', 'Joint Pain', 'Weakness'
+        ]
+    };
 
-let selectedSymptoms = [];
-let currentDisease = '';
+    let selectedSymptoms = [];
+    let currentDisease = '';
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const diseaseSelect = document.getElementById('disease-select');
-    if (diseaseSelect && diseaseSelect.options.length > 0) {
-        currentDisease = diseaseSelect.value;
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        const diseaseSelect = document.getElementById('disease-select');
+        if (diseaseSelect && diseaseSelect.options.length > 0) {
+            currentDisease = diseaseSelect.value;
+            loadSymptoms(currentDisease);
+        }
+    });
+
+    // Disease selection change
+    document.getElementById('disease-select')?.addEventListener('change', function () {
+        currentDisease = this.value;
+        selectedSymptoms = [];
         loadSymptoms(currentDisease);
-    }
-});
+        hideResults();
+    });
 
-// Disease selection change
-document.getElementById('disease-select')?.addEventListener('change', function() {
-    currentDisease = this.value;
-    selectedSymptoms = [];
-    loadSymptoms(currentDisease);
-    hideResults();
-});
+    function loadSymptoms(disease) {
+        const container = document.getElementById('symptoms-container');
+        // Use mock symptoms for now - TODO: replace with actual disease-specific symptoms from backend
+        const symptoms = mockSymptomsData['default'];
 
-function loadSymptoms(disease) {
-    const container = document.getElementById('symptoms-container');
-    // Use mock symptoms for now - TODO: replace with actual disease-specific symptoms from backend
-    const symptoms = mockSymptomsData['default'];
-    
-    let html = '';
-    symptoms.forEach((symptom, index) => {
-        html += `
+        let html = '';
+        symptoms.forEach((symptom, index) => {
+            html += `
             <div class="symptom-checkbox">
                 <input type="checkbox" id="symptom-${index}" value="${symptom}" 
                        onchange="toggleSymptom('${symptom}')">
                 <label for="symptom-${index}">${symptom}</label>
             </div>
         `;
-    });
-    
-    container.innerHTML = html;
-    updateSymptomCount();
-}
+        });
 
-function toggleSymptom(symptom) {
-    const index = selectedSymptoms.indexOf(symptom);
-    if (index > -1) {
-        selectedSymptoms.splice(index, 1);
-    } else {
-        selectedSymptoms.push(symptom);
-    }
-    updateSymptomCount();
-}
-
-function updateSymptomCount() {
-    const count = selectedSymptoms.length;
-    document.getElementById('symptom-count').textContent = `${count} selected`;
-}
-
-async function predictDisease() {
-    if (selectedSymptoms.length === 0) {
-        alert('Please select at least one symptom');
-        return;
+        container.innerHTML = html;
+        updateSymptomCount();
     }
 
-    // Show loading
-    document.getElementById('loading').style.display = 'block';
-    document.getElementById('no-results').style.display = 'none';
-    document.getElementById('results-container').style.display = 'none';
+    function toggleSymptom(symptom) {
+        const index = selectedSymptoms.indexOf(symptom);
+        if (index > -1) {
+            selectedSymptoms.splice(index, 1);
+        } else {
+            selectedSymptoms.push(symptom);
+        }
+        updateSymptomCount();
+    }
 
-    // Simulate API call - TODO: replace with actual ML prediction endpoint
-    setTimeout(() => {
-        // Mock data - replace with actual prediction from your ML model
-        const mockData = {
-            ml_prediction: {
-                raw_probability: Math.random() * 80 + 10 // Random between 10-90
-            },
-            bayesian_analysis: {
-                prior: Math.random() * 30 + 5, // Random between 5-35
-                likelihood: Math.random() * 70 + 20, // Random between 20-90
-                posterior: Math.random() * 70 + 15 // Random between 15-85
-            },
-            risk_assessment: {
-                level: ['Low', 'Moderate', 'High'][Math.floor(Math.random() * 3)],
-                description: 'Based on selected symptoms and ML analysis. This is mock data for demonstration.'
-            }
-        };
+    function updateSymptomCount() {
+        const count = selectedSymptoms.length;
+        document.getElementById('symptom-count').textContent = `${count} selected`;
+    }
 
-        displayResults(mockData);
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('results-container').style.display = 'block';
-    }, 1500);
-}
+    async function predictDisease() {
+        if (selectedSymptoms.length === 0) {
+            alert('Please select at least one symptom');
+            return;
+        }
 
-function displayResults(data) {
-    // ML Prediction
-    document.getElementById('ml-probability').textContent = 
-        data.ml_prediction.raw_probability.toFixed(1) + '%';
+        // Show loading
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('no-results').style.display = 'none';
+        document.getElementById('results-container').style.display = 'none';
 
-    // Bayesian Analysis
-    document.getElementById('prior-value').textContent = 
-        data.bayesian_analysis.prior.toFixed(1) + '%';
-    document.getElementById('prior-bar').style.width = 
-        data.bayesian_analysis.prior + '%';
+        // Simulate API call - TODO: replace with actual ML prediction endpoint
+        setTimeout(() => {
+            // Mock data - replace with actual prediction from your ML model
+            const mockData = {
+                ml_prediction: {
+                    raw_probability: Math.random() * 80 + 10 // Random between 10-90
+                },
+                bayesian_analysis: {
+                    prior: Math.random() * 30 + 5, // Random between 5-35
+                    likelihood: Math.random() * 70 + 20, // Random between 20-90
+                    posterior: Math.random() * 70 + 15 // Random between 15-85
+                },
+                risk_assessment: {
+                    level: ['Low', 'Moderate', 'High'][Math.floor(Math.random() * 3)],
+                    description: 'Based on selected symptoms and ML analysis. This is mock data for demonstration.'
+                }
+            };
 
-    document.getElementById('likelihood-value').textContent = 
-        data.bayesian_analysis.likelihood.toFixed(1) + '%';
-    document.getElementById('likelihood-bar').style.width = 
-        data.bayesian_analysis.likelihood + '%';
+            displayResults(mockData);
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('results-container').style.display = 'block';
+        }, 1500);
+    }
 
-    document.getElementById('posterior-value').textContent = 
-        data.bayesian_analysis.posterior.toFixed(1) + '%';
-    document.getElementById('posterior-bar').style.width = 
-        data.bayesian_analysis.posterior + '%';
+    function displayResults(data) {
+        // ML Prediction
+        document.getElementById('ml-probability').textContent =
+            data.ml_prediction.raw_probability.toFixed(1) + '%';
 
-    // Risk Assessment
-    const riskBadge = document.getElementById('risk-badge');
-    const level = data.risk_assessment.level;
-    riskBadge.textContent = level + ' Risk';
-    
-    let badgeClass = 'bg-success';
-    if (level === 'Moderate') badgeClass = 'bg-warning';
-    if (level === 'High') badgeClass = 'bg-danger';
-    
-    riskBadge.className = 'badge fs-6 py-2 px-3 ' + badgeClass;
-    document.getElementById('risk-description').textContent = 
-        data.risk_assessment.description;
-}
+        // Bayesian Analysis
+        document.getElementById('prior-value').textContent =
+            data.bayesian_analysis.prior.toFixed(1) + '%';
+        document.getElementById('prior-bar').style.width =
+            data.bayesian_analysis.prior + '%';
 
-function hideResults() {
-    document.getElementById('results-container').style.display = 'none';
-    document.getElementById('no-results').style.display = 'block';
-}
+        document.getElementById('likelihood-value').textContent =
+            data.bayesian_analysis.likelihood.toFixed(1) + '%';
+        document.getElementById('likelihood-bar').style.width =
+            data.bayesian_analysis.likelihood + '%';
+
+        document.getElementById('posterior-value').textContent =
+            data.bayesian_analysis.posterior.toFixed(1) + '%';
+        document.getElementById('posterior-bar').style.width =
+            data.bayesian_analysis.posterior + '%';
+
+        // Risk Assessment
+        const riskBadge = document.getElementById('risk-badge');
+        const level = data.risk_assessment.level;
+        riskBadge.textContent = level + ' Risk';
+
+        let badgeClass = 'bg-success';
+        if (level === 'Moderate') badgeClass = 'bg-warning';
+        if (level === 'High') badgeClass = 'bg-danger';
+
+        riskBadge.className = 'badge fs-6 py-2 px-3 ' + badgeClass;
+        document.getElementById('risk-description').textContent =
+            data.risk_assessment.description;
+    }
+
+    function hideResults() {
+        document.getElementById('results-container').style.display = 'none';
+        document.getElementById('no-results').style.display = 'block';
+    }
 </script>
 {% endblock %}

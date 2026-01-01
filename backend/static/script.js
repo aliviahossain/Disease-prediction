@@ -98,11 +98,13 @@ function attachResetOnInput() {
 // Smoothly show result and scroll down
 function showResult(message) {
   const resultDiv = document.getElementById('result');
-  resultDiv.style.display = "block";
   resultDiv.textContent = message;
+  resultDiv.classList.add('visible');
 
   // Smooth scroll into view
-  resultDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+  setTimeout(() => {
+    resultDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, 100);
 }
 
 function renderProbabilityChart(prior, posterior) {
@@ -113,7 +115,9 @@ function renderProbabilityChart(prior, posterior) {
     probabilityChart.destroy();
   }
 
-  chartContainer.style.display = 'block';
+  // Use visibility classes for smooth transition
+  chartContainer.classList.remove('hidden');
+  chartContainer.classList.add('visible');
 
   probabilityChart = new Chart(ctx, {
     type: 'bar',
@@ -140,7 +144,6 @@ function renderProbabilityChart(prior, posterior) {
       }
     }
   });
-  chartContainer.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 // Use preset hospital data
@@ -195,13 +198,19 @@ function usePreset() {
           updateSliderValue('falsePositiveValue', data.falsePositive);
         }
 
-        // Trigger interactive calculation to update the real-time display
-        calculateInteractive();
+        // --- EXPLICIT INTERACTION CHANGE ---
+        // We no longer call calculateInteractive() or showResult/renderProbabilityChart here.
+        // Instead, we just reset the display to clear potentially stale results.
+        resetResultDisplay();
 
-        showResult(`Probability of disease given positive test for ${selectedDisease}: ${data.p_d_given_pos}`);
-        renderProbabilityChart(data.prior, data.p_d_given_pos);
+        // Optional: Provide subtle visual cue to click Check
+        const checkBtn = document.getElementById('checkButton');
+        if (checkBtn) {
+          checkBtn.classList.add('pulse-highlight');
+          setTimeout(() => checkBtn.classList.remove('pulse-highlight'), 1500);
+        }
 
-        // Store data for AI recommendations
+        // Store data for AI recommendations (will be used after manual Check)
         lastCalculationData = {
           diseaseName: selectedDisease,
           priorProbability: data.prior,
@@ -209,8 +218,7 @@ function usePreset() {
           testResult: 'positive'
         };
 
-        // Show recommendations container with button
-        showRecommendationsContainer();
+        // Recommendations will now appear ONLY after Check is clicked
       }
     })
     .catch(error => {
@@ -465,11 +473,29 @@ function showUpdatingState() {
 }
 
 function hideUpdatingState() {
-  const indicator = document.getElementById('updatingIndicator');
   const resultContainer = document.getElementById('interactiveResult');
-
-  if (indicator) indicator.style.display = 'none';
   if (resultContainer) resultContainer.classList.remove('updating');
+}
+
+// Reset interactivity: Hide results when inputs change
+function resetResultDisplay() {
+  const interactiveResult = document.getElementById('interactiveResult');
+  const chartContainer = document.getElementById('chartContainer');
+  const recommendationsContainer = document.getElementById('recommendationsContainer');
+  const resultAlert = document.getElementById('result');
+
+  const containers = [interactiveResult, chartContainer, recommendationsContainer, resultAlert];
+
+  containers.forEach(container => {
+    if (container) {
+      container.classList.remove('visible');
+      container.classList.add('hidden');
+      // For legacy alerts using style.display
+      if (container.id === 'result' || container.id === 'recommendationsContainer') {
+        container.style.display = 'none';
+      }
+    }
+  });
 }
 
 // Initialize interactive sliders
@@ -493,7 +519,7 @@ function initInteractiveSliders() {
     pDSlider.addEventListener('input', function () {
       pDInput.value = this.value;
       updateSliderValue('pDValue', this.value);
-      calculateInteractive();
+      resetResultDisplay();
     });
 
     pDInput.addEventListener('input', function () {
@@ -502,7 +528,7 @@ function initInteractiveSliders() {
       this.value = value;
       pDSlider.value = value;
       updateSliderValue('pDValue', value);
-      calculateInteractive();
+      resetResultDisplay();
     });
   }
 
@@ -511,7 +537,7 @@ function initInteractiveSliders() {
     sensitivitySlider.addEventListener('input', function () {
       sensitivityInput.value = this.value;
       updateSliderValue('sensitivityValue', this.value);
-      calculateInteractive();
+      resetResultDisplay();
     });
 
     sensitivityInput.addEventListener('input', function () {
@@ -520,7 +546,7 @@ function initInteractiveSliders() {
       this.value = value;
       sensitivitySlider.value = value;
       updateSliderValue('sensitivityValue', value);
-      calculateInteractive();
+      resetResultDisplay();
     });
   }
 
@@ -529,7 +555,7 @@ function initInteractiveSliders() {
     falsePositiveSlider.addEventListener('input', function () {
       falsePositiveInput.value = this.value;
       updateSliderValue('falsePositiveValue', this.value);
-      calculateInteractive();
+      resetResultDisplay();
     });
 
     falsePositiveInput.addEventListener('input', function () {
@@ -538,19 +564,58 @@ function initInteractiveSliders() {
       this.value = value;
       falsePositiveSlider.value = value;
       updateSliderValue('falsePositiveValue', value);
-      calculateInteractive();
+      resetResultDisplay();
     });
   }
 
   // Handle test result select changes
   if (testResultSelect) {
     testResultSelect.addEventListener('change', function () {
-      calculateInteractive();
+      resetResultDisplay();
     });
   }
 
-  // Initial calculation
-  calculateInteractive();
+  const diseaseSelect = document.getElementById('diseaseSelect');
+  if (diseaseSelect) {
+    diseaseSelect.addEventListener('change', resetResultDisplay);
+  }
+
+  // Initial state (hidden)
+  resetResultDisplay();
+}
+
+/**
+ * Handle "Check" button click
+ * Implements loading state and triggers calculation
+ */
+function handleCheck() {
+  const btn = document.getElementById('checkButton');
+  const btnText = document.getElementById('buttonText');
+  const resultContainer = document.getElementById('interactiveResult');
+
+  if (!btn || !btnText) return;
+
+  // 1. Enter Loading State
+  btn.classList.add('btn-loading');
+  btn.disabled = true;
+  btnText.textContent = 'Calculating...';
+
+  // Optional: Hide old results during calculation for cleaner feel
+  resultContainer.classList.remove('visible');
+  resultContainer.classList.add('hidden');
+
+  // 2. Simulate small delay for "Professional" feel and ensure calculation finishes
+  setTimeout(() => {
+    calculateInteractive();
+
+    // 3. Exit Loading State & Show results
+    btn.classList.remove('btn-loading');
+    btn.disabled = false;
+    btnText.innerHTML = '<i class="fas fa-check-circle me-2"></i>Check Result';
+
+    resultContainer.classList.remove('hidden');
+    resultContainer.classList.add('visible');
+  }, 600);
 }
 
 // Update slider value display
@@ -616,6 +681,9 @@ function calculateInteractive() {
     // Update UI and store data for recommendations
     updateInteractiveResult(prior, posterior, testResult);
 
+    // Render chart as well
+    renderProbabilityChart(prior, posterior);
+
     // 4. Hide feedback
     hideUpdatingState();
 
@@ -634,8 +702,9 @@ function updateInteractiveResult(prior, posterior, testResult = 'positive') {
 
   if (!resultContainer) return;
 
-  // Show result container
-  resultContainer.style.display = 'block';
+  // Show result container via classes
+  resultContainer.classList.remove('hidden');
+  resultContainer.classList.add('visible');
 
   // Update prior value display
   const priorPercent = prior * 100;
