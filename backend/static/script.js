@@ -168,6 +168,36 @@ function usePreset() {
       console.log("-----------------------------------------------------------------------");
       console.log(`Probability of disease given positive test for ${selectedDisease}: ${data.p_d_given_pos}`);
       console.log("-----------------------------------------------------------------------");
+      
+      // Update the sliders and inputs with preset values
+      const pDSlider = document.getElementById('pDSlider');
+      const pDInput = document.getElementById('pD');
+      const sensitivitySlider = document.getElementById('sensitivitySlider');
+      const sensitivityInput = document.getElementById('sensitivity');
+      const falsePositiveSlider = document.getElementById('falsePositiveSlider');
+      const falsePositiveInput = document.getElementById('falsePositive');
+      
+      if (pDSlider && pDInput && data.prior !== undefined) {
+        pDSlider.value = data.prior;
+        pDInput.value = data.prior;
+        updateSliderValue('pDValue', data.prior);
+      }
+      
+      if (sensitivitySlider && sensitivityInput && data.sensitivity !== undefined) {
+        sensitivitySlider.value = data.sensitivity;
+        sensitivityInput.value = data.sensitivity;
+        updateSliderValue('sensitivityValue', data.sensitivity);
+      }
+      
+      if (falsePositiveSlider && falsePositiveInput && data.falsePositive !== undefined) {
+        falsePositiveSlider.value = data.falsePositive;
+        falsePositiveInput.value = data.falsePositive;
+        updateSliderValue('falsePositiveValue', data.falsePositive);
+      }
+      
+      // Trigger interactive calculation to update the real-time display
+      calculateInteractive();
+      
       showResult(`Probability of disease given positive test for ${selectedDisease}: ${data.p_d_given_pos}`);
       renderProbabilityChart(data.prior, data.p_d_given_pos);
 
@@ -419,3 +449,229 @@ $('#diseaseSelect').select2({
         
     }, 50); // A 50ms delay for reliability
 });
+
+// ============================================
+// Interactive Real-Time Slider Functionality
+// ============================================
+
+let interactiveCalculationTimeout = null;
+
+// Initialize interactive sliders
+function initInteractiveSliders() {
+    // Get all slider and input elements (using the existing form IDs)
+    const pDSlider = document.getElementById('pDSlider');
+    const pDInput = document.getElementById('pD');
+    const sensitivitySlider = document.getElementById('sensitivitySlider');
+    const sensitivityInput = document.getElementById('sensitivity');
+    const falsePositiveSlider = document.getElementById('falsePositiveSlider');
+    const falsePositiveInput = document.getElementById('falsePositive');
+    const testResultSelect = document.getElementById('testResult');
+
+    // Check if elements exist (only run on calculator page)
+    if (!pDSlider || !sensitivitySlider || !falsePositiveSlider) {
+        return;
+    }
+
+    // Sync sliders with number inputs for Prior Probability
+    if (pDSlider && pDInput) {
+        pDSlider.addEventListener('input', function() {
+            pDInput.value = this.value;
+            updateSliderValue('pDValue', this.value);
+            calculateInteractive();
+        });
+
+        pDInput.addEventListener('input', function() {
+            let value = parseFloat(this.value) || 0;
+            value = Math.max(0, Math.min(1, value)); // Clamp to [0, 1]
+            this.value = value;
+            pDSlider.value = value;
+            updateSliderValue('pDValue', value);
+            calculateInteractive();
+        });
+    }
+
+    // Sync sliders with number inputs for Sensitivity
+    if (sensitivitySlider && sensitivityInput) {
+        sensitivitySlider.addEventListener('input', function() {
+            sensitivityInput.value = this.value;
+            updateSliderValue('sensitivityValue', this.value);
+            calculateInteractive();
+        });
+
+        sensitivityInput.addEventListener('input', function() {
+            let value = parseFloat(this.value) || 0;
+            value = Math.max(0, Math.min(1, value));
+            this.value = value;
+            sensitivitySlider.value = value;
+            updateSliderValue('sensitivityValue', value);
+            calculateInteractive();
+        });
+    }
+
+    // Sync sliders with number inputs for False Positive Rate
+    if (falsePositiveSlider && falsePositiveInput) {
+        falsePositiveSlider.addEventListener('input', function() {
+            falsePositiveInput.value = this.value;
+            updateSliderValue('falsePositiveValue', this.value);
+            calculateInteractive();
+        });
+
+        falsePositiveInput.addEventListener('input', function() {
+            let value = parseFloat(this.value) || 0;
+            value = Math.max(0, Math.min(1, value));
+            this.value = value;
+            falsePositiveSlider.value = value;
+            updateSliderValue('falsePositiveValue', value);
+            calculateInteractive();
+        });
+    }
+
+    // Handle test result select changes
+    if (testResultSelect) {
+        testResultSelect.addEventListener('change', function() {
+            calculateInteractive();
+        });
+    }
+
+    // Initial calculation
+    calculateInteractive();
+}
+
+// Update slider value display
+function updateSliderValue(elementId, value) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.textContent = parseFloat(value).toFixed(2);
+    }
+}
+
+// Calculate posterior probability in real-time
+function calculateInteractive() {
+    // Debounce calculations
+    if (interactiveCalculationTimeout) {
+        clearTimeout(interactiveCalculationTimeout);
+    }
+
+    interactiveCalculationTimeout = setTimeout(() => {
+        const pDSlider = document.getElementById('pDSlider');
+        const sensitivitySlider = document.getElementById('sensitivitySlider');
+        const falsePositiveSlider = document.getElementById('falsePositiveSlider');
+        const testResultSelect = document.getElementById('testResult');
+        
+        if (!pDSlider || !sensitivitySlider || !falsePositiveSlider) {
+            return;
+        }
+
+        const prior = parseFloat(pDSlider.value || 0);
+        const sensitivity = parseFloat(sensitivitySlider.value || 0);
+        const falsePositive = parseFloat(falsePositiveSlider.value || 0);
+        const testResult = testResultSelect ? testResultSelect.value : 'positive';
+
+        // Validate inputs
+        if (isNaN(prior) || isNaN(sensitivity) || isNaN(falsePositive)) {
+            return;
+        }
+
+        // Calculate posterior probability using Bayes' Theorem
+        const specificity = 1 - falsePositive;
+        let numerator, denominator;
+
+        if (testResult === 'positive') {
+            numerator = sensitivity * prior;
+            denominator = numerator + (falsePositive * (1 - prior));
+        } else {
+            numerator = (1 - sensitivity) * prior;
+            denominator = numerator + (specificity * (1 - prior));
+        }
+
+        if (denominator === 0) {
+            return;
+        }
+
+        const posterior = numerator / denominator;
+
+        // Update UI and store data for recommendations
+        updateInteractiveResult(prior, posterior, testResult);
+    }, 150); // 150ms debounce
+}
+
+// Update the interactive result display
+function updateInteractiveResult(prior, posterior, testResult = 'positive') {
+    const resultContainer = document.getElementById('interactiveResult');
+    const priorValueDisplay = document.getElementById('priorValueDisplay');
+    const posteriorValue = document.getElementById('posteriorValue');
+    const posteriorProgressBar = document.getElementById('posteriorProgressBar');
+    const posteriorPercentage = document.getElementById('posteriorPercentage');
+    const riskLevelBadge = document.getElementById('riskLevelBadge');
+    const riskLevelText = document.getElementById('riskLevelText');
+
+    if (!resultContainer) return;
+
+    // Show result container
+    resultContainer.style.display = 'block';
+
+    // Update prior value display
+    const priorPercent = prior * 100;
+    if (priorValueDisplay) {
+        priorValueDisplay.textContent = prior.toFixed(4) + ' (' + priorPercent.toFixed(2) + '%)';
+    }
+
+    // Update posterior value
+    const posteriorPercent = posterior * 100;
+    if (posteriorValue) {
+        posteriorValue.textContent = posterior.toFixed(4) + ' (' + posteriorPercent.toFixed(2) + '%)';
+    }
+
+    // Update progress bar
+    if (posteriorProgressBar && posteriorPercentage) {
+        posteriorProgressBar.style.width = posteriorPercent + '%';
+        posteriorProgressBar.setAttribute('aria-valuenow', posteriorPercent);
+        posteriorPercentage.textContent = posteriorPercent.toFixed(1) + '%';
+
+        // Update progress bar color based on risk level
+        posteriorProgressBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
+        if (posteriorPercent < 25) {
+            posteriorProgressBar.classList.add('bg-success');
+            if (riskLevelBadge && riskLevelText) {
+                riskLevelBadge.className = 'badge fs-6 p-2 risk-low';
+                riskLevelText.textContent = 'Low Risk';
+            }
+        } else if (posteriorPercent < 50) {
+            posteriorProgressBar.classList.add('bg-warning');
+            if (riskLevelBadge && riskLevelText) {
+                riskLevelBadge.className = 'badge fs-6 p-2 risk-medium';
+                riskLevelText.textContent = 'Medium Risk';
+            }
+        } else if (posteriorPercent < 75) {
+            posteriorProgressBar.classList.add('bg-danger');
+            if (riskLevelBadge && riskLevelText) {
+                riskLevelBadge.className = 'badge fs-6 p-2 risk-high';
+                riskLevelText.textContent = 'High Risk';
+            }
+        } else {
+            posteriorProgressBar.classList.add('bg-dark');
+            if (riskLevelBadge && riskLevelText) {
+                riskLevelBadge.className = 'badge fs-6 p-2 risk-very-high';
+                riskLevelText.textContent = 'Very High Risk';
+            }
+        }
+    }
+
+    // Store data for AI recommendations
+    lastCalculationData = {
+        diseaseName: null,
+        priorProbability: prior,
+        posteriorProbability: posterior,
+        testResult: testResult
+    };
+
+    // Show recommendations container
+    showRecommendationsContainer();
+}
+
+// Initialize on page load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initInteractiveSliders);
+} else {
+    initInteractiveSliders();
+}
