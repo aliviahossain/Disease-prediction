@@ -9,3 +9,4 @@ numpy
 pandas
 streamlit
 plotly
+scikit-learn

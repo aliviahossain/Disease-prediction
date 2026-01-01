@@ -13,45 +13,45 @@ let lastCalculationData = {
 // ============================================
 
 function initDarkMode() {
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const body = document.body;
-    const sunIcon = document.querySelector('.sun-icon');
-    const moonIcon = document.querySelector('.moon-icon');
-    
-    // Check for saved dark mode preference or default to light mode
-    const isDarkMode = localStorage.getItem('darkMode') === 'enabled';
-    
-    // Apply dark mode if previously enabled
-    if (isDarkMode) {
-        body.classList.add('dark-mode');
-        if (sunIcon) sunIcon.style.display = 'none';
-        if (moonIcon) moonIcon.style.display = 'block';
-    }
-    
-    // Toggle dark mode on button click
-    if (darkModeToggle) {
-        darkModeToggle.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-            
-            const isDark = body.classList.contains('dark-mode');
-            
-            // Update icons
-            if (sunIcon && moonIcon) {
-                sunIcon.style.display = isDark ? 'none' : 'block';
-                moonIcon.style.display = isDark ? 'block' : 'none';
-            }
-            
-            // Save preference to localStorage
-            localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
-        });
-    }
+  const darkModeToggle = document.getElementById('darkModeToggle');
+  const body = document.body;
+  const sunIcon = document.querySelector('.sun-icon');
+  const moonIcon = document.querySelector('.moon-icon');
+
+  // Check for saved dark mode preference or default to light mode
+  const isDarkMode = localStorage.getItem('darkMode') === 'enabled';
+
+  // Apply dark mode if previously enabled
+  if (isDarkMode) {
+    body.classList.add('dark-mode');
+    if (sunIcon) sunIcon.style.display = 'none';
+    if (moonIcon) moonIcon.style.display = 'block';
+  }
+
+  // Toggle dark mode on button click
+  if (darkModeToggle) {
+    darkModeToggle.addEventListener('click', () => {
+      body.classList.toggle('dark-mode');
+
+      const isDark = body.classList.contains('dark-mode');
+
+      // Update icons
+      if (sunIcon && moonIcon) {
+        sunIcon.style.display = isDark ? 'none' : 'block';
+        moonIcon.style.display = isDark ? 'block' : 'none';
+      }
+
+      // Save preference to localStorage
+      localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+    });
+  }
 }
 
 // Initialize dark mode on page load
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initDarkMode);
+  document.addEventListener('DOMContentLoaded', initDarkMode);
 } else {
-    initDarkMode();
+  initDarkMode();
 }
 
 
@@ -106,41 +106,41 @@ function showResult(message) {
 }
 
 function renderProbabilityChart(prior, posterior) {
-    const chartContainer = document.getElementById('chartContainer');
-    const ctx = document.getElementById('probabilityChartCanvas').getContext('2d');
+  const chartContainer = document.getElementById('chartContainer');
+  const ctx = document.getElementById('probabilityChartCanvas').getContext('2d');
 
-    if (probabilityChart) {
-        probabilityChart.destroy();
-    }
+  if (probabilityChart) {
+    probabilityChart.destroy();
+  }
 
-    chartContainer.style.display = 'block';
+  chartContainer.style.display = 'block';
 
-    probabilityChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Prior Probability', 'Posterior Probability'],
-            datasets: [{
-                label: 'Probability (%)',
-                data: [prior * 100, posterior * 100],
-                backgroundColor: ['rgba(54, 162, 235, 0.6)', 'rgba(75, 192, 192, 0.6)'],
-                borderColor: ['rgba(54, 162, 235, 1)', 'rgba(75, 192, 192, 1)'],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
-                    ticks: { callback: function(value) { return value + '%' } }
-                }
-            }
+  probabilityChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Prior Probability', 'Posterior Probability'],
+      datasets: [{
+        label: 'Probability (%)',
+        data: [prior * 100, posterior * 100],
+        backgroundColor: ['rgba(54, 162, 235, 0.6)', 'rgba(75, 192, 192, 0.6)'],
+        borderColor: ['rgba(54, 162, 235, 1)', 'rgba(75, 192, 192, 1)'],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: { callback: function (value) { return value + '%' } }
         }
-    });
-    chartContainer.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  });
+  chartContainer.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 // Use preset hospital data
@@ -160,62 +160,62 @@ function usePreset() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ disease: selectedDisease })
   })
-  .then(response => response.json())
-  .then(data => {
-    if (data.error) {
-      showResult('Error: ' + data.error);
-    } else {
-      console.log("-----------------------------------------------------------------------");
-      console.log(`Probability of disease given positive test for ${selectedDisease}: ${data.p_d_given_pos}`);
-      console.log("-----------------------------------------------------------------------");
-      
-      // Update the sliders and inputs with preset values
-      const pDSlider = document.getElementById('pDSlider');
-      const pDInput = document.getElementById('pD');
-      const sensitivitySlider = document.getElementById('sensitivitySlider');
-      const sensitivityInput = document.getElementById('sensitivity');
-      const falsePositiveSlider = document.getElementById('falsePositiveSlider');
-      const falsePositiveInput = document.getElementById('falsePositive');
-      
-      if (pDSlider && pDInput && data.prior !== undefined) {
-        pDSlider.value = data.prior;
-        pDInput.value = data.prior;
-        updateSliderValue('pDValue', data.prior);
-      }
-      
-      if (sensitivitySlider && sensitivityInput && data.sensitivity !== undefined) {
-        sensitivitySlider.value = data.sensitivity;
-        sensitivityInput.value = data.sensitivity;
-        updateSliderValue('sensitivityValue', data.sensitivity);
-      }
-      
-      if (falsePositiveSlider && falsePositiveInput && data.falsePositive !== undefined) {
-        falsePositiveSlider.value = data.falsePositive;
-        falsePositiveInput.value = data.falsePositive;
-        updateSliderValue('falsePositiveValue', data.falsePositive);
-      }
-      
-      // Trigger interactive calculation to update the real-time display
-      calculateInteractive();
-      
-      showResult(`Probability of disease given positive test for ${selectedDisease}: ${data.p_d_given_pos}`);
-      renderProbabilityChart(data.prior, data.p_d_given_pos);
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        showResult('Error: ' + data.error);
+      } else {
+        console.log("-----------------------------------------------------------------------");
+        console.log(`Probability of disease given positive test for ${selectedDisease}: ${data.p_d_given_pos}`);
+        console.log("-----------------------------------------------------------------------");
 
-      // Store data for AI recommendations
-      lastCalculationData = {
-        diseaseName: selectedDisease,
-        priorProbability: data.prior,
-        posteriorProbability: data.p_d_given_pos,
-        testResult: 'positive'
-      };
-      
-      // Show recommendations container with button
-      showRecommendationsContainer();
-    }
-  })
-  .catch(error => {
-    showResult('Fetch error: ' + error);
-  });
+        // Update the sliders and inputs with preset values
+        const pDSlider = document.getElementById('pDSlider');
+        const pDInput = document.getElementById('pD');
+        const sensitivitySlider = document.getElementById('sensitivitySlider');
+        const sensitivityInput = document.getElementById('sensitivity');
+        const falsePositiveSlider = document.getElementById('falsePositiveSlider');
+        const falsePositiveInput = document.getElementById('falsePositive');
+
+        if (pDSlider && pDInput && data.prior !== undefined) {
+          pDSlider.value = data.prior;
+          pDInput.value = data.prior;
+          updateSliderValue('pDValue', data.prior);
+        }
+
+        if (sensitivitySlider && sensitivityInput && data.sensitivity !== undefined) {
+          sensitivitySlider.value = data.sensitivity;
+          sensitivityInput.value = data.sensitivity;
+          updateSliderValue('sensitivityValue', data.sensitivity);
+        }
+
+        if (falsePositiveSlider && falsePositiveInput && data.falsePositive !== undefined) {
+          falsePositiveSlider.value = data.falsePositive;
+          falsePositiveInput.value = data.falsePositive;
+          updateSliderValue('falsePositiveValue', data.falsePositive);
+        }
+
+        // Trigger interactive calculation to update the real-time display
+        calculateInteractive();
+
+        showResult(`Probability of disease given positive test for ${selectedDisease}: ${data.p_d_given_pos}`);
+        renderProbabilityChart(data.prior, data.p_d_given_pos);
+
+        // Store data for AI recommendations
+        lastCalculationData = {
+          diseaseName: selectedDisease,
+          priorProbability: data.prior,
+          posteriorProbability: data.p_d_given_pos,
+          testResult: 'positive'
+        };
+
+        // Show recommendations container with button
+        showRecommendationsContainer();
+      }
+    })
+    .catch(error => {
+      showResult('Fetch error: ' + error);
+    });
 }
 
 // Calculate disease probability from custom input
@@ -232,7 +232,7 @@ function calculateDisease() {
   if (!(validP && validSens && validFP)) return;
 
   const prior = parseFloat(pDInput.value);
-  
+
   fetch('/disease', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -243,32 +243,32 @@ function calculateDisease() {
       testResult: testResultInput.value
     })
   })
-  .then(response => response.json())
-  .then(data => {
-    if (data.error) {
-      showResult('Error: ' + data.error);
-    } else {
-      console.log("-----------------------------------------------------------------------");
-      console.log(`Probability of disease given ${data.test_result} test: ${data.p_d_given_result}`);
-      console.log("-----------------------------------------------------------------------");
-      showResult(`Probability of disease given ${data.test_result} test: ${data.p_d_given_result}`);
-      renderProbabilityChart(prior, data.p_d_given_result);
-      
-      // Store data for AI recommendations
-      lastCalculationData = {
-        diseaseName: null, // No disease name for custom input
-        priorProbability: prior,
-        posteriorProbability: data.p_d_given_result,
-        testResult: data.test_result
-      };
-      
-      // Show recommendations container with button
-      showRecommendationsContainer();
-    }
-  })
-  .catch(error => {
-    showResult('Fetch error: ' + error);
-  }); 
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        showResult('Error: ' + data.error);
+      } else {
+        console.log("-----------------------------------------------------------------------");
+        console.log(`Probability of disease given ${data.test_result} test: ${data.p_d_given_result}`);
+        console.log("-----------------------------------------------------------------------");
+        showResult(`Probability of disease given ${data.test_result} test: ${data.p_d_given_result}`);
+        renderProbabilityChart(prior, data.p_d_given_result);
+
+        // Store data for AI recommendations
+        lastCalculationData = {
+          diseaseName: null, // No disease name for custom input
+          priorProbability: prior,
+          posteriorProbability: data.p_d_given_result,
+          testResult: data.test_result
+        };
+
+        // Show recommendations container with button
+        showRecommendationsContainer();
+      }
+    })
+    .catch(error => {
+      showResult('Fetch error: ' + error);
+    });
 }
 
 function renderChart(prior, posterior) {
@@ -276,37 +276,37 @@ function renderChart(prior, posterior) {
   if (!canvas) return;
 
   if (typeof prior !== 'number' || isNaN(prior) || typeof posterior !== 'number' || isNaN(posterior)) {
-      // Optionally, clear chart or show empty chart
-      if (window.probChart && typeof window.probChart.destroy === 'function') {
-          window.probChart.destroy();
-      }
-      return;
+    // Optionally, clear chart or show empty chart
+    if (window.probChart && typeof window.probChart.destroy === 'function') {
+      window.probChart.destroy();
+    }
+    return;
   }
 
   const ctx = document.getElementById('probChart').getContext('2d');
 
   if (window.probChart && typeof window.probChart.destroy === 'function') {
-      window.probChart.destroy();
+    window.probChart.destroy();
   }
 
   window.probChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-          labels: ['Prior Probability', 'Posterior Probability'],
-          datasets: [{
-              label: 'Probability (%)',
-              data: [prior * 100, posterior * 100],
-              backgroundColor: ['#60a5fa', '#34d399']
-          }]
-      },
-      options: {
-          scales: {
-              y: {
-                  beginAtZero: true,
-                  max: 100
-              }
-          }
+    type: 'bar',
+    data: {
+      labels: ['Prior Probability', 'Posterior Probability'],
+      datasets: [{
+        label: 'Probability (%)',
+        data: [prior * 100, posterior * 100],
+        backgroundColor: ['#60a5fa', '#34d399']
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100
+        }
       }
+    }
   });
 }
 
@@ -321,14 +321,14 @@ function showRecommendationsContainer() {
   const loadingDiv = document.getElementById('recommendationsLoading');
   const disclaimerDiv = document.getElementById('recommendationsDisclaimer');
   const btn = document.getElementById('getRecommendationsBtn');
-  
+
   if (container) {
     container.style.display = 'block';
     contentDiv.style.display = 'none';
     loadingDiv.style.display = 'none';
     disclaimerDiv.style.display = 'none';
     btn.style.display = 'inline-block';
-    
+
     // Smooth scroll to recommendations container
     setTimeout(() => {
       container.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -342,13 +342,13 @@ function getAIRecommendations() {
   const disclaimerDiv = document.getElementById('recommendationsDisclaimer');
   const btn = document.getElementById('getRecommendationsBtn');
   const languageSelect = document.getElementById('languageSelect');
-  
+
   // Show loading state
   btn.style.display = 'none';
   loadingDiv.style.display = 'block';
   contentDiv.style.display = 'none';
   disclaimerDiv.style.display = 'none';
-  
+
   // Prepare request data
   const requestData = {
     disease_name: lastCalculationData.diseaseName,
@@ -357,24 +357,24 @@ function getAIRecommendations() {
     test_result: lastCalculationData.testResult,
     language: languageSelect.value
   };
-  
+
   // Call Gemini API
   fetch('/gemini-recommendations', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(requestData)
   })
-  .then(response => response.json())
-  .then(data => {
-    loadingDiv.style.display = 'none';
-    
-    if (data.success) {
-      // Format and display recommendations using marked.js or simple HTML conversion
-      contentDiv.innerHTML = formatMarkdownToHTML(data.recommendations);
-      contentDiv.style.display = 'block';
-      disclaimerDiv.style.display = 'block';
-    } else {
-      contentDiv.innerHTML = `
+    .then(response => response.json())
+    .then(data => {
+      loadingDiv.style.display = 'none';
+
+      if (data.success) {
+        // Format and display recommendations using marked.js or simple HTML conversion
+        contentDiv.innerHTML = formatMarkdownToHTML(data.recommendations);
+        contentDiv.style.display = 'block';
+        disclaimerDiv.style.display = 'block';
+      } else {
+        contentDiv.innerHTML = `
         <div class="alert alert-warning">
           <strong>Unable to generate recommendations:</strong><br>
           ${data.recommendations || data.error || 'Unknown error occurred'}
@@ -382,29 +382,29 @@ function getAIRecommendations() {
           <small>Make sure the GEMINI_API_KEY environment variable is set correctly.</small>
         </div>
       `;
-      contentDiv.style.display = 'block';
-      btn.style.display = 'inline-block';
-    }
-    
-    // Scroll to see the content
-    contentDiv.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  })
-  .catch(error => {
-    loadingDiv.style.display = 'none';
-    contentDiv.innerHTML = `
+        contentDiv.style.display = 'block';
+        btn.style.display = 'inline-block';
+      }
+
+      // Scroll to see the content
+      contentDiv.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    })
+    .catch(error => {
+      loadingDiv.style.display = 'none';
+      contentDiv.innerHTML = `
       <div class="alert alert-danger">
         <strong>Error:</strong> Failed to fetch recommendations. ${error.message}
       </div>
     `;
-    contentDiv.style.display = 'block';
-    btn.style.display = 'inline-block';
-  });
+      contentDiv.style.display = 'block';
+      btn.style.display = 'inline-block';
+    });
 }
 
 // Simple markdown-to-HTML converter for AI responses
 function formatMarkdownToHTML(text) {
   if (!text) return '';
-  
+
   // Convert markdown-style formatting to HTML
   let html = text
     // Bold text: **text** or __text__
@@ -416,14 +416,14 @@ function formatMarkdownToHTML(text) {
     // Line breaks
     .replace(/\n\n/g, '</p><p>')
     .replace(/\n/g, '<br>');
-  
+
   // Wrap in paragraph tags
   html = '<p>' + html + '</p>';
-  
+
   // Clean up empty paragraphs
   html = html.replace(/<p><\/p>/g, '');
   html = html.replace(/<p>\s*<\/p>/g, '');
-  
+
   return html;
 }
 
@@ -431,23 +431,23 @@ function formatMarkdownToHTML(text) {
 window.addEventListener("DOMContentLoaded", attachResetOnInput);
 
 $('#diseaseSelect').select2({
-    placeholder: "Type to search disease...",
-    width: '100%',
-    allowClear: true,
-    dropdownParent: $('#diseaseSelect').parent(),
-}).on('select2:open', function() {
-    // Use a timeout to ensure the search field is fully rendered
-    setTimeout(function() {
-        // Find the search field inside the currently open dropdown
-        const searchField = $('.select2-container--open .select2-search__field');
+  placeholder: "Type to search disease...",
+  width: '100%',
+  allowClear: true,
+  dropdownParent: $('#diseaseSelect').parent(),
+}).on('select2:open', function () {
+  // Use a timeout to ensure the search field is fully rendered
+  setTimeout(function () {
+    // Find the search field inside the currently open dropdown
+    const searchField = $('.select2-container--open .select2-search__field');
 
-        // Set the placeholder text for the search box
-        searchField.attr('placeholder', 'Type here to search...');
+    // Set the placeholder text for the search box
+    searchField.attr('placeholder', 'Type here to search...');
 
-        // Set focus to place the cursor in the search box
-        searchField.focus();
-        
-    }, 50); // A 50ms delay for reliability
+    // Set focus to place the cursor in the search box
+    searchField.focus();
+
+  }, 50); // A 50ms delay for reliability
 });
 
 // ============================================
@@ -456,222 +456,249 @@ $('#diseaseSelect').select2({
 
 let interactiveCalculationTimeout = null;
 
+function showUpdatingState() {
+  const indicator = document.getElementById('updatingIndicator');
+  const resultContainer = document.getElementById('interactiveResult');
+
+  if (indicator) indicator.style.display = 'inline-block';
+  if (resultContainer) resultContainer.classList.add('updating');
+}
+
+function hideUpdatingState() {
+  const indicator = document.getElementById('updatingIndicator');
+  const resultContainer = document.getElementById('interactiveResult');
+
+  if (indicator) indicator.style.display = 'none';
+  if (resultContainer) resultContainer.classList.remove('updating');
+}
+
 // Initialize interactive sliders
 function initInteractiveSliders() {
-    // Get all slider and input elements (using the existing form IDs)
-    const pDSlider = document.getElementById('pDSlider');
-    const pDInput = document.getElementById('pD');
-    const sensitivitySlider = document.getElementById('sensitivitySlider');
-    const sensitivityInput = document.getElementById('sensitivity');
-    const falsePositiveSlider = document.getElementById('falsePositiveSlider');
-    const falsePositiveInput = document.getElementById('falsePositive');
-    const testResultSelect = document.getElementById('testResult');
+  // Get all slider and input elements (using the existing form IDs)
+  const pDSlider = document.getElementById('pDSlider');
+  const pDInput = document.getElementById('pD');
+  const sensitivitySlider = document.getElementById('sensitivitySlider');
+  const sensitivityInput = document.getElementById('sensitivity');
+  const falsePositiveSlider = document.getElementById('falsePositiveSlider');
+  const falsePositiveInput = document.getElementById('falsePositive');
+  const testResultSelect = document.getElementById('testResult');
 
-    // Check if elements exist (only run on calculator page)
-    if (!pDSlider || !sensitivitySlider || !falsePositiveSlider) {
-        return;
-    }
+  // Check if elements exist (only run on calculator page)
+  if (!pDSlider || !sensitivitySlider || !falsePositiveSlider) {
+    return;
+  }
 
-    // Sync sliders with number inputs for Prior Probability
-    if (pDSlider && pDInput) {
-        pDSlider.addEventListener('input', function() {
-            pDInput.value = this.value;
-            updateSliderValue('pDValue', this.value);
-            calculateInteractive();
-        });
+  // Sync sliders with number inputs for Prior Probability
+  if (pDSlider && pDInput) {
+    pDSlider.addEventListener('input', function () {
+      pDInput.value = this.value;
+      updateSliderValue('pDValue', this.value);
+      calculateInteractive();
+    });
 
-        pDInput.addEventListener('input', function() {
-            let value = parseFloat(this.value) || 0;
-            value = Math.max(0, Math.min(1, value)); // Clamp to [0, 1]
-            this.value = value;
-            pDSlider.value = value;
-            updateSliderValue('pDValue', value);
-            calculateInteractive();
-        });
-    }
+    pDInput.addEventListener('input', function () {
+      let value = parseFloat(this.value) || 0;
+      value = Math.max(0, Math.min(1, value)); // Clamp to [0, 1]
+      this.value = value;
+      pDSlider.value = value;
+      updateSliderValue('pDValue', value);
+      calculateInteractive();
+    });
+  }
 
-    // Sync sliders with number inputs for Sensitivity
-    if (sensitivitySlider && sensitivityInput) {
-        sensitivitySlider.addEventListener('input', function() {
-            sensitivityInput.value = this.value;
-            updateSliderValue('sensitivityValue', this.value);
-            calculateInteractive();
-        });
+  // Sync sliders with number inputs for Sensitivity
+  if (sensitivitySlider && sensitivityInput) {
+    sensitivitySlider.addEventListener('input', function () {
+      sensitivityInput.value = this.value;
+      updateSliderValue('sensitivityValue', this.value);
+      calculateInteractive();
+    });
 
-        sensitivityInput.addEventListener('input', function() {
-            let value = parseFloat(this.value) || 0;
-            value = Math.max(0, Math.min(1, value));
-            this.value = value;
-            sensitivitySlider.value = value;
-            updateSliderValue('sensitivityValue', value);
-            calculateInteractive();
-        });
-    }
+    sensitivityInput.addEventListener('input', function () {
+      let value = parseFloat(this.value) || 0;
+      value = Math.max(0, Math.min(1, value));
+      this.value = value;
+      sensitivitySlider.value = value;
+      updateSliderValue('sensitivityValue', value);
+      calculateInteractive();
+    });
+  }
 
-    // Sync sliders with number inputs for False Positive Rate
-    if (falsePositiveSlider && falsePositiveInput) {
-        falsePositiveSlider.addEventListener('input', function() {
-            falsePositiveInput.value = this.value;
-            updateSliderValue('falsePositiveValue', this.value);
-            calculateInteractive();
-        });
+  // Sync sliders with number inputs for False Positive Rate
+  if (falsePositiveSlider && falsePositiveInput) {
+    falsePositiveSlider.addEventListener('input', function () {
+      falsePositiveInput.value = this.value;
+      updateSliderValue('falsePositiveValue', this.value);
+      calculateInteractive();
+    });
 
-        falsePositiveInput.addEventListener('input', function() {
-            let value = parseFloat(this.value) || 0;
-            value = Math.max(0, Math.min(1, value));
-            this.value = value;
-            falsePositiveSlider.value = value;
-            updateSliderValue('falsePositiveValue', value);
-            calculateInteractive();
-        });
-    }
+    falsePositiveInput.addEventListener('input', function () {
+      let value = parseFloat(this.value) || 0;
+      value = Math.max(0, Math.min(1, value));
+      this.value = value;
+      falsePositiveSlider.value = value;
+      updateSliderValue('falsePositiveValue', value);
+      calculateInteractive();
+    });
+  }
 
-    // Handle test result select changes
-    if (testResultSelect) {
-        testResultSelect.addEventListener('change', function() {
-            calculateInteractive();
-        });
-    }
+  // Handle test result select changes
+  if (testResultSelect) {
+    testResultSelect.addEventListener('change', function () {
+      calculateInteractive();
+    });
+  }
 
-    // Initial calculation
-    calculateInteractive();
+  // Initial calculation
+  calculateInteractive();
 }
 
 // Update slider value display
 function updateSliderValue(elementId, value) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.textContent = parseFloat(value).toFixed(2);
-    }
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.textContent = parseFloat(value).toFixed(2);
+  }
 }
 
 // Calculate posterior probability in real-time
 function calculateInteractive() {
-    // Debounce calculations
-    if (interactiveCalculationTimeout) {
-        clearTimeout(interactiveCalculationTimeout);
+  // 1. Show feedback immediately
+  showUpdatingState();
+
+  // 2. Clear existing timeout (debounce)
+  if (interactiveCalculationTimeout) {
+    clearTimeout(interactiveCalculationTimeout);
+  }
+
+  // 3. Set new timeout
+  interactiveCalculationTimeout = setTimeout(() => {
+    const pDSlider = document.getElementById('pDSlider');
+    const sensitivitySlider = document.getElementById('sensitivitySlider');
+    const falsePositiveSlider = document.getElementById('falsePositiveSlider');
+    const testResultSelect = document.getElementById('testResult');
+
+    if (!pDSlider || !sensitivitySlider || !falsePositiveSlider) {
+      hideUpdatingState();
+      return;
     }
 
-    interactiveCalculationTimeout = setTimeout(() => {
-        const pDSlider = document.getElementById('pDSlider');
-        const sensitivitySlider = document.getElementById('sensitivitySlider');
-        const falsePositiveSlider = document.getElementById('falsePositiveSlider');
-        const testResultSelect = document.getElementById('testResult');
-        
-        if (!pDSlider || !sensitivitySlider || !falsePositiveSlider) {
-            return;
-        }
+    const prior = parseFloat(pDSlider.value || 0);
+    const sensitivity = parseFloat(sensitivitySlider.value || 0);
+    const falsePositive = parseFloat(falsePositiveSlider.value || 0);
+    const testResult = testResultSelect ? testResultSelect.value : 'positive';
 
-        const prior = parseFloat(pDSlider.value || 0);
-        const sensitivity = parseFloat(sensitivitySlider.value || 0);
-        const falsePositive = parseFloat(falsePositiveSlider.value || 0);
-        const testResult = testResultSelect ? testResultSelect.value : 'positive';
+    // Validate inputs
+    if (isNaN(prior) || isNaN(sensitivity) || isNaN(falsePositive)) {
+      hideUpdatingState();
+      return;
+    }
 
-        // Validate inputs
-        if (isNaN(prior) || isNaN(sensitivity) || isNaN(falsePositive)) {
-            return;
-        }
+    // Calculate posterior probability using Bayes' Theorem
+    const specificity = 1 - falsePositive;
+    let numerator, denominator;
 
-        // Calculate posterior probability using Bayes' Theorem
-        const specificity = 1 - falsePositive;
-        let numerator, denominator;
+    if (testResult === 'positive') {
+      numerator = sensitivity * prior;
+      denominator = numerator + (falsePositive * (1 - prior));
+    } else {
+      numerator = (1 - sensitivity) * prior;
+      denominator = numerator + (specificity * (1 - prior));
+    }
 
-        if (testResult === 'positive') {
-            numerator = sensitivity * prior;
-            denominator = numerator + (falsePositive * (1 - prior));
-        } else {
-            numerator = (1 - sensitivity) * prior;
-            denominator = numerator + (specificity * (1 - prior));
-        }
+    if (denominator === 0) {
+      hideUpdatingState();
+      return;
+    }
 
-        if (denominator === 0) {
-            return;
-        }
+    const posterior = numerator / denominator;
 
-        const posterior = numerator / denominator;
+    // Update UI and store data for recommendations
+    updateInteractiveResult(prior, posterior, testResult);
 
-        // Update UI and store data for recommendations
-        updateInteractiveResult(prior, posterior, testResult);
-    }, 150); // 150ms debounce
+    // 4. Hide feedback
+    hideUpdatingState();
+
+  }, 250); // 250ms debounce
 }
 
 // Update the interactive result display
 function updateInteractiveResult(prior, posterior, testResult = 'positive') {
-    const resultContainer = document.getElementById('interactiveResult');
-    const priorValueDisplay = document.getElementById('priorValueDisplay');
-    const posteriorValue = document.getElementById('posteriorValue');
-    const posteriorProgressBar = document.getElementById('posteriorProgressBar');
-    const posteriorPercentage = document.getElementById('posteriorPercentage');
-    const riskLevelBadge = document.getElementById('riskLevelBadge');
-    const riskLevelText = document.getElementById('riskLevelText');
+  const resultContainer = document.getElementById('interactiveResult');
+  const priorValueDisplay = document.getElementById('priorValueDisplay');
+  const posteriorValue = document.getElementById('posteriorValue');
+  const posteriorProgressBar = document.getElementById('posteriorProgressBar');
+  const posteriorPercentage = document.getElementById('posteriorPercentage');
+  const riskLevelBadge = document.getElementById('riskLevelBadge');
+  const riskLevelText = document.getElementById('riskLevelText');
 
-    if (!resultContainer) return;
+  if (!resultContainer) return;
 
-    // Show result container
-    resultContainer.style.display = 'block';
+  // Show result container
+  resultContainer.style.display = 'block';
 
-    // Update prior value display
-    const priorPercent = prior * 100;
-    if (priorValueDisplay) {
-        priorValueDisplay.textContent = prior.toFixed(4) + ' (' + priorPercent.toFixed(2) + '%)';
+  // Update prior value display
+  const priorPercent = prior * 100;
+  if (priorValueDisplay) {
+    priorValueDisplay.textContent = prior.toFixed(4) + ' (' + priorPercent.toFixed(2) + '%)';
+  }
+
+  // Update posterior value
+  const posteriorPercent = posterior * 100;
+  if (posteriorValue) {
+    posteriorValue.textContent = posterior.toFixed(4) + ' (' + posteriorPercent.toFixed(2) + '%)';
+  }
+
+  // Update progress bar
+  if (posteriorProgressBar && posteriorPercentage) {
+    posteriorProgressBar.style.width = posteriorPercent + '%';
+    posteriorProgressBar.setAttribute('aria-valuenow', posteriorPercent);
+    posteriorPercentage.textContent = posteriorPercent.toFixed(1) + '%';
+
+    // Update progress bar color based on risk level
+    posteriorProgressBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
+    if (posteriorPercent < 25) {
+      posteriorProgressBar.classList.add('bg-success');
+      if (riskLevelBadge && riskLevelText) {
+        riskLevelBadge.className = 'badge fs-6 p-2 risk-low';
+        riskLevelText.textContent = 'Low Risk';
+      }
+    } else if (posteriorPercent < 50) {
+      posteriorProgressBar.classList.add('bg-warning');
+      if (riskLevelBadge && riskLevelText) {
+        riskLevelBadge.className = 'badge fs-6 p-2 risk-medium';
+        riskLevelText.textContent = 'Medium Risk';
+      }
+    } else if (posteriorPercent < 75) {
+      posteriorProgressBar.classList.add('bg-danger');
+      if (riskLevelBadge && riskLevelText) {
+        riskLevelBadge.className = 'badge fs-6 p-2 risk-high';
+        riskLevelText.textContent = 'High Risk';
+      }
+    } else {
+      posteriorProgressBar.classList.add('bg-dark');
+      if (riskLevelBadge && riskLevelText) {
+        riskLevelBadge.className = 'badge fs-6 p-2 risk-very-high';
+        riskLevelText.textContent = 'Very High Risk';
+      }
     }
+  }
 
-    // Update posterior value
-    const posteriorPercent = posterior * 100;
-    if (posteriorValue) {
-        posteriorValue.textContent = posterior.toFixed(4) + ' (' + posteriorPercent.toFixed(2) + '%)';
-    }
+  // Store data for AI recommendations
+  lastCalculationData = {
+    diseaseName: null,
+    priorProbability: prior,
+    posteriorProbability: posterior,
+    testResult: testResult
+  };
 
-    // Update progress bar
-    if (posteriorProgressBar && posteriorPercentage) {
-        posteriorProgressBar.style.width = posteriorPercent + '%';
-        posteriorProgressBar.setAttribute('aria-valuenow', posteriorPercent);
-        posteriorPercentage.textContent = posteriorPercent.toFixed(1) + '%';
-
-        // Update progress bar color based on risk level
-        posteriorProgressBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
-        if (posteriorPercent < 25) {
-            posteriorProgressBar.classList.add('bg-success');
-            if (riskLevelBadge && riskLevelText) {
-                riskLevelBadge.className = 'badge fs-6 p-2 risk-low';
-                riskLevelText.textContent = 'Low Risk';
-            }
-        } else if (posteriorPercent < 50) {
-            posteriorProgressBar.classList.add('bg-warning');
-            if (riskLevelBadge && riskLevelText) {
-                riskLevelBadge.className = 'badge fs-6 p-2 risk-medium';
-                riskLevelText.textContent = 'Medium Risk';
-            }
-        } else if (posteriorPercent < 75) {
-            posteriorProgressBar.classList.add('bg-danger');
-            if (riskLevelBadge && riskLevelText) {
-                riskLevelBadge.className = 'badge fs-6 p-2 risk-high';
-                riskLevelText.textContent = 'High Risk';
-            }
-        } else {
-            posteriorProgressBar.classList.add('bg-dark');
-            if (riskLevelBadge && riskLevelText) {
-                riskLevelBadge.className = 'badge fs-6 p-2 risk-very-high';
-                riskLevelText.textContent = 'Very High Risk';
-            }
-        }
-    }
-
-    // Store data for AI recommendations
-    lastCalculationData = {
-        diseaseName: null,
-        priorProbability: prior,
-        posteriorProbability: posterior,
-        testResult: testResult
-    };
-
-    // Show recommendations container
-    showRecommendationsContainer();
+  // Show recommendations container
+  showRecommendationsContainer();
 }
 
 // Initialize on page load
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initInteractiveSliders);
+  document.addEventListener('DOMContentLoaded', initInteractiveSliders);
 } else {
-    initInteractiveSliders();
+  initInteractiveSliders();
 }

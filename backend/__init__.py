@@ -16,20 +16,14 @@ def create_app():
     )
     
     # Register Disease Routes Blueprint
-    try:
-        from backend.routes.disease_routes import disease_bp
-        app.register_blueprint(disease_bp)
-        print("✅ 'disease_routes' blueprint registered successfully")
-    except ImportError as e:
-        print(f"⚠️ Warning: Could not import 'disease_routes' blueprint. Error: {e}")
+    from backend.routes.disease_routes import disease_bp
+    app.register_blueprint(disease_bp)
+    print("✅ 'disease_routes' blueprint registered successfully")
     
     # Register ML Routes Blueprint
-    try:
-        from backend.routes.ml_routes import ml_bp
-        app.register_blueprint(ml_bp)
-        print("✅ 'ml_routes' blueprint registered successfully")
-    except ImportError as e:
-        print(f"⚠️ Warning: Could not import 'ml_routes' blueprint. Error: {e}")
+    from backend.routes.ml_routes import ml_bp
+    app.register_blueprint(ml_bp)
+    print("✅ 'ml_routes' blueprint registered successfully")
     
     # Register other blueprints if you have them
     try:
