@@ -326,6 +326,91 @@
         riskBadge.className = 'badge fs-6 py-2 px-3 ' + badgeClass;
         document.getElementById('risk-description').textContent =
             data.risk_assessment.description;
+    }
+
+    function toggleSymptom(symptom) {
+        const index = selectedSymptoms.indexOf(symptom);
+        if (index > -1) {
+            selectedSymptoms.splice(index, 1);
+        } else {
+            selectedSymptoms.push(symptom);
+        }
+        updateSymptomCount();
+    }
+
+    function updateSymptomCount() {
+        const count = selectedSymptoms.length;
+        document.getElementById('symptom-count').textContent = `${count} selected`;
+    }
+
+    async function predictDisease() {
+        if (selectedSymptoms.length === 0) {
+            alert('Please select at least one symptom');
+            return;
+        }
+
+        // Show loading
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('no-results').style.display = 'none';
+        document.getElementById('results-container').style.display = 'none';
+
+        // Simulate API call - TODO: replace with actual ML prediction endpoint
+        setTimeout(() => {
+            // Mock data - replace with actual prediction from your ML model
+            const mockData = {
+                ml_prediction: {
+                    raw_probability: Math.random() * 80 + 10 // Random between 10-90
+                },
+                bayesian_analysis: {
+                    prior: Math.random() * 30 + 5, // Random between 5-35
+                    likelihood: Math.random() * 70 + 20, // Random between 20-90
+                    posterior: Math.random() * 70 + 15 // Random between 15-85
+                },
+                risk_assessment: {
+                    level: ['Low', 'Moderate', 'High'][Math.floor(Math.random() * 3)],
+                    description: 'Based on selected symptoms and ML analysis. This is mock data for demonstration.'
+                }
+            };
+
+            displayResults(mockData);
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('results-container').style.display = 'block';
+        }, 1500);
+    }
+
+    function displayResults(data) {
+        // ML Prediction
+        document.getElementById('ml-probability').textContent =
+            data.ml_prediction.raw_probability.toFixed(1) + '%';
+
+        // Bayesian Analysis
+        document.getElementById('prior-value').textContent =
+            data.bayesian_analysis.prior.toFixed(1) + '%';
+        document.getElementById('prior-bar').style.width =
+            data.bayesian_analysis.prior + '%';
+
+        document.getElementById('likelihood-value').textContent =
+            data.bayesian_analysis.likelihood.toFixed(1) + '%';
+        document.getElementById('likelihood-bar').style.width =
+            data.bayesian_analysis.likelihood + '%';
+
+        document.getElementById('posterior-value').textContent =
+            data.bayesian_analysis.posterior.toFixed(1) + '%';
+        document.getElementById('posterior-bar').style.width =
+            data.bayesian_analysis.posterior + '%';
+
+        // Risk Assessment
+        const riskBadge = document.getElementById('risk-badge');
+        const level = data.risk_assessment.level;
+        riskBadge.textContent = level + ' Risk';
+
+        let badgeClass = 'bg-success';
+        if (level === 'Moderate') badgeClass = 'bg-warning';
+        if (level === 'High') badgeClass = 'bg-danger';
+
+        riskBadge.className = 'badge fs-6 py-2 px-3 ' + badgeClass;
+        document.getElementById('risk-description').textContent =
+            data.risk_assessment.description;
 
         // Store data for download
         window.lastMLResults = data;
