@@ -533,14 +533,20 @@ function initInteractiveSliders() {
       resetResultDisplay();
     });
 
+    // Allow partial typing states
     pDInput.addEventListener('input', function () {
-      let value = parseFloat(this.value) || 0;
-      value = Math.max(0, Math.min(1, value)); // Clamp to [0, 1]
-      this.value = value;
-      pDSlider.value = value;
-      updateSliderValue('pDValue', value);
-      resetResultDisplay();
-    });
+      const raw = this.value;
+      if (raw === '' || raw === '.' || raw === '0.') return;
+
+      const value = Number(raw);
+      if (isNaN(value)) return;
+
+      if (value >= 0 && value <= 1) {
+        pDSlider.value = value;
+        updateSliderValue('pDValue', value);
+      }
+    }); 
+
   }
 
   // Sync sliders with number inputs for Sensitivity
@@ -551,13 +557,18 @@ function initInteractiveSliders() {
       resetResultDisplay();
     });
 
+    // Allow partial typing states
     sensitivityInput.addEventListener('input', function () {
-      let value = parseFloat(this.value) || 0;
-      value = Math.max(0, Math.min(1, value));
-      this.value = value;
-      sensitivitySlider.value = value;
-      updateSliderValue('sensitivityValue', value);
-      resetResultDisplay();
+      const raw = this.value;
+      if (raw === '' || raw === '.' || raw === '0.') return;
+
+      const value = Number(raw);
+      if (isNaN(value)) return;
+
+      if (value >= 0 && value <= 1) {
+        sensitivitySlider.value = value;
+        updateSliderValue('sensitivityValue', value);
+      }
     });
   }
 
@@ -569,13 +580,18 @@ function initInteractiveSliders() {
       resetResultDisplay();
     });
 
+    // Allow partial typing states
     falsePositiveInput.addEventListener('input', function () {
-      let value = parseFloat(this.value) || 0;
-      value = Math.max(0, Math.min(1, value));
-      this.value = value;
-      falsePositiveSlider.value = value;
-      updateSliderValue('falsePositiveValue', value);
-      resetResultDisplay();
+      const raw = this.value;
+      if (raw === '' || raw === '.' || raw === '0.') return;
+
+      const value = Number(raw);
+      if (isNaN(value)) return;
+
+      if (value >= 0 && value <= 1) {
+        falsePositiveSlider.value = value;
+        updateSliderValue('falsePositiveValue', value);
+      }
     });
   }
 
