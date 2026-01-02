@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Connect With Us{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5 animate-fade-in">
+    <h1 class="display-5 fw-bold">Connect With Us</h1>
+    <p class="lead text-muted">We'd love to hear from you!</p>
+</div>
+
+<div class="row justify-content-center">
+    <!-- Contact Info Card -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body p-4 text-center">
+                <div class="mb-4">
+                    <div class="icon-circle bg-primary bg-opacity-10 text-primary mx-auto mb-3"
+                        style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-envelope fa-2x"></i>
+                    </div>
+                    <h3>Email Us</h3>
+                    <p class="text-muted">For general inquiries and support</p>
+                    <a href="mailto:support@diseaseprediction.com"
+                        class="btn btn-outline-primary">support@diseaseprediction.com</a>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="mb-4">
+                    <div class="icon-circle bg-dark bg-opacity-10 text-dark mx-auto mb-3"
+                        style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fab fa-github fa-2x"></i>
+                    </div>
+                    <h3>Open Source</h3>
+                    <p class="text-muted">Contribute to our project on GitHub</p>
+                    <a href="https://github.com/aliviahossain/Disease-prediction" target="_blank"
+                        class="btn btn-outline-dark">View Repository</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Social Media / Community -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body p-4">
+                <h3 class="mb-4">Join the Community</h3>
+                <p>Stay updated with our latest developments and connect with other users and contributors.</p>
+
+                <div class="d-grid gap-3">
+                    <a href="#" class="btn btn-light d-flex align-items-center p-3 border shadow-sm hover-lift">
+                        <i class="fab fa-twitter text-primary fa-lg me-3"></i>
+                        <div class="text-start">
+                            <div class="fw-bold">Follow us on Twitter</div>
+                            <small class="text-muted">@DiseasePrevent</small>
+                        </div>
+                    </a>
+
+                    <a href="#" class="btn btn-light d-flex align-items-center p-3 border shadow-sm hover-lift">
+                        <i class="fab fa-linkedin text-primary fa-lg me-3"></i>
+                        <div class="text-start">
+                            <div class="fw-bold">Connect on LinkedIn</div>
+                            <small class="text-muted">Disease Prediction Project</small>
+                        </div>
+                    </a>
+
+                    <a href="#" class="btn btn-light d-flex align-items-center p-3 border shadow-sm hover-lift">
+                        <i class="fab fa-discord text-primary fa-lg me-3"></i>
+                        <div class="text-start">
+                            <div class="fw-bold">Join our Discord</div>
+                            <small class="text-muted">Chat with developers</small>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
