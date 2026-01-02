@@ -415,6 +415,22 @@ body.dark-mode .select2-container--default .select2-selection--single .select2-s
     color: var(--text-primary);
 }
 
+/* Select2 Dropdown Results Container - Enable Scrolling */
+.select2-container--default .select2-results__options {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.select2-container .select2-results {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.select2-dropdown {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
 /* Move dropdown arrow to the LEFT side */
 .select2-container--default .select2-selection--single .select2-selection__arrow {
     position: absolute;
