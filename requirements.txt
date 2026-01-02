@@ -7,4 +7,6 @@ google-generativeai
 python-dotenv
 numpy
 pandas
+streamlit
+plotly
 scikit-learn
