@@ -11,7 +11,7 @@
     --text-muted: #6c757d;
     --card-bg: #ffffff;
     --navbar-bg: #2c3e50;
-    --footer-bg: #2c3e50;
+    --footer-bg: #343a40; /* classic charcoal footer */
     --border-color: #dee2e6;
     --input-bg: #ffffff;
     --input-border: #ced4da;
@@ -30,7 +30,7 @@ body.dark-mode {
     --text-muted: #9ca3af;
     --card-bg: #2d2d2d;
     --navbar-bg: #1f1f1f;
-    --footer-bg: #1f1f1f;
+    --footer-bg: #212529;
     --border-color: #404040;
     --input-bg: #3a3a3a;
     --input-border: #4a4a4a;
@@ -183,7 +183,111 @@ body {
 #result {
     border-radius: 1rem;
     display: none;
-    /* Initially hidden, JS will manage visibility */
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+#result.visible {
+    display: block !important;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* New Visibility and Loading States */
+.result-container {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    display: none;
+    will-change: transform, opacity;
+}
+
+.result-container.visible {
+    display: block !important;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.result-container.hidden {
+    display: none !important;
+}
+
+/* Smooth progress bar movement */
+.progress-bar {
+    transition: width 0.8s cubic-bezier(0.65, 0, 0.35, 1), background-color 0.4s ease !important;
+}
+
+.btn-loading {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.btn-loading .spinner-border {
+    display: inline-block !important;
+}
+
+/* Enhanced Contrast for Risk Indicators in Dark Mode */
+body.dark-mode .risk-low {
+    background-color: #2fb344 !important;
+    /* Slightly brighter green */
+    color: #fff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .risk-medium {
+    background-color: #f59e0b !important;
+    /* Brighter amber */
+    color: #000 !important;
+    font-weight: 700;
+}
+
+body.dark-mode .risk-high {
+    background-color: #ef4444 !important;
+    /* Brighter red */
+    color: #fff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .risk-very-high {
+    background-color: #b91c1c !important;
+    /* Deep bright red */
+    color: #fff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Secondary Button Contrast in Dark Mode */
+body.dark-mode .btn-outline-primary {
+    color: #38bdf8;
+    border-color: #38bdf8;
+}
+
+body.dark-mode .btn-outline-primary:hover {
+    background-color: #38bdf8;
+    color: #0f172a;
+}
+
+/* Pulse Highlight for Button Guidance */
+.pulse-highlight {
+    animation: buttonPulse 1.5s ease;
+    box-shadow: 0 0 0 0 rgba(26, 188, 156, 0.7);
+}
+
+@keyframes buttonPulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(26, 188, 156, 0.7);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(26, 188, 156, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(26, 188, 156, 0);
+    }
 }
 
 /* Error validation styling */
@@ -217,6 +321,21 @@ body {
 footer {
     background-color: var(--footer-bg) !important;
     transition: background-color 0.3s ease;
+}
+
+footer {
+    color: #f8f9fa;
+    border-top: 1px solid rgba(255,255,255,0.03);
+}
+
+footer a {
+    color: rgba(248,249,250,0.85);
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: #ffffff;
+    text-decoration: underline;
 }
 
 /* --- Text Colors --- */
@@ -415,6 +534,22 @@ body.dark-mode .select2-container--default .select2-selection--single .select2-s
     color: var(--text-primary);
 }
 
+/* Select2 Dropdown Results Container - Enable Scrolling */
+.select2-container--default .select2-results__options {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.select2-container .select2-results {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.select2-dropdown {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
 /* Move dropdown arrow to the LEFT side */
 .select2-container--default .select2-selection--single .select2-selection__arrow {
     position: absolute;
@@ -477,7 +612,11 @@ body.dark-mode .select2-container--default .select2-selection--single .select2-s
     color: var(--text-primary);
 }
 
-/* Dark mode for chart container */
+/* --- AI Recommendations Section --- */
+#recommendationsContainer {
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
 body.dark-mode #chartContainer {
     background-color: var(--card-bg);
     border-color: var(--border-color);
@@ -605,6 +744,7 @@ body.dark-mode .info-text {
     background: var(--input-bg);
     outline: none;
     -webkit-appearance: none;
+    appearance: none;
     transition: all 0.3s ease;
 }
 
@@ -634,6 +774,7 @@ body.dark-mode .info-text {
     border: none;
     box-shadow: 0 2px 6px rgba(26, 188, 156, 0.4);
     transition: all 0.3s ease;
+    appearance: none;
 }
 
 .interactive-slider::-moz-range-thumb:hover {

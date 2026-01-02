@@ -1,5 +1,6 @@
 from flask import Flask, render_template
 import os
+from datetime import datetime
 
 def create_app():
     # Get the backend directory (where this __init__.py file is)
@@ -40,4 +41,8 @@ def create_app():
     except ImportError as e:
         print(f"⚠️ Warning: Could not import 'scalability_routes'. Error: {e}")
     
+    @app.context_processor
+    def inject_current_year():
+        return {"current_year": datetime.utcnow().year}
+
     return app
