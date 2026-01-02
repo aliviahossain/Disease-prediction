@@ -11,7 +11,7 @@
     --text-muted: #6c757d;
     --card-bg: #ffffff;
     --navbar-bg: #2c3e50;
-    --footer-bg: #2c3e50;
+    --footer-bg: #343a40; /* classic charcoal footer */
     --border-color: #dee2e6;
     --input-bg: #ffffff;
     --input-border: #ced4da;
@@ -30,7 +30,7 @@ body.dark-mode {
     --text-muted: #9ca3af;
     --card-bg: #2d2d2d;
     --navbar-bg: #1f1f1f;
-    --footer-bg: #1f1f1f;
+    --footer-bg: #212529;
     --border-color: #404040;
     --input-bg: #3a3a3a;
     --input-border: #4a4a4a;
@@ -217,6 +217,21 @@ body {
 footer {
     background-color: var(--footer-bg) !important;
     transition: background-color 0.3s ease;
+}
+
+footer {
+    color: #f8f9fa;
+    border-top: 1px solid rgba(255,255,255,0.03);
+}
+
+footer a {
+    color: rgba(248,249,250,0.85);
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: #ffffff;
+    text-decoration: underline;
 }
 
 /* --- Text Colors --- */
