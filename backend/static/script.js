@@ -262,6 +262,17 @@ function calculateDisease() {
           testResult: data.test_result
         };
 
+        // Store data for download
+        lastCalculationData = {
+          diseaseName: diseaseSelect.value || 'Custom Disease',
+          priorProbability: parseFloat(document.getElementById('pD').value),
+          posteriorProbability: data.p_d_given_result,
+          testResult: testResult
+        };
+
+        // Show download section
+        showDownloadSection();
+
         // Show recommendations container with button
         showRecommendationsContainer();
       }
@@ -694,6 +705,71 @@ function updateInteractiveResult(prior, posterior, testResult = 'positive') {
 
   // Show recommendations container
   showRecommendationsContainer();
+}
+
+// Show download section after calculation
+function showDownloadSection() {
+  const downloadSection = document.getElementById('downloadSection');
+  if (downloadSection) {
+    downloadSection.style.display = 'block';
+    downloadSection.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+
+// Download results
+async function downloadResults(format) {
+  if (!lastCalculationData.posteriorProbability) {
+    alert('Please calculate results first before downloading.');
+    return;
+  }
+
+  try {
+    const response = await fetch('/download-results', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        format: format,
+        prior_probability: lastCalculationData.priorProbability,
+        posterior_probability: lastCalculationData.posteriorProbability,
+        disease_name: lastCalculationData.diseaseName,
+        test_result: lastCalculationData.testResult,
+        sensitivity: document.getElementById('sensitivity').value,
+        false_positive: document.getElementById('falsePositive').value
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Download failed');
+    }
+
+    // Get filename from response headers or generate default
+    let filename = `disease_results_${new Date().getTime()}.${format}`;
+    const contentDisposition = response.headers.get('content-disposition');
+    if (contentDisposition && contentDisposition.includes('filename')) {
+      const matches = contentDisposition.match(/filename="?([^"\n]+)"?/);
+      if (matches && matches[1]) {
+        filename = matches[1];
+      }
+    }
+
+    // Create blob and download
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    console.log(`Downloaded: ${filename}`);
+
+  } catch (error) {
+    console.error('Download error:', error);
+    alert('Error downloading results: ' + error.message);
+  }
 }
 
 // Initialize on page load
