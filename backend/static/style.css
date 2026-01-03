@@ -925,3 +925,46 @@ body.dark-mode .form-range::-moz-range-thumb {
 .preloaded-scroll li:last-child {
   border-bottom: none;
 }
+
+/* Dark Mode – Home Prediction Results */
+
+body.dark-mode .prediction-results-card {
+    background-color: #1e1e1e;
+    color: #eaeaea;
+    border: 1px solid #2a2a2a;
+}
+
+/* Headings */
+body.dark-mode .prediction-results-card h2,
+body.dark-mode .prediction-results-card h3,
+body.dark-mode .prediction-results-card h4,
+body.dark-mode .prediction-results-card h6 {
+    color: #ffffff;
+}
+
+/* Inner cards (ML, Bayesian, Risk, Download) */
+body.dark-mode .prediction-results-card .card {
+    background-color: #252525 !important;
+    border-color: #333;
+    color: #eaeaea;
+}
+
+/* Remove Bootstrap bg-light effect */
+body.dark-mode .prediction-results-card .bg-light {
+    background-color: #3a3a3a !important;
+}
+
+/* Muted text */
+body.dark-mode .prediction-results-card .text-muted {
+    color: #b0b0b0 !important;
+}
+
+/* Progress bars */
+body.dark-mode .prediction-results-card .progress {
+    background-color: #333;
+}
+
+/* Download card border */
+body.dark-mode .prediction-results-card .border-primary {
+    border-color: #0d6efd;
+}
