@@ -12,6 +12,7 @@ from reportlab.lib.units import inch
 
 from backend.utils.calculator import bayesian_survival
 from backend.utils.gemini_helper import generate_recommendations
+from backend.models.ml_model import ml_model
 
 disease_bp = Blueprint("disease", __name__)
 
@@ -38,7 +39,10 @@ def load_diseases():
 @disease_bp.route("/")
 def home():
     """Render the home page with ML Prediction"""
-    diseases = load_diseases()
+    # diseases = load_diseases() # OLD: Loaded from CSV
+    # NEW: Load only diseases supported by the ML model
+    ml_diseases = ml_model.get_available_diseases()
+    diseases = [d.replace('_', ' ').title() for d in ml_diseases]
     return render_template("home.html", diseases=diseases)
 
 
