@@ -3,27 +3,50 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+  
     <title>{% block title %}Bayesian Disease Probability Calculator{% endblock %}</title>
-    
+  
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+  
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+  
     <!-- Google Fonts (Poppins) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
     <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <style>
+        /* Mobile-specific navbar adjustments */
+        @media (max-width: 991.98px) {
+            .navbar-brand .navbar-title {
+                font-size: 0.9rem !important; /* Slightly smaller title font on mobile */
+            }
+            /* Ensure toggler is positioned right next to brand on mobile */
+            .navbar .container {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .navbar-toggler {
+                order: 2; /* Ensures toggler comes after brand in flex order if needed */
+                margin-left: auto;
+            }
+            .navbar-toggler .burger,
+            .navbar-toggler .cross {
+                display: block;
+                transition: opacity 0.2s ease;
+            }
+            .navbar-toggler .cross {
+                display: none;
+            }
+        }
+    </style>
 </head>
-
 <body class="d-flex flex-column min-vh-100">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-custom-dark shadow-sm">
@@ -31,20 +54,26 @@
             <a class="navbar-brand d-flex align-items-center" href="/">
                  <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Medical Health Logo"
                      class="me-2" style="height: 40px; width: auto;">
-                <span class="fw-semibold">Disease-prediction App</span>
+                <span class="fw-semibold navbar-title">Disease-prediction App</span>
             </a>
-
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <svg class="burger" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+                <svg class="cross" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
             </button>
-
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
                         <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
-                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
-                                 stroke-linejoin="round" class="me-1 align-text-bottom">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                 stroke-linejoin="round" class="me-1 align-text-bottom" style="transform: translateY(-3px);">
                                 <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
                             </svg>
@@ -53,9 +82,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if '/calculator' in request.path %}active{% endif %}" href="{{ url_for('disease.calculator') }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
-                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
-                                 stroke-linejoin="round" class="me-1 align-text-bottom">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                 stroke-linejoin="round" class="me-1 align-text-bottom" style="transform: translateY(-3px);">
                                 <rect x="4" y="2" width="16" height="20" rx="2"></rect>
                                 <line x1="8" y1="6" x2="16" y2="6"></line>
                                 <line x1="8" y1="10" x2="16" y2="10"></line>
@@ -68,8 +97,8 @@
                     </li>
                     <li class="nav-item">
                         <!--<a class="nav-link {% if '/ml-prediction' in request.path %}active{% endif %}" href="{{ url_for('ml.ml_prediction_page') }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
-                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                  stroke-linejoin="round" class="me-1 align-text-bottom">
                                 <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                                 <path d="M9.5 8H17"></path>
@@ -80,9 +109,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if '/scalability' in request.path %}active{% endif %}" href="/scalability">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
-                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
-                                 stroke-linejoin="round" class="me-1 align-text-bottom">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                 stroke-linejoin="round" class="me-1 align-text-bottom" style="transform: translateY(-3px);">
                                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                             </svg>
                             Scalability
@@ -90,9 +119,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if '/help' in request.path %}active{% endif %}" href="/help">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
-                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
-                                 stroke-linejoin="round" class="me-1 align-text-bottom">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                 stroke-linejoin="round" class="me-1 align-text-bottom" style="transform: translateY(-3px);">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -122,17 +151,15 @@
             </div>
         </div>
     </nav>
-
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
         {% block content %}{% endblock %}
     </main>
-    
+  
     <!-- Footer -->
     <footer class="bg-custom-dark text-white text-center py-4 mt-auto">
         <div class="container">
-            <p class="mb-1">&copy; {{ current_year }} Disease-prediciton App — Prediction based medical insights for everyone.</p>
-
+            <p class="mb-1">&copy; {{ current_year }} Disease-prediction App — Prediction-based medical insights for everyone.</p>
             <p class="small mb-2">
                 <a href="/privacy" class="text-white text-decoration-none">Privacy</a>
                 <span class="mx-2">·</span>
@@ -140,7 +167,6 @@
                 <span class="mx-2">·</span>
                 <a href="/contact" class="text-white text-decoration-none">Contact</a>
             </p>
-
             <p class="mb-0">
                 <a href="https://github.com/aliviahossain/Disease-prediction" target="_blank" rel="noopener" class="text-white me-3" aria-label="GitHub">
                     <i class="fab fa-github fa-lg"></i>
@@ -151,17 +177,35 @@
             </p>
         </div>
     </footer>
-
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
+  
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
+  
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        // Navbar toggler icon switch for mobile
+        document.addEventListener('DOMContentLoaded', function () {
+            const navbarCollapse = document.getElementById('navbarNav');
+            const burger = document.querySelector('.navbar-toggler .burger');
+            const cross = document.querySelector('.navbar-toggler .cross');
+
+            if (navbarCollapse && burger && cross) {
+                navbarCollapse.addEventListener('show.bs.collapse', function () {
+                    burger.style.display = 'none';
+                    cross.style.display = 'block';
+                });
+
+                navbarCollapse.addEventListener('hide.bs.collapse', function () {
+                    burger.style.display = 'block';
+                    cross.style.display = 'none';
+                });
+            }
+        });
+    </script>
 </body>
 </html>
