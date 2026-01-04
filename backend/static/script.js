@@ -8,6 +8,9 @@ let lastCalculationData = {
   testResult: 'positive'
 };
 
+// LocalStorage key for persisting calculator state
+const STORAGE_KEY = "calculator_last_state";
+
 // ============================================
 // Dark Mode Toggle Functionality
 // ============================================
@@ -607,10 +610,43 @@ function initInteractiveSliders() {
     diseaseSelect.addEventListener('change', resetResultDisplay);
   }
 
-  // Initial state (hidden)
-  resetResultDisplay();
-}
+  // Restore previous calculator state if available
+  const savedState = localStorage.getItem(STORAGE_KEY);
 
+    if (savedState) {
+      try {
+        const state = JSON.parse(savedState);
+
+        // Restore Prior Probability
+        pDSlider.value = state.pD;
+        pDInput.value = state.pD;
+        updateSliderValue("pDValue", state.pD);
+
+        // Restore Sensitivity
+        sensitivitySlider.value = state.sensitivity;
+        sensitivityInput.value = state.sensitivity;
+        updateSliderValue("sensitivityValue", state.sensitivity);
+
+        // Restore False Positive Rate
+        falsePositiveSlider.value = state.falsePositive;
+        falsePositiveInput.value = state.falsePositive;
+        updateSliderValue("falsePositiveValue", state.falsePositive);
+
+        // Restore Test Result
+        testResultSelect.value = state.testResult;
+
+        // Restore Result + Chart
+        updateInteractiveResult(state.pD, state.posterior, state.testResult);
+        renderProbabilityChart(state.pD, state.posterior);
+
+      } catch (err) {
+        console.warn("Failed to restore calculator state", err);
+      }
+    } else {
+      // No saved state → start clean
+      resetResultDisplay();
+    }
+  }
 /**
  * Handle "Check" button click
  * Implements loading state and triggers calculation
@@ -790,7 +826,78 @@ function updateInteractiveResult(prior, posterior, testResult = 'positive') {
 
   // Show recommendations container
   showRecommendationsContainer();
+  // Persist calculator state after successful calculation
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    pD: prior,
+    sensitivity: Number(document.getElementById("sensitivity")?.value),
+    falsePositive: Number(document.getElementById("falsePositive")?.value),
+    testResult: testResult,
+    posterior: posterior
+  }));
 }
+
+// Fully reset calculator state (UI + storage)
+function resetCalculator() {
+  // Clear localStorage
+  localStorage.removeItem(STORAGE_KEY);
+
+  // Default values (as per UI design)
+  const DEFAULTS = {
+    pD: 0.01,
+    sensitivity: 0.99,
+    falsePositive: 0.05,
+    testResult: "positive"
+  };
+
+  // Reset inputs
+  const pDSlider = document.getElementById('pDSlider');
+  const pDInput = document.getElementById('pD');
+  const sensitivitySlider = document.getElementById('sensitivitySlider');
+  const sensitivityInput = document.getElementById('sensitivity');
+  const falsePositiveSlider = document.getElementById('falsePositiveSlider');
+  const falsePositiveInput = document.getElementById('falsePositive');
+  const testResultSelect = document.getElementById('testResult');
+
+  if (pDSlider && pDInput) {
+    pDSlider.value = DEFAULTS.pD;
+    pDInput.value = DEFAULTS.pD;
+    updateSliderValue('pDValue', DEFAULTS.pD);
+  }
+
+  if (sensitivitySlider && sensitivityInput) {
+    sensitivitySlider.value = DEFAULTS.sensitivity;
+    sensitivityInput.value = DEFAULTS.sensitivity;
+    updateSliderValue('sensitivityValue', DEFAULTS.sensitivity);
+  }
+
+  if (falsePositiveSlider && falsePositiveInput) {
+    falsePositiveSlider.value = DEFAULTS.falsePositive;
+    falsePositiveInput.value = DEFAULTS.falsePositive;
+    updateSliderValue('falsePositiveValue', DEFAULTS.falsePositive);
+  }
+
+  if (testResultSelect) {
+    testResultSelect.value = DEFAULTS.testResult;
+  }
+
+  // Reset result UI
+  resetResultDisplay();
+
+  // Destroy chart if exists
+  if (probabilityChart) {
+    probabilityChart.destroy();
+    probabilityChart = null;
+  }
+
+  // Clear last calculation data
+  lastCalculationData = {
+    diseaseName: null,
+    priorProbability: null,
+    posteriorProbability: null,
+    testResult: 'positive'
+  };
+}
+
 
 // Show download section after calculation
 function showDownloadSection() {
