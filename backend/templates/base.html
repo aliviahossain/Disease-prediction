@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -129,9 +130,26 @@
                             Help
                         </a>
                     </li>
+                    {% if session.get('user_id') %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/profile' in request.path %}active{% endif %}"
+                            href="{{ url_for('auth.profile') }}">
+                            <i class="fas fa-user-circle me-1"></i> Profile
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/auth' in request.path %}active{% endif %}"
+                            href="{{ url_for('auth.auth') }}">
+                            <i class="fas fa-sign-in-alt me-1"></i> Sign In / Register
+                        </a>
+                    </li>
+                    {% endif %}
                     <li class="nav-item ms-2">
                         <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sun-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="sun-icon">
                                 <circle cx="12" cy="12" r="5"></circle>
                                 <line x1="12" y1="1" x2="12" y2="3"></line>
                                 <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -142,7 +160,9 @@
                                 <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                                 <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                             </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="moon-icon" style="display: none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="moon-icon" style="display: none;">
                                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                             </svg>
                         </button>
@@ -208,4 +228,5 @@
         });
     </script>
 </body>
+
 </html>
