@@ -6,6 +6,7 @@ from flask_bcrypt import Bcrypt
 # Initialize extensions
 db = SQLAlchemy()
 bcrypt = Bcrypt()
+from datetime import datetime
 
 def create_app():
     # Get the backend directory (where this __init__.py file is)
@@ -63,5 +64,8 @@ def create_app():
     # Create Database Tables
     with app.app_context():
         db.create_all()
+    @app.context_processor
+    def inject_current_year():
+        return {"current_year": datetime.utcnow().year}
 
     return app

@@ -57,7 +57,7 @@
 
     <!-- Results Panel -->
     <div class="col-lg-6">
-        <div class="card h-100 shadow-sm">
+        <div class="card h-100 shadow-sm prediction-results-card">
             <div class="card-body p-4">
                 <h2 class="h4 mb-4">
                     <i class="fas fa-chart-line me-2"></i>Prediction Results
@@ -131,6 +131,22 @@
                             </h3>
                             <span class="badge fs-6 py-2 px-3" id="risk-badge">--</span>
                             <p class="mt-2 mb-0 text-muted small" id="risk-description">--</p>
+                        </div>
+                    </div>
+
+                    <!-- Download Results Section -->
+                    <div class="card border-primary mt-3">
+                        <div class="card-body text-center p-3">
+                            <button class="btn btn-sm btn-danger" onclick="downloadMLResults()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" class="me-1"
+                                    style="display: inline;">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Download Report as PDF
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -277,39 +293,181 @@
         }, 1500);
     }
 
+    async function loadSymptoms(disease) {
+        const container = document.getElementById('symptoms-container');
+        container.innerHTML = '<p class="text-center text-muted py-3">Loading symptoms...</p>';
+        document.getElementById('symptom-count').textContent = '0 selected';
+
+        try {
+            const response = await fetch(`/api/ml/symptoms/${disease}`);
+            const data = await response.json();
+
+            if (!data.success) {
+                container.innerHTML = `<p class="text-danger text-center">Error: ${data.error}</p>`;
+                return;
+            }
+
+            const symptoms = data.symptoms; // Expecting list of {key: 'fever', name: 'Fever'}
+            let html = '';
+
+            if (symptoms.length === 0) {
+                html = '<p class="text-muted text-center">No symptoms found for this disease.</p>';
+            } else {
+                symptoms.forEach((symptom) => {
+                    html += `
+                    <div class="symptom-checkbox">
+                        <input type="checkbox" id="symptom-${symptom.key}" value="${symptom.key}" 
+                               onchange="toggleSymptom('${symptom.key}')">
+                        <label for="symptom-${symptom.key}">${symptom.name}</label>
+                    </div>
+                    `;
+                });
+            }
+
+            container.innerHTML = html;
+
+        } catch (error) {
+            console.error('Error loading symptoms:', error);
+            container.innerHTML = '<p class="text-danger text-center">Failed to load symptoms. Please check if backend is running.</p>';
+        }
+    }
+
+    function toggleSymptom(symptomKey) {
+        const index = selectedSymptoms.indexOf(symptomKey);
+        if (index > -1) {
+            selectedSymptoms.splice(index, 1);
+        } else {
+            selectedSymptoms.push(symptomKey);
+        }
+        updateSymptomCount();
+    }
+
+    function updateSymptomCount() {
+        const count = selectedSymptoms.length;
+        document.getElementById('symptom-count').textContent = `${count} selected`;
+    }
+
+    async function predictDisease() {
+        if (!currentDisease) {
+            alert('Please select a disease first');
+            return;
+        }
+
+        if (selectedSymptoms.length === 0) {
+            alert('Please select at least one symptom');
+            return;
+        }
+
+        // Show loading
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('no-results').style.display = 'none';
+        document.getElementById('results-container').style.display = 'none';
+
+        try {
+            const response = await fetch('/api/ml/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    disease: currentDisease,
+                    symptoms: selectedSymptoms
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                displayResults(data);
+                document.getElementById('results-container').style.display = 'block';
+            } else {
+                alert(`Prediction Error: ${data.error || 'Unknown error'}`);
+            }
+
+        } catch (error) {
+            console.error('Prediction error:', error);
+            alert('Failed to connect to the server. Please check your connection.');
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+        }
+    }
+
     function displayResults(data) {
+        // Map API response to UI
         // ML Prediction
-        document.getElementById('ml-probability').textContent =
-            data.ml_prediction.raw_probability.toFixed(1) + '%';
+        const ml = data.ml_prediction;
+        document.getElementById('ml-probability').textContent = ml.raw_probability + '%';
 
         // Bayesian Analysis
-        document.getElementById('prior-value').textContent =
-            data.bayesian_analysis.prior.toFixed(1) + '%';
-        document.getElementById('prior-bar').style.width =
-            data.bayesian_analysis.prior + '%';
+        const bayes = data.bayesian_analysis;
 
-        document.getElementById('likelihood-value').textContent =
-            data.bayesian_analysis.likelihood.toFixed(1) + '%';
-        document.getElementById('likelihood-bar').style.width =
-            data.bayesian_analysis.likelihood + '%';
+        // Prior
+        document.getElementById('prior-value').textContent = bayes.prior + '%';
+        document.getElementById('prior-bar').style.width = bayes.prior + '%';
 
-        document.getElementById('posterior-value').textContent =
-            data.bayesian_analysis.posterior.toFixed(1) + '%';
-        document.getElementById('posterior-bar').style.width =
-            data.bayesian_analysis.posterior + '%';
+        // Likelihood
+        document.getElementById('likelihood-value').textContent = bayes.likelihood + '%';
+        document.getElementById('likelihood-bar').style.width = bayes.likelihood + '%';
+
+        // Posterior
+        document.getElementById('posterior-value').textContent = bayes.posterior + '%';
+        document.getElementById('posterior-bar').style.width = bayes.posterior + '%';
 
         // Risk Assessment
+        const risk = data.risk_assessment;
         const riskBadge = document.getElementById('risk-badge');
-        const level = data.risk_assessment.level;
-        riskBadge.textContent = level + ' Risk';
 
-        let badgeClass = 'bg-success';
-        if (level === 'Moderate') badgeClass = 'bg-warning';
-        if (level === 'High') badgeClass = 'bg-danger';
+        riskBadge.textContent = risk.level + ' Risk';
+        riskBadge.className = `badge fs-6 py-2 px-3 bg-${risk.color}`; // API returns 'success', 'warning', 'danger'
 
-        riskBadge.className = 'badge fs-6 py-2 px-3 ' + badgeClass;
-        document.getElementById('risk-description').textContent =
-            data.risk_assessment.description;
+        document.getElementById('risk-description').textContent = risk.description;
+
+        // Store data for download function
+        window.lastMLResults = data;
+    }
+
+    async function downloadMLResults() {
+        if (!window.lastMLResults) {
+            alert('Please predict disease first before downloading.');
+            return;
+        }
+
+        try {
+            const data = window.lastMLResults;
+            const ml = data.ml_prediction;
+            const bayes = data.bayesian_analysis;
+            const risk = data.risk_assessment;
+
+            const response = await fetch('/download-ml-results', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    disease_name: data.disease,
+                    ml_probability: ml.raw_probability / 100, // Endpoint expects float 0-1
+                    prior_probability: bayes.prior / 100,
+                    likelihood: bayes.likelihood / 100,
+                    posterior_probability: bayes.posterior / 100,
+                    risk_level: risk.level + ' Risk'
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Download failed');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ml_prediction_report_${new Date().getTime()}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('Download error:', error);
+            alert('Error downloading PDF: ' + error.message);
+        }
     }
 
     function hideResults() {

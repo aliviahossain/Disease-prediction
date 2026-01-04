@@ -14,3 +14,15 @@ general_bp = Blueprint(
 @general_bp.route('/help')
 def help_page():
     return render_template('help.html')
+
+@general_bp.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
+
+@general_bp.route('/terms')
+def terms():
+    return render_template('terms.html')
+
+@general_bp.route('/connect')
+def connect():
+    return render_template('connect.html')

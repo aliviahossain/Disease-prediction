@@ -270,6 +270,17 @@ function calculateDisease() {
           testResult: data.test_result
         };
 
+        // Store data for download
+        lastCalculationData = {
+          diseaseName: diseaseSelect.value || 'Custom Disease',
+          priorProbability: parseFloat(document.getElementById('pD').value),
+          posteriorProbability: data.p_d_given_result,
+          testResult: testResult
+        };
+
+        // Show download section
+        showDownloadSection();
+
         // Show recommendations container with button
         showRecommendationsContainer();
       }
@@ -522,14 +533,20 @@ function initInteractiveSliders() {
       resetResultDisplay();
     });
 
+    // Allow partial typing states
     pDInput.addEventListener('input', function () {
-      let value = parseFloat(this.value) || 0;
-      value = Math.max(0, Math.min(1, value)); // Clamp to [0, 1]
-      this.value = value;
-      pDSlider.value = value;
-      updateSliderValue('pDValue', value);
-      resetResultDisplay();
-    });
+      const raw = this.value;
+      if (raw === '' || raw === '.' || raw === '0.') return;
+
+      const value = Number(raw);
+      if (isNaN(value)) return;
+
+      if (value >= 0 && value <= 1) {
+        pDSlider.value = value;
+        updateSliderValue('pDValue', value);
+      }
+    }); 
+
   }
 
   // Sync sliders with number inputs for Sensitivity
@@ -540,13 +557,18 @@ function initInteractiveSliders() {
       resetResultDisplay();
     });
 
+    // Allow partial typing states
     sensitivityInput.addEventListener('input', function () {
-      let value = parseFloat(this.value) || 0;
-      value = Math.max(0, Math.min(1, value));
-      this.value = value;
-      sensitivitySlider.value = value;
-      updateSliderValue('sensitivityValue', value);
-      resetResultDisplay();
+      const raw = this.value;
+      if (raw === '' || raw === '.' || raw === '0.') return;
+
+      const value = Number(raw);
+      if (isNaN(value)) return;
+
+      if (value >= 0 && value <= 1) {
+        sensitivitySlider.value = value;
+        updateSliderValue('sensitivityValue', value);
+      }
     });
   }
 
@@ -558,13 +580,18 @@ function initInteractiveSliders() {
       resetResultDisplay();
     });
 
+    // Allow partial typing states
     falsePositiveInput.addEventListener('input', function () {
-      let value = parseFloat(this.value) || 0;
-      value = Math.max(0, Math.min(1, value));
-      this.value = value;
-      falsePositiveSlider.value = value;
-      updateSliderValue('falsePositiveValue', value);
-      resetResultDisplay();
+      const raw = this.value;
+      if (raw === '' || raw === '.' || raw === '0.') return;
+
+      const value = Number(raw);
+      if (isNaN(value)) return;
+
+      if (value >= 0 && value <= 1) {
+        falsePositiveSlider.value = value;
+        updateSliderValue('falsePositiveValue', value);
+      }
     });
   }
 
@@ -763,6 +790,71 @@ function updateInteractiveResult(prior, posterior, testResult = 'positive') {
 
   // Show recommendations container
   showRecommendationsContainer();
+}
+
+// Show download section after calculation
+function showDownloadSection() {
+  const downloadSection = document.getElementById('downloadSection');
+  if (downloadSection) {
+    downloadSection.style.display = 'block';
+    downloadSection.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+
+// Download results
+async function downloadResults(format) {
+  if (!lastCalculationData.posteriorProbability) {
+    alert('Please calculate results first before downloading.');
+    return;
+  }
+
+  try {
+    const response = await fetch('/download-results', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        format: format,
+        prior_probability: lastCalculationData.priorProbability,
+        posterior_probability: lastCalculationData.posteriorProbability,
+        disease_name: lastCalculationData.diseaseName,
+        test_result: lastCalculationData.testResult,
+        sensitivity: document.getElementById('sensitivity').value,
+        false_positive: document.getElementById('falsePositive').value
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Download failed');
+    }
+
+    // Get filename from response headers or generate default
+    let filename = `disease_results_${new Date().getTime()}.${format}`;
+    const contentDisposition = response.headers.get('content-disposition');
+    if (contentDisposition && contentDisposition.includes('filename')) {
+      const matches = contentDisposition.match(/filename="?([^"\n]+)"?/);
+      if (matches && matches[1]) {
+        filename = matches[1];
+      }
+    }
+
+    // Create blob and download
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    console.log(`Downloaded: ${filename}`);
+
+  } catch (error) {
+    console.error('Download error:', error);
+    alert('Error downloading results: ' + error.message);
+  }
 }
 
 // Initialize on page load

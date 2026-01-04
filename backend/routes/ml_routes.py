@@ -42,7 +42,7 @@ def predict_disease():
         if not data:
             return jsonify({'error': 'No data provided'}), 400
         
-        disease = data.get('disease')
+        disease = data.get('disease').lower()
         symptoms = data.get('symptoms', [])
         
         if not disease:
@@ -167,7 +167,7 @@ def get_diseases():
 def get_disease_symptoms(disease):
     """Get symptoms for a specific disease"""
     try:
-        symptoms = ml_model.get_disease_symptoms(disease)
+        symptoms = ml_model.get_disease_symptoms(disease.lower())
         
         symptom_list = [
             {
@@ -193,7 +193,7 @@ def get_disease_symptoms(disease):
 def get_symptom_importance(disease):
     """Get symptom importance/weights for a disease"""
     try:
-        importance = ml_model.get_symptom_importance(disease)
+        importance = ml_model.get_symptom_importance(disease.lower())
         
         importance_list = [
             {

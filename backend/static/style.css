@@ -11,7 +11,7 @@
     --text-muted: #6c757d;
     --card-bg: #ffffff;
     --navbar-bg: #2c3e50;
-    --footer-bg: #2c3e50;
+    --footer-bg: #343a40; /* classic charcoal footer */
     --border-color: #dee2e6;
     --input-bg: #ffffff;
     --input-border: #ced4da;
@@ -30,7 +30,7 @@ body.dark-mode {
     --text-muted: #9ca3af;
     --card-bg: #2d2d2d;
     --navbar-bg: #1f1f1f;
-    --footer-bg: #1f1f1f;
+    --footer-bg: #212529;
     --border-color: #404040;
     --input-bg: #3a3a3a;
     --input-border: #4a4a4a;
@@ -323,6 +323,21 @@ footer {
     transition: background-color 0.3s ease;
 }
 
+footer {
+    color: #f8f9fa;
+    border-top: 1px solid rgba(255,255,255,0.03);
+}
+
+footer a {
+    color: rgba(248,249,250,0.85);
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
 /* --- Text Colors --- */
 .text-muted {
     color: var(--text-muted) !important;
@@ -517,6 +532,22 @@ body.dark-mode .select2-search__field {
 
 body.dark-mode .select2-container--default .select2-selection--single .select2-selection__rendered {
     color: var(--text-primary);
+}
+
+/* Select2 Dropdown Results Container - Enable Scrolling */
+.select2-container--default .select2-results__options {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.select2-container .select2-results {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.select2-dropdown {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
 }
 
 /* Move dropdown arrow to the LEFT side */
@@ -858,4 +889,82 @@ body.dark-mode .form-range::-webkit-slider-thumb {
 
 body.dark-mode .form-range::-moz-range-thumb {
     background: linear-gradient(135deg, #1abc9c, #16a085);
+}
+
+.preloaded-info {
+  margin-top: 20px;
+}
+
+.preloaded-info h4 {
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.preloaded-scroll {
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  background-color: #f9f9f9;
+}
+
+.preloaded-scroll ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.preloaded-scroll li {
+  padding: 6px 0;
+  border-bottom: 1px solid #e5e5e5;
+  font-size: 13px;
+}
+
+.preloaded-scroll li:last-child {
+  border-bottom: none;
+}
+
+/* Dark Mode – Home Prediction Results */
+
+body.dark-mode .prediction-results-card {
+    background-color: #1e1e1e;
+    color: #eaeaea;
+    border: 1px solid #2a2a2a;
+}
+
+/* Headings */
+body.dark-mode .prediction-results-card h2,
+body.dark-mode .prediction-results-card h3,
+body.dark-mode .prediction-results-card h4,
+body.dark-mode .prediction-results-card h6 {
+    color: #ffffff;
+}
+
+/* Inner cards (ML, Bayesian, Risk, Download) */
+body.dark-mode .prediction-results-card .card {
+    background-color: #252525 !important;
+    border-color: #333;
+    color: #eaeaea;
+}
+
+/* Remove Bootstrap bg-light effect */
+body.dark-mode .prediction-results-card .bg-light {
+    background-color: #3a3a3a !important;
+}
+
+/* Muted text */
+body.dark-mode .prediction-results-card .text-muted {
+    color: #b0b0b0 !important;
+}
+
+/* Progress bars */
+body.dark-mode .prediction-results-card .progress {
+    background-color: #333;
+}
+
+/* Download card border */
+body.dark-mode .prediction-results-card .border-primary {
+    border-color: #0d6efd;
 }
