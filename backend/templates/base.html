@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+
     <title>{% block title %}Bayesian Disease Probability Calculator{% endblock %}</title>
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <!-- Google Fonts (Poppins) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,8 +30,8 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-custom-dark shadow-sm">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="/">
-                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Disease Prediction Logo" 
-                     class="me-2" style="height: 40px; width: auto;">
+                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Disease Prediction Logo"
+                    class="me-2" style="height: 40px; width: auto;">
                 <span class="fw-semibold">Disease-Prediction</span>
             </a>
 
@@ -42,9 +43,9 @@
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
                         <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
-                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
-                                 stroke-linejoin="round" class="me-1 align-text-bottom">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="me-1 align-text-bottom">
                                 <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
                             </svg>
@@ -52,10 +53,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if '/calculator' in request.path %}active{% endif %}" href="{{ url_for('disease.calculator') }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
-                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
-                                 stroke-linejoin="round" class="me-1 align-text-bottom">
+                        <a class="nav-link {% if '/calculator' in request.path %}active{% endif %}"
+                            href="{{ url_for('disease.calculator') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="me-1 align-text-bottom">
                                 <rect x="4" y="2" width="16" height="20" rx="2"></rect>
                                 <line x1="8" y1="6" x2="16" y2="6"></line>
                                 <line x1="8" y1="10" x2="16" y2="10"></line>
@@ -79,10 +81,11 @@
                         </a>-->
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if '/scalability' in request.path %}active{% endif %}" href="/scalability">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
-                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
-                                 stroke-linejoin="round" class="me-1 align-text-bottom">
+                        <a class="nav-link {% if '/scalability' in request.path %}active{% endif %}"
+                            href="/scalability">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="me-1 align-text-bottom">
                                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                             </svg>
                             Scalability
@@ -90,9 +93,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if '/help' in request.path %}active{% endif %}" href="/help">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
-                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
-                                 stroke-linejoin="round" class="me-1 align-text-bottom">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="me-1 align-text-bottom">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -100,9 +103,26 @@
                             Help
                         </a>
                     </li>
+                    {% if session.get('user_id') %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/profile' in request.path %}active{% endif %}"
+                            href="{{ url_for('auth.profile') }}">
+                            <i class="fas fa-user-circle me-1"></i> Profile
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/auth' in request.path %}active{% endif %}"
+                            href="{{ url_for('auth.auth') }}">
+                            <i class="fas fa-sign-in-alt me-1"></i> Sign In / Register
+                        </a>
+                    </li>
+                    {% endif %}
                     <li class="nav-item ms-2">
                         <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sun-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="sun-icon">
                                 <circle cx="12" cy="12" r="5"></circle>
                                 <line x1="12" y1="1" x2="12" y2="3"></line>
                                 <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -113,7 +133,9 @@
                                 <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                                 <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                             </svg>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="moon-icon" style="display: none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="moon-icon" style="display: none;">
                                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                             </svg>
                         </button>
@@ -127,7 +149,7 @@
     <main class="container my-5 flex-grow-1">
         {% block content %}{% endblock %}
     </main>
-    
+
     <!-- Footer -->
     <footer class="bg-custom-dark text-white text-center py-3 mt-auto">
         <p class="mb-0">&copy; 2025 Disease Prediction | An Open Source Project.</p>
@@ -135,14 +157,15 @@
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
+
 </html>
