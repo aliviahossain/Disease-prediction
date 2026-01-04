@@ -163,12 +163,24 @@
                     </div>
                 </div>
 
-                <div class="d-grid mt-4">
-                    <button type="button" class="btn btn-success btn-lg shadow-sm py-3 fw-bold" id="checkButton"
+                <div class="d-grid mt-4 gap-2">
+                <!-- Check Result Button -->
+                    <button
+                        type="button"
+                        class="btn btn-success btn-lg shadow-sm py-3 fw-bold"
+                        id="checkButton"
                         onclick="handleCheck()">
-                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"
-                            style="display: none;"></span>
-                        <span id="buttonText"><i class="fas fa-check-circle me-2"></i>Check Result</span>
+                        <span id="buttonText">
+                            <i class="fas fa-check-circle me-2"></i>Check Result
+                        </span>
+                    </button>
+
+                    <!-- Reset Button -->
+                    <button
+                        type="button"
+                        class="btn btn-outline-danger"
+                        onclick="resetCalculator()">
+                        <i class="fas fa-rotate-left me-1"></i>Reset
                     </button>
                 </div>
             </div>
