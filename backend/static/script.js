@@ -11,6 +11,9 @@ let lastCalculationData = {
 // LocalStorage key for persisting calculator state
 const STORAGE_KEY = "calculator_last_state";
 
+// Tracks whether AI-generated recommendations have already been created
+let contentGenerated = false;
+
 // ============================================
 // Dark Mode Toggle Functionality
 // ============================================
@@ -395,6 +398,7 @@ function getAIRecommendations() {
         contentDiv.innerHTML = formatMarkdownToHTML(data.recommendations);
         contentDiv.style.display = 'block';
         disclaimerDiv.style.display = 'block';
+        contentGenerated = true; // Mark content as generated
       } else {
         contentDiv.innerHTML = `
         <div class="alert alert-warning">
@@ -421,6 +425,15 @@ function getAIRecommendations() {
       contentDiv.style.display = 'block';
       btn.style.display = 'inline-block';
     });
+}
+
+// Handle language change for recommendations
+async function changeRecommendationLanguage() {
+  if (!contentGenerated) return;
+  
+  // Call the recommendations function again after changing language
+  await showRecommendationsContainer();
+  await getAIRecommendations();
 }
 
 // Simple markdown-to-HTML converter for AI responses
