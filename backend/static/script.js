@@ -431,8 +431,9 @@ function getAIRecommendations() {
 async function changeRecommendationLanguage() {
   if (!contentGenerated) return;
   
-  // Call the recommendations function again after changing language
+  // showing the recommendations container again
   await showRecommendationsContainer();
+  // Call the recommendations function again after changing language
   await getAIRecommendations();
 }
 
