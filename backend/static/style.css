@@ -706,6 +706,11 @@ body.dark-mode #chartContainer .card-title {
 }
 
 /* Ensure ML prediction page elements work with dark mode */
+
+body.dark-mode .form-control::placeholder {
+    color: var(--text-muted);
+}
+
 body.dark-mode .symptoms-grid {
     background: var(--input-bg) !important;
     border-color: var(--border-color) !important;
