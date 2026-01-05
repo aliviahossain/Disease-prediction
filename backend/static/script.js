@@ -27,8 +27,8 @@ function initDarkMode() {
   // Apply dark mode if previously enabled
   if (isDarkMode) {
     body.classList.add('dark-mode');
-    if (sunIcon) sunIcon.style.display = 'none';
-    if (moonIcon) moonIcon.style.display = 'block';
+    if (sunIcon) sunIcon.style.display = 'block';
+    if (moonIcon) moonIcon.style.display = 'none';
   }
 
   // Toggle dark mode on button click
@@ -40,8 +40,8 @@ function initDarkMode() {
 
       // Update icons
       if (sunIcon && moonIcon) {
-        sunIcon.style.display = isDark ? 'none' : 'block';
-        moonIcon.style.display = isDark ? 'block' : 'none';
+        sunIcon.style.display = isDark ? 'block' : 'none';
+        moonIcon.style.display = isDark ? 'none' : 'block';
       }
 
       // Save preference to localStorage
