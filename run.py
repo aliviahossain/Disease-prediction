@@ -16,4 +16,4 @@ if __name__ == "__main__":
     print("\n" + "="*50)
     print("🚀 Starting Flask Development Server")
     print("="*50 + "\n")
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5001)
