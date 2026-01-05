@@ -44,6 +44,18 @@ def predict_disease():
         
         disease = data.get('disease').lower()
         symptoms = data.get('symptoms', [])
+        age = data.get('age')
+
+        # Validate age if provided
+        if age is not None:
+            try:
+                age = int(age)
+            except (ValueError, TypeError):
+                # If age is invalid, we can either error out or ignore it. 
+                # Choosing to ignore it for robustness, or we could return 400.
+                # data.get('age') might be a string "25", so int() handles that.
+                # If it's trash text, int() throws ValueError.
+                age = None 
         
         if not disease:
             return jsonify({'error': 'Disease not specified'}), 400
@@ -52,7 +64,7 @@ def predict_disease():
             return jsonify({'error': 'No symptoms provided'}), 400
         
         # Get ML prediction
-        ml_prediction = ml_model.predict_disease_probability(disease, symptoms)
+        ml_prediction = ml_model.predict_disease_probability(disease, symptoms, age=age)
         
         # Calculate Bayesian probabilities
         calculator = BayesCalculator()

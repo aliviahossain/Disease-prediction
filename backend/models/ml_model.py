@@ -129,12 +129,13 @@ class DiseaseMLModel:
         """Sigmoid activation function for logistic regression"""
         return 1 / (1 + np.exp(-z))
     
-    def predict_disease_probability(self, disease: str, symptoms: List[str]) -> Dict:
+    def predict_disease_probability(self, disease: str, symptoms: List[str], age: int = None) -> Dict:
         """
-        Predict disease probability based on selected symptoms.
+        Predict disease probability based on selected symptoms and optional age.
         Args:
             disease: Disease name (e.g., 'diabetes', 'hypertension')
             symptoms: List of symptom keys (e.g., ['fever', 'cough'])
+            age: Optional age of the patient
         """
         # Normalize disease key
         disease_key = disease.lower().replace(' ', '_').replace('-', '_')
@@ -154,6 +155,13 @@ class DiseaseMLModel:
         weights = self.disease_weights[disease_key]
         symptom_weights = weights['symptoms']
         bias = weights['bias']
+
+        # Adjust bias based on age
+        if age is not None:
+            if age > 50:
+                bias += 0.5  # Higher risk for older age
+            elif age < 20:
+                bias -= 0.5  # Lower risk for younger age
         
         z = bias
         matched_symptoms = []
