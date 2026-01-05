@@ -29,6 +29,14 @@
                 </div>
 
                 <div class="mb-4">
+                    <label for="age-input" class="form-label">
+                        <i class="fas fa-user-clock me-1"></i> Patient Age
+                    </label>
+                    <input type="number" id="age-input" class="form-control form-control-lg"
+                        placeholder="Enter age (e.g. 45)" min="1" max="120">
+                </div>
+
+                <div class="mb-4">
                     <label class="form-label">
                         <i class="fas fa-list-check me-1"></i> Select Symptoms
                         <span id="symptom-count" class="badge bg-primary ms-2">0 selected</span>
@@ -358,6 +366,16 @@
             return;
         }
 
+        const ageInput = document.getElementById('age-input');
+        let age = null;
+        if (ageInput && ageInput.value) {
+            age = parseInt(ageInput.value);
+            if (isNaN(age) || age < 1 || age > 120) {
+                alert('Please enter a valid age between 1 and 120');
+                return;
+            }
+        }
+
         // Show loading
         document.getElementById('loading').style.display = 'block';
         document.getElementById('no-results').style.display = 'none';
@@ -371,7 +389,8 @@
                 },
                 body: JSON.stringify({
                     disease: currentDisease,
-                    symptoms: selectedSymptoms
+                    symptoms: selectedSymptoms,
+                    age: age
                 })
             });
 
