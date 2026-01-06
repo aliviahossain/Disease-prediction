@@ -13,3 +13,4 @@ flask-bcrypt
 reportlab
 streamlit
 plotly
+flask-login

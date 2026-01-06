@@ -6,6 +6,16 @@ from flask_bcrypt import Bcrypt
 # Initialize extensions
 db = SQLAlchemy()
 bcrypt = Bcrypt()
+from flask_login import LoginManager
+login_manager = LoginManager()
+login_manager.login_view = 'auth.login'
+login_manager.login_message_category = 'info'
+
+@login_manager.user_loader
+def load_user(user_id):
+    from backend.models.user import User
+    return User.query.get(int(user_id))
+
 from datetime import datetime
 
 def create_app():
@@ -30,44 +40,48 @@ def create_app():
     # Initialize extensions with app
     db.init_app(app)
     bcrypt.init_app(app)
+    login_manager.init_app(app)
     
     # Register Disease Routes Blueprint
     from backend.routes.disease_routes import disease_bp
     app.register_blueprint(disease_bp)
-    print("✅ 'disease_routes' blueprint registered successfully")
+    print("'disease_routes' blueprint registered successfully")
     
     # Register ML Routes Blueprint
-    from backend.routes.ml_routes import ml_bp
-    app.register_blueprint(ml_bp)
-    print("✅ 'ml_routes' blueprint registered successfully")
+    try:
+        from backend.routes.ml_routes import ml_bp  # type: ignore
+        app.register_blueprint(ml_bp)
+        print("'ml_routes' blueprint registered successfully")
+    except ImportError as e:
+        print(f"Warning: Could not import 'ml_routes'. Error: {e}")
 
     # Register Auth Routes Blueprint
     from backend.routes.auth_routes import auth_bp
     app.register_blueprint(auth_bp)
-    print("✅ 'auth_routes' blueprint registered successfully")
-
+    print("'auth_routes' blueprint registered successfully")
+    
     # Register Doctor Dashboard Routes Blueprint
     try:
         from backend.routes.doctor_routes import doctor_bp
         app.register_blueprint(doctor_bp)
-        print("✅ 'doctor_routes' blueprint registered successfully")
+        print("'doctor_routes' blueprint registered successfully")
     except ImportError as e:
-        print(f"⚠️ Warning: Could not import 'doctor_routes'. Error: {e}")
+        print(f"Warning: Could not import 'doctor_routes'. Error: {e}")
     
     # Register other blueprints if you have them
     try:
         from backend.routes.general_routes import general_bp
         app.register_blueprint(general_bp)
-        print("✅ 'general_routes' blueprint registered successfully")
+        print("'general_routes' blueprint registered successfully")
     except ImportError as e:
-        print(f"⚠️ Warning: Could not import 'general_routes'. Error: {e}")
+        print(f"Warning: Could not import 'general_routes'. Error: {e}")
     
     try:
         from backend.routes.scalability_routes import scalability_bp
         app.register_blueprint(scalability_bp)
-        print("✅ 'scalability_routes' blueprint registered successfully")
+        print("'scalability_routes' blueprint registered successfully")
     except ImportError as e:
-        print(f"⚠️ Warning: Could not import 'scalability_routes'. Error: {e}")
+        print(f"Warning: Could not import 'scalability_routes'. Error: {e}")
     
     # Create Database Tables
     with app.app_context():
