@@ -46,12 +46,111 @@
                 display: none;
             }
         }
+        /* Dashboard Menu Styles */
+        .dashboard-menu-wrapper {
+            position: relative;
+        }
+        .dashboard-menu-toggle {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #ffffff;
+            padding: 0.4rem 0.75rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .dashboard-menu-toggle:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.5);
+        }
+        .dashboard-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            min-width: 200px;
+            background: var(--card-bg, #ffffff);
+            border: 1px solid var(--border-color, #dee2e6);
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            z-index: 1050;
+        }
+        .dashboard-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .dashboard-dropdown-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary, #34495e);
+            text-decoration: none;
+            transition: background 0.2s ease;
+        }
+        .dashboard-dropdown-item:hover {
+            background: rgba(26, 188, 156, 0.1);
+            color: #1abc9c;
+        }
+        .dashboard-dropdown-item i {
+            width: 20px;
+            margin-right: 0.75rem;
+        }
+        .dashboard-dropdown-item.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .dashboard-dropdown-divider {
+            height: 1px;
+            background: var(--border-color, #dee2e6);
+            margin: 0;
+        }
+        @media (max-width: 991.98px) {
+            .dashboard-dropdown {
+                position: static;
+                margin-top: 0.5rem;
+                width: 100%;
+                box-shadow: none;
+                border: 1px solid var(--border-color);
+            }
+        }
     </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-custom-dark shadow-sm">
         <div class="container">
+            <!-- Dashboard Hamburger Menu -->
+            <div class="dashboard-menu-wrapper me-3">
+                <button class="dashboard-menu-toggle" id="dashboardMenuToggle" aria-label="Dashboard Menu" aria-expanded="false">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                    <span class="d-none d-md-inline">Dashboards</span>
+                </button>
+                <div class="dashboard-dropdown" id="dashboardDropdown">
+                    <a href="/doctor-dashboard" class="dashboard-dropdown-item {% if '/doctor-dashboard' in request.path %}active{% endif %}">
+                        <i class="fas fa-user-md"></i>
+                        Doctor Dashboard
+                    </a>
+                    <div class="dashboard-dropdown-divider"></div>
+                    <a href="/patient-dashboard" class="dashboard-dropdown-item {% if '/patient-dashboard' in request.path %}active{% endif %}">
+                        <i class="fas fa-user-injured"></i>
+                        Patient Dashboard
+                        <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Soon</span>
+                    </a>
+                </div>
+            </div>
+
             <a class="navbar-brand d-flex align-items-center" href="/">
                  <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Medical Health Logo"
                      class="me-2" style="height: 40px; width: auto;">
@@ -223,6 +322,35 @@
                 navbarCollapse.addEventListener('hide.bs.collapse', function () {
                     burger.style.display = 'block';
                     cross.style.display = 'none';
+                });
+            }
+
+            // Dashboard Menu Toggle
+            const dashboardToggle = document.getElementById('dashboardMenuToggle');
+            const dashboardDropdown = document.getElementById('dashboardDropdown');
+            
+            if (dashboardToggle && dashboardDropdown) {
+                dashboardToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isOpen = dashboardDropdown.classList.contains('show');
+                    dashboardDropdown.classList.toggle('show');
+                    dashboardToggle.setAttribute('aria-expanded', !isOpen);
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!dashboardToggle.contains(e.target) && !dashboardDropdown.contains(e.target)) {
+                        dashboardDropdown.classList.remove('show');
+                        dashboardToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+
+                // Close on escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        dashboardDropdown.classList.remove('show');
+                        dashboardToggle.setAttribute('aria-expanded', 'false');
+                    }
                 });
             }
         });
