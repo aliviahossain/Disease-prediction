@@ -45,6 +45,14 @@ def create_app():
     from backend.routes.auth_routes import auth_bp
     app.register_blueprint(auth_bp)
     print("✅ 'auth_routes' blueprint registered successfully")
+
+    # Register Doctor Dashboard Routes Blueprint
+    try:
+        from backend.routes.doctor_routes import doctor_bp
+        app.register_blueprint(doctor_bp)
+        print("✅ 'doctor_routes' blueprint registered successfully")
+    except ImportError as e:
+        print(f"⚠️ Warning: Could not import 'doctor_routes'. Error: {e}")
     
     # Register other blueprints if you have them
     try:

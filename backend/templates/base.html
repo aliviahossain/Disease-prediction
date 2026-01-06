@@ -46,6 +46,91 @@
                 display: none;
             }
         }
+        /* Dashboard Menu Styles */
+        .dashboard-menu-wrapper {
+            position: relative;
+        }
+        .dashboard-menu-toggle {
+            background: none;
+            border: none;
+            color: #ffffff;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .dashboard-menu-toggle:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.5);
+        }
+        .dashboard-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            min-width: 200px;
+            background: var(--card-bg, #ffffff);
+            border: 1px solid var(--border-color, #dee2e6);
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            z-index: 1050;
+        }
+        .dashboard-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .dashboard-dropdown-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary, #34495e);
+            text-decoration: none;
+            transition: background 0.2s ease;
+        }
+        .dashboard-dropdown-item:hover {
+            background: rgba(26, 188, 156, 0.1);
+            color: #1abc9c;
+        }
+        .dashboard-dropdown-item i,
+        .dashboard-dropdown-item svg {
+            width: 20px;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+        .dashboard-dropdown-item.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .dashboard-dropdown-divider {
+            height: 1px;
+            background: var(--border-color, #dee2e6);
+            margin: 0;
+        }
+        .dashboard-dropdown-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--text-muted, #6c757d);
+            padding: 0.5rem 1rem 0.25rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+        @media (max-width: 991.98px) {
+            .dashboard-dropdown {
+                position: static;
+                margin-top: 0.5rem;
+                width: 100%;
+                box-shadow: none;
+                border: 1px solid var(--border-color);
+            }
+        }
     </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
@@ -108,43 +193,6 @@
                             ML Prediction
                         </a>-->
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if '/scalability' in request.path %}active{% endif %}" href="/scalability">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                 stroke-linejoin="round" class="me-1 align-text-bottom" style="transform: translateY(-3px);">
-                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                            </svg>
-                            Scalability
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if '/help' in request.path %}active{% endif %}" href="/help">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                 stroke-linejoin="round" class="me-1 align-text-bottom" style="transform: translateY(-3px);">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                            </svg>
-                            Help
-                        </a>
-                    </li>
-                    {% if session.get('user_id') %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if '/profile' in request.path %}active{% endif %}"
-                            href="{{ url_for('auth.profile') }}">
-                            <i class="fas fa-user-circle me-1"></i> Profile
-                        </a>
-                    </li>
-                    {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if '/auth' in request.path %}active{% endif %}"
-                            href="{{ url_for('auth.auth') }}">
-                            <i class="fas fa-sign-in-alt me-1"></i> Sign In / Register
-                        </a>
-                    </li>
-                    {% endif %}
                     <li class="nav-item ms-2">
                         <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
@@ -166,6 +214,62 @@
                                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                             </svg>
                         </button>
+                    </li>
+                    <!-- Hamburger Menu -->
+                    <li class="nav-item ms-2">
+                        <div class="dashboard-menu-wrapper">
+                            <button class="dashboard-menu-toggle" id="dashboardMenuToggle" aria-label="Menu" aria-expanded="false">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                                </svg>
+                            </button>
+                            <div class="dashboard-dropdown" id="dashboardDropdown">
+                                <!-- Dashboards Section -->
+                                <div class="dashboard-dropdown-label">Dashboards</div>
+                                <a href="/doctor-dashboard" class="dashboard-dropdown-item {% if '/doctor-dashboard' in request.path %}active{% endif %}">
+                                    <i class="fas fa-user-md"></i>
+                                    Doctor Dashboard
+                                </a>
+                                <a href="/patient-dashboard" class="dashboard-dropdown-item {% if '/patient-dashboard' in request.path %}active{% endif %}">
+                                    <i class="fas fa-user-injured"></i>
+                                    Patient Dashboard
+                                    <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Soon</span>
+                                </a>
+                                <div class="dashboard-dropdown-divider"></div>
+                                <!-- Pages Section -->
+                                <div class="dashboard-dropdown-label">Pages</div>
+                                <a href="/scalability" class="dashboard-dropdown-item {% if '/scalability' in request.path %}active{% endif %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                    </svg>
+                                    Scalability
+                                </a>
+                                <a href="/help" class="dashboard-dropdown-item {% if '/help' in request.path %}active{% endif %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                    </svg>
+                                    Help
+                                </a>
+                                <div class="dashboard-dropdown-divider"></div>
+                                <!-- Account Section -->
+                                <div class="dashboard-dropdown-label">Account</div>
+                                {% if session.get('user_id') %}
+                                <a href="{{ url_for('auth.profile') }}" class="dashboard-dropdown-item {% if '/profile' in request.path %}active{% endif %}">
+                                    <i class="fas fa-user-circle"></i>
+                                    Profile
+                                </a>
+                                {% else %}
+                                <a href="{{ url_for('auth.auth') }}" class="dashboard-dropdown-item {% if '/auth' in request.path %}active{% endif %}">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    Sign In / Register
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
                     </li>
                 </ul>
             </div>
@@ -223,6 +327,35 @@
                 navbarCollapse.addEventListener('hide.bs.collapse', function () {
                     burger.style.display = 'block';
                     cross.style.display = 'none';
+                });
+            }
+
+            // Dashboard Menu Toggle
+            const dashboardToggle = document.getElementById('dashboardMenuToggle');
+            const dashboardDropdown = document.getElementById('dashboardDropdown');
+            
+            if (dashboardToggle && dashboardDropdown) {
+                dashboardToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isOpen = dashboardDropdown.classList.contains('show');
+                    dashboardDropdown.classList.toggle('show');
+                    dashboardToggle.setAttribute('aria-expanded', !isOpen);
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!dashboardToggle.contains(e.target) && !dashboardDropdown.contains(e.target)) {
+                        dashboardDropdown.classList.remove('show');
+                        dashboardToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+
+                // Close on escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        dashboardDropdown.classList.remove('show');
+                        dashboardToggle.setAttribute('aria-expanded', 'false');
+                    }
                 });
             }
         });

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Dashboard - Disease Prediction System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-user-injured fa-4x text-muted opacity-50"></i>
+                    </div>
+                    <h2 class="h3 mb-3">Patient Dashboard</h2>
+                    <p class="text-muted mb-4">
+                        The Patient Dashboard is currently under development.<br>
+                        This feature will be available soon.
+                    </p>
+                    <div class="alert alert-info d-inline-block">
+                        <i class="fas fa-tools me-2"></i>
+                        <strong>Coming Soon:</strong> View your health records, prediction history, and personalized recommendations.
+                    </div>
+                    <div class="mt-4">
+                        <a href="/" class="btn btn-primary">
+                            <i class="fas fa-home me-2"></i>Return to Home
+                        </a>
+                        <a href="/doctor-dashboard" class="btn btn-outline-secondary ms-2">
+                            <i class="fas fa-user-md me-2"></i>Doctor Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

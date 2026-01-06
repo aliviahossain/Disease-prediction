@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+
+{% block title %}Doctor Dashboard - Disease Prediction System{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="fas fa-user-md me-2"></i>Doctor Dashboard
+            </h1>
+            <p class="text-muted mb-0">Patient overview and risk summary</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-primary btn-sm" onclick="refreshDashboard()">
+                <i class="fas fa-sync-alt me-1"></i>Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="dashboard-loading" class="text-center py-5">
+        <div class="spinner-border text-primary mb-3" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-muted">Loading dashboard data...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="dashboard-error" class="alert alert-danger d-none" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <span id="error-message">Failed to load dashboard data.</span>
+        <button class="btn btn-sm btn-outline-danger ms-3" onclick="refreshDashboard()">Retry</button>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div id="dashboard-content" class="d-none">
+        <!-- Metrics Cards Row -->
+        <div class="row g-4 mb-4">
+            <!-- Total Patients Card -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card dashboard-card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="dashboard-icon bg-primary bg-opacity-10 text-primary rounded-circle p-3 me-3">
+                                <i class="fas fa-users fa-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1">Total Patients</p>
+                                <h3 class="mb-0 fw-bold" id="total-patients">--</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Cases Card -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card dashboard-card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="dashboard-icon bg-info bg-opacity-10 text-info rounded-circle p-3 me-3">
+                                <i class="fas fa-user-plus fa-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1">New Cases (7 days)</p>
+                                <h3 class="mb-0 fw-bold" id="new-cases">--</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- High Risk Card -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card dashboard-card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="dashboard-icon bg-warning bg-opacity-10 text-warning rounded-circle p-3 me-3">
+                                <i class="fas fa-exclamation-triangle fa-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1">High Risk</p>
+                                <h3 class="mb-0 fw-bold" id="high-risk-count">--</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Critical Risk Card -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card dashboard-card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="dashboard-icon bg-danger bg-opacity-10 text-danger rounded-circle p-3 me-3">
+                                <i class="fas fa-heartbeat fa-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1">Critical Risk</p>
+                                <h3 class="mb-0 fw-bold" id="critical-risk-count">--</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Distribution Section -->
+        <div class="row g-4">
+            <!-- Risk Distribution Chart -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-pie me-2"></i>Risk Distribution
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="risk-chart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Summary -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list-alt me-2"></i>Risk Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="risk-summary-item d-flex align-items-center justify-content-between p-3 mb-2 rounded" style="background-color: rgba(40, 167, 69, 0.1);">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-success me-2">&nbsp;</span>
+                                <span>Low Risk</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold" id="low-risk-count">--</span>
+                                <small class="text-muted ms-1">(<span id="low-risk-pct">--</span>%)</small>
+                            </div>
+                        </div>
+
+                        <div class="risk-summary-item d-flex align-items-center justify-content-between p-3 mb-2 rounded" style="background-color: rgba(255, 193, 7, 0.1);">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-warning me-2">&nbsp;</span>
+                                <span>Medium Risk</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold" id="medium-risk-count">--</span>
+                                <small class="text-muted ms-1">(<span id="medium-risk-pct">--</span>%)</small>
+                            </div>
+                        </div>
+
+                        <div class="risk-summary-item d-flex align-items-center justify-content-between p-3 mb-2 rounded" style="background-color: rgba(255, 152, 0, 0.1);">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-orange me-2" style="background-color: #ff9800 !important;">&nbsp;</span>
+                                <span>High Risk</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold" id="high-risk-summary">--</span>
+                                <small class="text-muted ms-1">(<span id="high-risk-pct">--</span>%)</small>
+                            </div>
+                        </div>
+
+                        <div class="risk-summary-item d-flex align-items-center justify-content-between p-3 rounded" style="background-color: rgba(220, 53, 69, 0.1);">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-danger me-2">&nbsp;</span>
+                                <span>Critical Risk</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold" id="critical-risk-summary">--</span>
+                                <small class="text-muted ms-1">(<span id="critical-risk-pct">--</span>%)</small>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top">
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                Last updated: <span id="last-updated">--</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Banner -->
+        <div class="alert alert-info mt-4 mb-0">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Note:</strong> This dashboard displays aggregated patient data and risk assessments. 
+            Data is currently simulated for demonstration purposes.
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+let riskChart = null;
+
+// Fetch dashboard data from API
+async function fetchDashboardData() {
+    try {
+        const response = await fetch('/api/doctor/dashboard');
+        const result = await response.json();
+        
+        if (result.success) {
+            return result.data;
+        } else {
+            throw new Error(result.message || 'Failed to fetch data');
+        }
+    } catch (error) {
+        console.error('Dashboard fetch error:', error);
+        throw error;
+    }
+}
+
+// Update dashboard UI with data
+function updateDashboard(data) {
+    // Update metric cards
+    document.getElementById('total-patients').textContent = data.total_patients.toLocaleString();
+    document.getElementById('new-cases').textContent = data.new_cases.toLocaleString();
+    document.getElementById('high-risk-count').textContent = data.high_risk_count.toLocaleString();
+    document.getElementById('critical-risk-count').textContent = data.critical_risk_count.toLocaleString();
+    
+    // Update risk summary
+    const dist = data.risk_distribution;
+    document.getElementById('low-risk-count').textContent = dist.low.count.toLocaleString();
+    document.getElementById('low-risk-pct').textContent = dist.low.percentage;
+    document.getElementById('medium-risk-count').textContent = dist.medium.count.toLocaleString();
+    document.getElementById('medium-risk-pct').textContent = dist.medium.percentage;
+    document.getElementById('high-risk-summary').textContent = dist.high.count.toLocaleString();
+    document.getElementById('high-risk-pct').textContent = dist.high.percentage;
+    document.getElementById('critical-risk-summary').textContent = dist.critical.count.toLocaleString();
+    document.getElementById('critical-risk-pct').textContent = dist.critical.percentage;
+    
+    // Update last updated timestamp
+    const lastUpdated = new Date(data.last_updated);
+    document.getElementById('last-updated').textContent = lastUpdated.toLocaleString();
+    
+    // Update chart
+    updateRiskChart(dist);
+}
+
+// Update or create the risk distribution chart
+function updateRiskChart(distribution) {
+    const ctx = document.getElementById('risk-chart').getContext('2d');
+    
+    const chartData = {
+        labels: ['Low Risk', 'Medium Risk', 'High Risk', 'Critical Risk'],
+        datasets: [{
+            data: [
+                distribution.low.count,
+                distribution.medium.count,
+                distribution.high.count,
+                distribution.critical.count
+            ],
+            backgroundColor: [
+                'rgba(40, 167, 69, 0.8)',   // Green - Low
+                'rgba(255, 193, 7, 0.8)',   // Yellow - Medium
+                'rgba(255, 152, 0, 0.8)',   // Orange - High
+                'rgba(220, 53, 69, 0.8)'    // Red - Critical
+            ],
+            borderColor: [
+                'rgba(40, 167, 69, 1)',
+                'rgba(255, 193, 7, 1)',
+                'rgba(255, 152, 0, 1)',
+                'rgba(220, 53, 69, 1)'
+            ],
+            borderWidth: 2
+        }]
+    };
+    
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    usePointStyle: true
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = ((context.raw / total) * 100).toFixed(1);
+                        return `${context.label}: ${context.raw} patients (${percentage}%)`;
+                    }
+                }
+            }
+        }
+    };
+    
+    if (riskChart) {
+        riskChart.data = chartData;
+        riskChart.update();
+    } else {
+        riskChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: chartData,
+            options: chartOptions
+        });
+    }
+}
+
+// Show loading state
+function showLoading() {
+    document.getElementById('dashboard-loading').classList.remove('d-none');
+    document.getElementById('dashboard-content').classList.add('d-none');
+    document.getElementById('dashboard-error').classList.add('d-none');
+}
+
+// Show error state
+function showError(message) {
+    document.getElementById('dashboard-loading').classList.add('d-none');
+    document.getElementById('dashboard-content').classList.add('d-none');
+    document.getElementById('dashboard-error').classList.remove('d-none');
+    document.getElementById('error-message').textContent = message || 'Failed to load dashboard data.';
+}
+
+// Show content
+function showContent() {
+    document.getElementById('dashboard-loading').classList.add('d-none');
+    document.getElementById('dashboard-error').classList.add('d-none');
+    document.getElementById('dashboard-content').classList.remove('d-none');
+}
+
+// Refresh dashboard
+async function refreshDashboard() {
+    showLoading();
+    
+    try {
+        const data = await fetchDashboardData();
+        updateDashboard(data);
+        showContent();
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
+// Initialize dashboard on page load
+document.addEventListener('DOMContentLoaded', function() {
+    refreshDashboard();
+});
+</script>
+
+<style>
+/* Dashboard specific styles */
+.dashboard-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.dashboard-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.risk-summary-item {
+    transition: background-color 0.2s ease;
+}
+
+.risk-summary-item:hover {
+    filter: brightness(0.95);
+}
+
+#risk-chart {
+    max-height: 350px;
+}
+
+/* Dark mode adjustments for dashboard */
+body.dark-mode .dashboard-card {
+    background-color: var(--card-bg);
+}
+
+body.dark-mode .risk-summary-item {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+</style>
+{% endblock %}
