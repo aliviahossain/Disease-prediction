@@ -10,3 +10,4 @@ pandas
 scikit-learn
 flask-sqlalchemy
 flask-bcrypt
+flask-login

@@ -20,11 +20,11 @@ def load_diseases():
         with open(csv_path, newline="", encoding='utf-8') as csvfile:
             reader = csv.DictReader(csvfile)
             diseases = [row["Disease"] for row in reader]
-        print(f"✅ Loaded {len(diseases)} diseases from CSV")
+        print(f"Loaded {len(diseases)} diseases from CSV")
     except FileNotFoundError:
-        print(f"⚠️ Error: hospital_data.csv not found at {csv_path}")
+        print(f"Error: hospital_data.csv not found at {csv_path}")
     except Exception as e:
-        print(f"⚠️ Error loading diseases: {e}")
+        print(f"Error loading diseases: {e}")
     return diseases
 
 @disease_bp.route("/")
