@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}ML Disease Prediction - Disease Prediction System{% endblock %}
+{% block title %}{{ t['hero_title'] }} - {{ t['app_title'] }}{% endblock %}
 
 {% block content %}
 <div class="text-center mb-5 animate-fade-in">
-    <h1 class="display-5 fw-bold">ML-Powered Disease Prediction</h1>
-    <p class="lead text-muted">Select symptoms and let machine learning predict disease probability</p>
+    <h1 class="display-5 fw-bold">{{ t['hero_title'] }}</h1>
+    <p class="lead text-muted">{{ t['hero_subtitle'] }}</p>
 </div>
 
 <div class="row g-4">
@@ -14,12 +14,12 @@
         <div class="card h-100 shadow-sm">
             <div class="card-body p-4">
                 <h2 class="h4 mb-4">
-                    <i class="fas fa-stethoscope me-2"></i>Symptom Input
+                    <i class="fas fa-stethoscope me-2"></i>{{ t['symptom_input'] }}
                 </h2>
 
                 <div class="mb-4">
                     <label for="disease-select" class="form-label">
-                        <i class="fas fa-disease me-1"></i> Select Disease
+                        <i class="fas fa-disease me-1"></i> {{ t['select_disease'] }}
                     </label>
                     <select id="disease-select" class="form-select form-select-lg">
                         {% for disease in diseases %}
@@ -30,26 +30,25 @@
 
                 <div class="mb-4">
                     <label class="form-label">
-                        <i class="fas fa-list-check me-1"></i> Select Symptoms
-                        <span id="symptom-count" class="badge bg-primary ms-2">0 selected</span>
+                        <i class="fas fa-list-check me-1"></i> {{ t['select_symptoms'] }}
+                        <span id="symptom-count" class="badge bg-primary ms-2">0 {{ t['selected'] }}</span>
                     </label>
                     <div class="symptoms-grid border rounded p-3" id="symptoms-container"
                         style="max-height: 400px; overflow-y: auto; background-color: #f9f9f9;">
                         <!-- Symptoms will be loaded here dynamically -->
-                        <p class="text-muted text-center">Select a disease to see symptoms</p>
+                        <p class="text-muted text-center">{{ t['select_disease_placeholder'] }}</p>
                     </div>
                 </div>
 
                 <div class="d-grid">
                     <button class="btn btn-primary btn-lg" id="predict-btn" onclick="predictDisease()">
-                        <i class="fas fa-calculator me-2"></i>Predict Disease Probability
+                        <i class="fas fa-calculator me-2"></i>{{ t['predict_btn'] }}
                     </button>
                 </div>
 
                 <div class="alert alert-info mt-3 mb-0">
                     <i class="fas fa-info-circle me-2"></i>
-                    <small><strong>Note:</strong> ML prediction feature is under development. Currently showing mock
-                        data for demonstration purposes.</small>
+                    <small><strong>{{ t['note'] }}</strong> {{ t['note_text'] }}</small>
                 </div>
             </div>
         </div>
@@ -60,14 +59,14 @@
         <div class="card h-100 shadow-sm prediction-results-card">
             <div class="card-body p-4">
                 <h2 class="h4 mb-4">
-                    <i class="fas fa-chart-line me-2"></i>Prediction Results
+                    <i class="fas fa-chart-line me-2"></i>{{ t['prediction_results'] }}
                 </h2>
 
                 <div class="text-center py-5" id="loading" style="display: none;">
                     <div class="spinner-border text-primary mb-3" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p class="text-muted">Analyzing symptoms...</p>
+                    <p class="text-muted">{{ t['analyzing'] }}</p>
                 </div>
 
                 <div id="results-container" style="display: none;">
@@ -75,10 +74,10 @@
                     <div class="card bg-light mb-3">
                         <div class="card-body">
                             <h3 class="h6 mb-2">
-                                <i class="fas fa-brain me-2"></i>ML Prediction
+                                <i class="fas fa-brain me-2"></i>{{ t['ml_prediction'] }}
                             </h3>
                             <div class="display-4 text-primary text-center my-3" id="ml-probability">--</div>
-                            <p class="text-center text-muted small mb-0">Raw ML Probability</p>
+                            <p class="text-center text-muted small mb-0">{{ t['raw_probability'] }}</p>
                         </div>
                     </div>
 
@@ -86,12 +85,12 @@
                     <div class="card bg-light mb-3">
                         <div class="card-body">
                             <h3 class="h6 mb-3">
-                                <i class="fas fa-calculator me-2"></i>Bayesian Analysis
+                                <i class="fas fa-calculator me-2"></i>{{ t['bayesian_analysis'] }}
                             </h3>
 
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between mb-1">
-                                    <small>Prior Probability</small>
+                                    <small>{{ t['prior_prob'] }}</small>
                                     <small class="fw-bold" id="prior-value">--</small>
                                 </div>
                                 <div class="progress" style="height: 25px;">
@@ -101,7 +100,7 @@
 
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between mb-1">
-                                    <small>Likelihood</small>
+                                    <small>{{ t['likelihood'] }}</small>
                                     <small class="fw-bold" id="likelihood-value">--</small>
                                 </div>
                                 <div class="progress" style="height: 25px;">
@@ -111,7 +110,7 @@
 
                             <div class="mb-0 pt-2 border-top">
                                 <div class="d-flex justify-content-between mb-1">
-                                    <small class="fw-bold">Posterior Probability</small>
+                                    <small class="fw-bold">{{ t['posterior_prob'] }}</small>
                                     <small class="fw-bold text-primary" id="posterior-value">--</small>
                                 </div>
                                 <div class="progress" style="height: 25px;">
@@ -127,7 +126,7 @@
                     <div class="card bg-light">
                         <div class="card-body text-center">
                             <h3 class="h6 mb-3">
-                                <i class="fas fa-exclamation-triangle me-2"></i>Risk Assessment
+                                <i class="fas fa-exclamation-triangle me-2"></i>{{ t['risk_assessment'] }}
                             </h3>
                             <span class="badge fs-6 py-2 px-3" id="risk-badge">--</span>
                             <p class="mt-2 mb-0 text-muted small" id="risk-description">--</p>
@@ -145,7 +144,7 @@
                                     <polyline points="7 10 12 15 17 10"></polyline>
                                     <line x1="12" y1="15" x2="12" y2="3"></line>
                                 </svg>
-                                Download Report as PDF
+                                {{ t['download_report'] }}
                             </button>
                         </div>
                     </div>
@@ -153,7 +152,7 @@
 
                 <div id="no-results" class="text-center py-5 text-muted">
                     <i class="fas fa-clipboard-question fs-1 mb-3 d-block"></i>
-                    <p>Select symptoms and click "Predict" to see results</p>
+                    <p>{{ t['no_results_text'] }}</p>
                 </div>
             </div>
         </div>
@@ -255,7 +254,7 @@
 
     function updateSymptomCount() {
         const count = selectedSymptoms.length;
-        document.getElementById('symptom-count').textContent = `${count} selected`;
+        document.getElementById('symptom-count').textContent = `${count} {{ t['selected'] }}`;
     }
 
     async function predictDisease() {
@@ -295,8 +294,8 @@
 
     async function loadSymptoms(disease) {
         const container = document.getElementById('symptoms-container');
-        container.innerHTML = '<p class="text-center text-muted py-3">Loading symptoms...</p>';
-        document.getElementById('symptom-count').textContent = '0 selected';
+        container.innerHTML = '<p class="text-center text-muted py-3">{{ t["loading_symptoms"] }}</p>';
+        document.getElementById('symptom-count').textContent = '0 {{ t["selected"] }}';
 
         try {
             const response = await fetch(`/api/ml/symptoms/${disease}`);
@@ -328,7 +327,7 @@
 
         } catch (error) {
             console.error('Error loading symptoms:', error);
-            container.innerHTML = '<p class="text-danger text-center">Failed to load symptoms. Please check if backend is running.</p>';
+            container.innerHTML = '<p class="text-danger text-center">{{ t["error_loading"] }}</p>';
         }
     }
 
@@ -344,7 +343,7 @@
 
     function updateSymptomCount() {
         const count = selectedSymptoms.length;
-        document.getElementById('symptom-count').textContent = `${count} selected`;
+        document.getElementById('symptom-count').textContent = `${count} {{ t['selected'] }}`;
     }
 
     async function predictDisease() {
