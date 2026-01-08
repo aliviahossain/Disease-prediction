@@ -58,10 +58,29 @@ def get_real_dashboard_data():
         
         # Calculate percentages (avoid division by zero)
         if total_patients > 0:
-            low_risk_pct = round((low_risk_count / total_patients) * 100)
-            medium_risk_pct = round((medium_risk_count / total_patients) * 100)
-            high_risk_pct = round((high_risk_count / total_patients) * 100)
-            critical_risk_pct = round((critical_risk_count / total_patients) * 100)
+            # Compute base integer percentages using floor division
+            counts = [
+                low_risk_count,
+                medium_risk_count,
+                high_risk_count,
+                critical_risk_count,
+            ]
+            raw_percentages = [(c * 100.0) / total_patients for c in counts]
+            base_percentages = [int(p) for p in raw_percentages]
+            remainder = 100 - sum(base_percentages)
+            
+            # Distribute remaining percentage points to categories with largest fractional parts
+            if remainder > 0:
+                fractional_parts = [
+                    (p - int(p), idx) for idx, p in enumerate(raw_percentages)
+                ]
+                # Sort by descending fractional part so we add 1% to the largest fractions first
+                fractional_parts.sort(reverse=True)
+                for i in range(remainder):
+                    idx = fractional_parts[i % len(fractional_parts)][1]
+                    base_percentages[idx] += 1
+            
+            low_risk_pct, medium_risk_pct, high_risk_pct, critical_risk_pct = base_percentages
         else:
             low_risk_pct = medium_risk_pct = high_risk_pct = critical_risk_pct = 0
         

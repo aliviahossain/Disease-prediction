@@ -31,10 +31,10 @@ class PredictionHistory(db.Model):
     confidence_score = db.Column(db.Float, nullable=True)
     
     # Risk assessment
-    risk_level = db.Column(db.String(20), nullable=False)  # low, medium, high, critical
+    risk_level = db.Column(db.String(20), nullable=False, index=True)  # low, medium, high, critical
     
     # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
     
     # Relationship to User
     user = db.relationship('User', backref=db.backref('predictions', lazy=True))
@@ -46,7 +46,7 @@ class PredictionHistory(db.Model):
         """Parse symptoms JSON string to list"""
         try:
             return json.loads(self.symptoms)
-        except:
+        except (json.JSONDecodeError, TypeError):
             return []
     
     def set_symptoms_list(self, symptoms_list):

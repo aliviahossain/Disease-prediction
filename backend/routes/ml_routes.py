@@ -4,6 +4,7 @@ from backend.utils.calculator import BayesCalculator
 from backend.models.prediction import PredictionHistory
 from backend import db
 import json
+import traceback
 
 ml_bp = Blueprint('ml', __name__)
 
@@ -99,7 +100,6 @@ def predict_disease():
         except Exception as db_error:
             # Log error but don't fail the prediction
             print(f"⚠️ Failed to save prediction to database: {db_error}")
-            import traceback
             traceback.print_exc()
             db.session.rollback()
         
