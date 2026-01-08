@@ -1,6 +1,10 @@
 from flask import Blueprint, render_template, request, jsonify
 from backend.models.ml_model import ml_model
 from backend.utils.calculator import BayesCalculator
+from backend.models.prediction import PredictionHistory
+from backend import db
+import json
+import traceback
 
 ml_bp = Blueprint('ml', __name__)
 
@@ -74,6 +78,31 @@ def predict_disease():
             false_positive_rate=0.05
         )
         
+        # Determine risk level for storage
+        risk_assessment = get_risk_level(bayesian_result['posterior'] * 100)
+        risk_level_map = {'Low': 'low', 'Moderate': 'medium', 'High': 'high', 'Critical': 'critical'}
+        risk_level_db = risk_level_map.get(risk_assessment['level'], 'medium')
+        
+        # Save prediction to database
+        try:
+            prediction_record = PredictionHistory(
+                disease=disease,
+                symptoms=json.dumps(symptoms),
+                patient_age=age,
+                ml_probability=ml_prediction['raw_probability'],
+                bayesian_posterior=bayesian_result['posterior'],
+                confidence_score=ml_prediction['confidence_score'],
+                risk_level=risk_level_db
+            )
+            db.session.add(prediction_record)
+            db.session.commit()
+            print(f"✅ Prediction saved: disease={disease}, risk_level={risk_level_db}")
+        except Exception as db_error:
+            # Log error but don't fail the prediction
+            print(f"⚠️ Failed to save prediction to database: {db_error}")
+            traceback.print_exc()
+            db.session.rollback()
+        
         # Combine results
         result = {
             'success': True,
@@ -89,7 +118,7 @@ def predict_disease():
                 'posterior': round(bayesian_result['posterior'] * 100, 2),
                 'false_positive_rate': round(bayesian_result['false_positive_rate'] * 100, 2)
             },
-            'risk_assessment': get_risk_level(bayesian_result['posterior'] * 100)
+            'risk_assessment': risk_assessment
         }
         
         return jsonify(result), 200
@@ -249,9 +278,15 @@ def get_risk_level(probability):
             'color': 'warning',
             'description': 'Moderate probability - consider further testing'
         }
-    else:
+    elif probability < 85:
         return {
             'level': 'High',
             'color': 'danger',
             'description': 'High probability - immediate medical consultation recommended'
+        }
+    else:
+        return {
+            'level': 'Critical',
+            'color': 'dark',
+            'description': 'Critical risk level - urgent medical attention required'
         }
