@@ -69,9 +69,15 @@ def create_app():
     except ImportError as e:
         print(f"⚠️ Warning: Could not import 'scalability_routes'. Error: {e}")
     
+    # Import models before creating tables
+    from backend.models.user import User
+    from backend.models.prediction import PredictionHistory
+    
     # Create Database Tables
     with app.app_context():
         db.create_all()
+        print("✅ Database tables created/verified")
+    
     @app.context_processor
     def inject_current_year():
         return {"current_year": datetime.utcnow().year}
