@@ -1,6 +1,10 @@
 from flask import Blueprint, render_template, request, jsonify
 from backend.models.ml_model import ml_model
 from backend.utils.calculator import BayesCalculator
+from backend.models.prediction import PredictionHistory
+from backend import db
+import json
+import traceback
 
 ml_bp = Blueprint('ml', __name__)
 
@@ -42,8 +46,20 @@ def predict_disease():
         if not data:
             return jsonify({'error': 'No data provided'}), 400
         
-        disease = data.get('disease')
+        disease = data.get('disease').lower()
         symptoms = data.get('symptoms', [])
+        age = data.get('age')
+
+        # Validate age if provided
+        if age is not None:
+            try:
+                age = int(age)
+            except (ValueError, TypeError):
+                # If age is invalid, we can either error out or ignore it. 
+                # Choosing to ignore it for robustness, or we could return 400.
+                # data.get('age') might be a string "25", so int() handles that.
+                # If it's trash text, int() throws ValueError.
+                age = None 
         
         if not disease:
             return jsonify({'error': 'Disease not specified'}), 400
@@ -52,7 +68,7 @@ def predict_disease():
             return jsonify({'error': 'No symptoms provided'}), 400
         
         # Get ML prediction
-        ml_prediction = ml_model.predict_disease_probability(disease, symptoms)
+        ml_prediction = ml_model.predict_disease_probability(disease, symptoms, age=age)
         
         # Calculate Bayesian probabilities
         calculator = BayesCalculator()
@@ -61,6 +77,31 @@ def predict_disease():
             likelihood=ml_prediction['likelihood'],
             false_positive_rate=0.05
         )
+        
+        # Determine risk level for storage
+        risk_assessment = get_risk_level(bayesian_result['posterior'] * 100)
+        risk_level_map = {'Low': 'low', 'Moderate': 'medium', 'High': 'high', 'Critical': 'critical'}
+        risk_level_db = risk_level_map.get(risk_assessment['level'], 'medium')
+        
+        # Save prediction to database
+        try:
+            prediction_record = PredictionHistory(
+                disease=disease,
+                symptoms=json.dumps(symptoms),
+                patient_age=age,
+                ml_probability=ml_prediction['raw_probability'],
+                bayesian_posterior=bayesian_result['posterior'],
+                confidence_score=ml_prediction['confidence_score'],
+                risk_level=risk_level_db
+            )
+            db.session.add(prediction_record)
+            db.session.commit()
+            print(f"✅ Prediction saved: disease={disease}, risk_level={risk_level_db}")
+        except Exception as db_error:
+            # Log error but don't fail the prediction
+            print(f"⚠️ Failed to save prediction to database: {db_error}")
+            traceback.print_exc()
+            db.session.rollback()
         
         # Combine results
         result = {
@@ -77,7 +118,7 @@ def predict_disease():
                 'posterior': round(bayesian_result['posterior'] * 100, 2),
                 'false_positive_rate': round(bayesian_result['false_positive_rate'] * 100, 2)
             },
-            'risk_assessment': get_risk_level(bayesian_result['posterior'] * 100)
+            'risk_assessment': risk_assessment
         }
         
         return jsonify(result), 200
@@ -167,7 +208,7 @@ def get_diseases():
 def get_disease_symptoms(disease):
     """Get symptoms for a specific disease"""
     try:
-        symptoms = ml_model.get_disease_symptoms(disease)
+        symptoms = ml_model.get_disease_symptoms(disease.lower())
         
         symptom_list = [
             {
@@ -193,7 +234,7 @@ def get_disease_symptoms(disease):
 def get_symptom_importance(disease):
     """Get symptom importance/weights for a disease"""
     try:
-        importance = ml_model.get_symptom_importance(disease)
+        importance = ml_model.get_symptom_importance(disease.lower())
         
         importance_list = [
             {
@@ -237,9 +278,15 @@ def get_risk_level(probability):
             'color': 'warning',
             'description': 'Moderate probability - consider further testing'
         }
-    else:
+    elif probability < 85:
         return {
             'level': 'High',
             'color': 'danger',
             'description': 'High probability - immediate medical consultation recommended'
+        }
+    else:
+        return {
+            'level': 'Critical',
+            'color': 'dark',
+            'description': 'Critical risk level - urgent medical attention required'
         }

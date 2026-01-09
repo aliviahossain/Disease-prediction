@@ -8,6 +8,9 @@ python-dotenv
 numpy
 pandas
 scikit-learn
+flask-sqlalchemy
+flask-bcrypt
 reportlab
 streamlit
 plotly
+flask-login

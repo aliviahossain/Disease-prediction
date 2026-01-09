@@ -96,7 +96,7 @@ body {
 
 /* --- Card Styling & Hover Effects --- */
 .card {
-    background-color: var(--card-bg);
+    background-color: var(--card-bg) !important;
     color: var(--text-primary);
     border: 1px solid var(--border-color);
     transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
@@ -532,6 +532,10 @@ body.dark-mode .select2-search__field {
     border-color: var(--border-color);
 }
 
+body.dark-mode .select2-selection--single {
+    border-color: var(--border-color) !important;
+}
+
 body.dark-mode .select2-container--default .select2-selection--single .select2-selection__rendered {
     color: var(--text-primary);
 }
@@ -704,8 +708,14 @@ body.dark-mode #chartContainer .card-title {
 }
 
 /* Ensure ML prediction page elements work with dark mode */
+
+body.dark-mode .form-control::placeholder {
+    color: var(--text-muted);
+}
+
 body.dark-mode .symptoms-grid {
-    background: var(--input-bg);
+    background: var(--input-bg) !important;
+    border-color: var(--border-color) !important;
 }
 
 body.dark-mode .symptom-checkbox {
@@ -714,6 +724,28 @@ body.dark-mode .symptom-checkbox {
 
 body.dark-mode .symptom-checkbox:hover {
     background: var(--accordion-bg);
+}
+
+body.dark-mode .symptom-checkbox input[type="checkbox"] {
+    position: relative;
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: var(--input-bg);
+} 
+
+body.dark-mode .symptom-checkbox input[type="checkbox"]::before {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    content: "";
+    color: var(--text-primary);
+    font-size: 0.8rem;
+}
+
+body.dark-mode .symptom-checkbox input[type="checkbox"]:checked::before {
+    content: "✓";
 }
 
 body.dark-mode .result-card {
@@ -891,4 +923,96 @@ body.dark-mode .form-range::-webkit-slider-thumb {
 
 body.dark-mode .form-range::-moz-range-thumb {
     background: linear-gradient(135deg, #1abc9c, #16a085);
+}
+
+.preloaded-info {
+  margin-top: 20px;
+}
+
+.preloaded-info h4 {
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.preloaded-scroll {
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  background-color: #f9f9f9;
+}
+
+.preloaded-scroll ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.preloaded-scroll li {
+  padding: 6px 0;
+  border-bottom: 1px solid #e5e5e5;
+  font-size: 13px;
+}
+
+.preloaded-scroll li:last-child {
+  border-bottom: none;
+}
+
+body.dark-mode .preloaded-scroll {
+    background-color: var(--input-bg);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .preloaded-scroll li {
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+body.dark-mode .preloaded-info h4 {
+  color: var(--text-primary);
+}
+
+/* Dark Mode – Home Prediction Results */
+
+body.dark-mode .prediction-results-card {
+    background-color: #1e1e1e;
+    color: #eaeaea;
+    border: 1px solid #2a2a2a;
+}
+
+/* Headings */
+body.dark-mode .prediction-results-card h2,
+body.dark-mode .prediction-results-card h3,
+body.dark-mode .prediction-results-card h4,
+body.dark-mode .prediction-results-card h6 {
+    color: #ffffff;
+}
+
+/* Inner cards (ML, Bayesian, Risk, Download) */
+body.dark-mode .prediction-results-card .card {
+    background-color: #252525 !important;
+    border-color: #333;
+    color: #eaeaea;
+}
+
+/* Remove Bootstrap bg-light effect */
+body.dark-mode .prediction-results-card .bg-light {
+    background-color: #3a3a3a !important;
+}
+
+/* Muted text */
+body.dark-mode .prediction-results-card .text-muted {
+    color: #b0b0b0 !important;
+}
+
+/* Progress bars */
+body.dark-mode .prediction-results-card .progress {
+    background-color: #333;
+}
+
+/* Download card border */
+body.dark-mode .prediction-results-card .border-primary {
+    border-color: #0d6efd;
 }

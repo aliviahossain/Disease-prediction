@@ -73,6 +73,22 @@
                         id="loadSampleBtn">
                         <i class="fas fa-file-import me-2"></i>Load Sample Data
                     </button>
+                    <!-- Pre-loaded Dataset Info -->
+                    <div class="preloaded-info">
+                    <h4>Available Sample Data</h4>
+
+                    <div class="preloaded-scroll">
+                        <ul>
+                        <li>Migraine – Prior: 0.01</li>
+                        <li>Influenza – Prior: 0.03</li>
+                        <li>Diabetes – Prior: 0.12</li>
+                        <li>Hypertension – Prior: 0.18</li>
+                        <li>Heart Disease – Prior: 0.07</li>
+                        <li>Asthma – Prior: 0.05</li>
+                        </ul>
+                    </div>
+                    </div>
+
                     <small class="text-muted mt-3">Adjust details below, then click Check</small>
                 </div>
             </div>
@@ -147,12 +163,24 @@
                     </div>
                 </div>
 
-                <div class="d-grid mt-4">
-                    <button type="button" class="btn btn-success btn-lg shadow-sm py-3 fw-bold" id="checkButton"
+                <div class="d-grid mt-4 gap-2">
+                <!-- Check Result Button -->
+                    <button
+                        type="button"
+                        class="btn btn-success btn-lg shadow-sm py-3 fw-bold"
+                        id="checkButton"
                         onclick="handleCheck()">
-                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"
-                            style="display: none;"></span>
-                        <span id="buttonText"><i class="fas fa-check-circle me-2"></i>Check Result</span>
+                        <span id="buttonText">
+                            <i class="fas fa-check-circle me-2"></i>Check Result
+                        </span>
+                    </button>
+
+                    <!-- Reset Button -->
+                    <button
+                        type="button"
+                        class="btn btn-outline-danger"
+                        onclick="resetCalculator()">
+                        <i class="fas fa-rotate-left me-1"></i>Reset
                     </button>
                 </div>
             </div>
@@ -178,7 +206,7 @@
                 <i class="fas fa-robot me-2"></i>AI-Powered Recommendations
             </h3>
             <div class="d-flex gap-2 align-items-center">
-                <select id="languageSelect" class="form-select form-select-sm" style="width: auto; min-width: 150px;">
+                <select id="languageSelect" class="form-select form-select-sm" style="width: auto; min-width: 150px;" onchange="changeRecommendationLanguage()">
                     <option value="english" selected>🇬🇧 English</option>
                     <option value="hindi">🇮🇳 हिंदी (Hindi)</option>
                     <option value="gujarati">🇮🇳 ગુજરાતી (Gujarati)</option>

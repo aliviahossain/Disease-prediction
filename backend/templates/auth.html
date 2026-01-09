@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In / Register - Disease Prediction{% endblock %}
+
+{% block content %}
+<style>
+    .auth-card {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+        background: #fff;
+        border: 1px solid #dadce0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .auth-header {
+        text-align: center;
+        padding: 30px 30px 20px;
+    }
+
+    .logo-img {
+        height: 50px;
+        margin-bottom: 15px;
+    }
+
+    .auth-tabs {
+        display: flex;
+        border-bottom: 1px solid #dadce0;
+    }
+
+    .auth-tab {
+        flex: 1;
+        text-align: center;
+        padding: 15px;
+        cursor: pointer;
+        font-weight: 500;
+        color: #5f6368;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .auth-tab:hover {
+        background-color: #f8f9fa;
+        color: #202124;
+    }
+
+    .auth-tab.active {
+        color: #202124;
+        border-bottom-color: #1a73e8;
+        /* Kaggle-ish Blue */
+    }
+
+    .auth-body {
+        padding: 30px;
+    }
+
+    .form-control {
+        border-radius: 4px;
+        /* Slightly sharper than Bootstrap default */
+        height: 44px;
+    }
+
+    .btn-auth {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 44px;
+        font-weight: 600;
+        border-radius: 20px;
+        /* Rounded pill button */
+        margin-top: 10px;
+    }
+
+    .switch-text {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 0.9em;
+        color: #5f6368;
+    }
+
+    .switch-link {
+        color: #1a73e8;
+        cursor: pointer;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .switch-link:hover {
+        text-decoration: underline;
+    }
+
+    /* Hide forms initially */
+    .auth-form {
+        display: none;
+    }
+
+    /* Show active form */
+    .auth-form.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    body.dark-mode .auth-card {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    body.dark-mode .auth-tab:hover {
+        background-color: var(--input-bg);
+        color: white;
+    }
+
+    body.dark-mode .auth-tab.active {
+        color: var(--text-primary);
+    }
+
+    body.dark-mode .form-text {
+        color: var(--text-secondary);
+    }
+
+    body.dark-mode .auth-tabs {
+        border-color: var(--border-color);
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="container mt-5 mb-5">
+    <div class="auth-card shadow-sm">
+        <div class="auth-header">
+            <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" class="logo-img">
+            <h4>Welcome!</h4>
+            <p class="text-muted small">Join our community of predictions</p>
+        </div>
+
+        <div class="auth-tabs">
+            <button class="auth-tab {{ 'active' if active_tab == 'signin' else '' }}" id="tab-signin"
+                onclick="switchTab('signin')">Sign In</button>
+            <button class="auth-tab {{ 'active' if active_tab == 'register' else '' }}" id="tab-register"
+                onclick="switchTab('register')">Register</button>
+        </div>
+
+        <div class="auth-body">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} mb-4 py-2" style="font-size: 0.9em;">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <!-- Sign In Form -->
+            <div id="form-signin" class="auth-form {{ 'active' if active_tab == 'signin' else '' }}">
+                <form method="POST" action="{{ url_for('auth.login') }}">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Email</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Password</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-auth">Sign In with Email</button>
+                </form>
+                <div class="switch-text">
+                    Don't have an account? <span class="switch-link" onclick="switchTab('register')">Create one</span>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="form-register" class="auth-form {{ 'active' if active_tab == 'register' else '' }}">
+                <form method="POST" action="{{ url_for('auth.signup') }}">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Name</label>
+                        <input type="text" class="form-control" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Email</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Password</label>
+                        <input type="password" class="form-control" name="password" required>
+                        <div class="form-text small">Use 8 characters or more for security</div>
+                    </div>
+                    <button type="submit" class="btn btn-dark btn-auth">Register with Email</button>
+                </form>
+                <div class="switch-text">
+                    Have an account? <span class="switch-link" onclick="switchTab('signin')">Sign in</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tab) {
+        // Buttons
+        document.getElementById('tab-signin').classList.remove('active');
+        document.getElementById('tab-register').classList.remove('active');
+        document.getElementById('tab-' + tab).classList.add('active');
+
+        // Forms
+        document.getElementById('form-signin').classList.remove('active');
+        document.getElementById('form-register').classList.remove('active');
+        document.getElementById('form-' + tab).classList.add('active');
+    }
+
+    // Disable button on submit
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function () {
+                const btn = this.querySelector('button[type="submit"]');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerText = 'Please Wait...';
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}
