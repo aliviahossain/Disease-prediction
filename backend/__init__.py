@@ -33,7 +33,13 @@ def create_app():
     )
 
     # Configure Database
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(backend_root, 'site.db')
+    database_url = os.getenv("DATABASE_URL")
+
+    if database_url:
+        app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    else:
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(backend_root, "site.db")
+
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'your_secret_key_here' # Change this in production!
 
@@ -86,7 +92,8 @@ def create_app():
     # Import models before creating tables
     from backend.models.user import User
     from backend.models.prediction import PredictionHistory
-    
+    from backend.models.disease import Disease
+
     # Create Database Tables
     with app.app_context():
         db.create_all()
