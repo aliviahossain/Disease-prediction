@@ -40,6 +40,13 @@ def create_app():
         print("✅ 'scalability_routes' blueprint registered successfully")
     except ImportError as e:
         print(f"⚠️ Warning: Could not import 'scalability_routes'. Error: {e}")
+
+    try:
+        from backend.routes.chat_routes import chat_bp
+        app.register_blueprint(chat_bp)
+        print("✅ 'chat_routes' blueprint registered successfully")
+    except ImportError as e:
+        print(f"⚠️ Warning: Could not import 'chat_routes'. Error: {e}")
     
     @app.context_processor
     def inject_current_year():
