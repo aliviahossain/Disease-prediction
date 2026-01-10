@@ -11,6 +11,9 @@ let lastCalculationData = {
 // LocalStorage key for persisting calculator state
 const STORAGE_KEY = "calculator_last_state";
 
+// Tracks whether AI-generated recommendations have already been created
+let contentGenerated = false;
+
 // ============================================
 // Dark Mode Toggle Functionality
 // ============================================
@@ -27,8 +30,8 @@ function initDarkMode() {
   // Apply dark mode if previously enabled
   if (isDarkMode) {
     body.classList.add('dark-mode');
-    if (sunIcon) sunIcon.style.display = 'none';
-    if (moonIcon) moonIcon.style.display = 'block';
+    if (sunIcon) sunIcon.style.display = 'block';
+    if (moonIcon) moonIcon.style.display = 'none';
   }
 
   // Toggle dark mode on button click
@@ -40,8 +43,8 @@ function initDarkMode() {
 
       // Update icons
       if (sunIcon && moonIcon) {
-        sunIcon.style.display = isDark ? 'none' : 'block';
-        moonIcon.style.display = isDark ? 'block' : 'none';
+        sunIcon.style.display = isDark ? 'block' : 'none';
+        moonIcon.style.display = isDark ? 'none' : 'block';
       }
 
       // Save preference to localStorage
@@ -395,6 +398,7 @@ function getAIRecommendations() {
         contentDiv.innerHTML = formatMarkdownToHTML(data.recommendations);
         contentDiv.style.display = 'block';
         disclaimerDiv.style.display = 'block';
+        contentGenerated = true; // Mark content as generated
       } else {
         contentDiv.innerHTML = `
         <div class="alert alert-warning">
@@ -421,6 +425,16 @@ function getAIRecommendations() {
       contentDiv.style.display = 'block';
       btn.style.display = 'inline-block';
     });
+}
+
+// Handle language change for recommendations
+async function changeRecommendationLanguage() {
+  if (!contentGenerated) return;
+  
+  // showing the recommendations container again
+  await showRecommendationsContainer();
+  // Call the recommendations function again after changing language
+  await getAIRecommendations();
 }
 
 // Simple markdown-to-HTML converter for AI responses
