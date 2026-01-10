@@ -112,3 +112,66 @@ Keep your response concise (under 200 words), professional, educational, and emp
             "recommendations": "Unable to generate recommendations at this time. Please try again later."
         }
 
+
+def generate_chat_response(message: str, history: list = None) -> dict:
+    """
+    Generate a chat response using Gemini API, restricted to medical/health domain.
+    
+    Args:
+        message: The user's query
+        history: Optional list of previous chat messages for context
+    
+    Returns:
+        dict: Contains 'success', 'response', and optional 'error' keys
+    """
+    try:
+        configure_gemini()
+        
+        # Create the model
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        
+        # System instruction to restrict domain
+        system_instruction = """
+        You are a helpful AI assistant for a Disease Prediction Application.
+        
+        YOUR ROLE:
+        - Helper users understand disease predictions.
+        - Answer general health and medical questions.
+        - Explain how to use the application (symptom checker, calculator, etc.).
+        
+        STRICT RULES:
+        1. ONLY answer questions related to health, medicine, diseases, symptoms, treatments, and this application.
+        2. If a user asks a non-medical question (e.g., "Who won the World Cup?", "Write python code for..."), politey REFUSE.
+           - Example refusal: "I apologize, but I am specialized in health and disease prediction. I cannot answer general queries outside this domain."
+        3. ALWAYS include a disclaimer for specific medical advice: "I am an AI, not a doctor. Please consult a healthcare professional for diagnosis and treatment."
+        4. Keep answers concise (under 150 words) unless detailed explanation is requested.
+        5. Be empathetic and professional.
+        """
+        
+        # Construct chat history if provided (not implemented fully in this simple version, 
+        # but ready for expansion where we'd convert history list to Gemini format)
+        chat = model.start_chat(history=[
+            {"role": "user", "parts": [system_instruction]},
+            {"role": "model", "parts": ["Understood. I am ready to assist with health and application-related queries only."]}
+        ])
+        
+        response = chat.send_message(message)
+        
+        return {
+            "success": True,
+            "response": response.text
+        }
+        
+    except ValueError as ve:
+        return {
+            "success": False,
+            "error": str(ve),
+            "response": "Configuration Error: API key missing."
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "response": "I'm having trouble connecting right now. Please try again later."
+        }
+

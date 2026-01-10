@@ -87,17 +87,14 @@ def create_app():
         app.register_blueprint(scalability_bp)
         print("'scalability_routes' blueprint registered successfully")
     except ImportError as e:
-        print(f"Warning: Could not import 'scalability_routes'. Error: {e}")
-    
-    # Import models before creating tables
-    from backend.models.user import User
-    from backend.models.prediction import PredictionHistory
-    from backend.models.disease import Disease
+        print(f"⚠️ Warning: Could not import 'scalability_routes'. Error: {e}")
 
-    # Create Database Tables
-    with app.app_context():
-        db.create_all()
-        print("✅ Database tables created/verified")
+    try:
+        from backend.routes.chat_routes import chat_bp
+        app.register_blueprint(chat_bp)
+        print("✅ 'chat_routes' blueprint registered successfully")
+    except ImportError as e:
+        print(f"⚠️ Warning: Could not import 'chat_routes'. Error: {e}")
     
     @app.context_processor
     def inject_current_year():
