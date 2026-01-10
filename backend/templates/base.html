@@ -192,12 +192,28 @@
         {% block content %}{% endblock %}
     </main>
   
+    <!-- Footer -->
     <footer class="bg-custom-dark text-white text-center py-4 mt-auto">
         <div class="container">
-            <p class="mb-1">&copy; 2026 Disease-prediction App.</p>
+            <p class="mb-1">&copy; {{ current_year }} Disease-prediction App — Prediction-based medical insights for everyone.</p>
+            <p class="small mb-2">
+                <a href="/privacy" class="text-white text-decoration-none">Privacy</a>
+                <span class="mx-2">·</span>
+                <a href="/terms" class="text-white text-decoration-none">Terms</a>
+                <span class="mx-2">·</span>
+                <a href="/contact" class="text-white text-decoration-none">Contact</a>
+            </p>
+            <p class="mb-0">
+                <a href="https://github.com/aliviahossain/Disease-prediction" target="_blank" rel="noopener" class="text-white me-3" aria-label="GitHub">
+                    <i class="fab fa-github fa-lg"></i>
+                </a>
+                <a href="https://www.linkedin.com/in/alivia-hossain-513a3a365/" target="_blank" rel="noopener" class="text-white" aria-label="LinkedIn">
+                    <i class="fab fa-linkedin fa-lg"></i>
+                </a>
+            </p>
         </div>
     </footer>
-
+    
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
