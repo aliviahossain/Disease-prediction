@@ -1,6 +1,9 @@
 import numpy as np
 from typing import List, Dict, Tuple
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 class DiseaseMLModel:
     """
@@ -218,10 +221,16 @@ class DiseaseMLModel:
             try:
                 prediction = self.predict_disease_probability(disease, symptoms)
                 predictions.append(prediction)
-            except Exception as e:
-                continue
+            except Exception:
+                logger.error(
+                    f"Prediction failed for disease '{disease}'",
+                    exc_info=True
+                )
+
+        # Sort by raw probability (highest first)
         predictions.sort(key=lambda x: x['raw_probability'], reverse=True)
         return predictions
+
     
     def get_symptom_importance(self, disease: str) -> Dict[str, float]:
         disease_key = disease.lower().replace(' ', '_').replace('-', '_')
