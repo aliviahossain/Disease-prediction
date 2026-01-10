@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Disease Detection Dashboard - Disease  System{% endblock %}
+
+{% block content %}
+
+<!-- Heading -->
+<div class="text-center mb-5 animate-fade-in">
+    <h1 class="display-5 fw-bold">Image based Disease Detection</h1>
+    <p class="lead text-muted">Drop the image and let specialized ML models predict the disease</p>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <label for="type-select" class="form-label">
+                            <i class="fas fa-disease me-1"></i> 
+                            Select the type of disease you want to identify
+                        </label>
+                        <select id="type-select" class="form-select form-select-lg">
+                            {% for type in types %}
+                            <option value="{{ type }}">{{ type }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="sec-card p-5">
+                        <h5 class="mb-3">Upload the image below</h5>
+                        <div class="upload-container mb-3" id="uploadContainer">
+                          <!-- Hidden file input -->
+                          <input
+                              type="file"
+                              id="imageInput"
+                              accept="image/*"
+                              hidden
+                          />
+
+                          <!-- Drag & Drop Area -->
+                          <div class="upload-box" id="uploadBox">
+                              <p>Drag and drop an image here</p>
+                          </div>
+
+                          <!-- Browse Button -->
+                          <button type="button" class="browse-btn px-3 py-2 mt-3" id="browseBtn">
+                              Browse from system
+                          </button>
+
+                          <!-- Uploaded image -->
+                          <img id="previewImage" class="preview-image d-none" />
+                        </div>
+                        
+                        <!-- Predict Button -->
+                        <button class="btn btn-primary btn-lg mb-3" id="predict-btn" onclick="predictDiseaseType()">
+                            <i class="fas fa-calculator me-2"></i>Predict Disease Type
+                        </button>
+                    
+                        <!-- Loading div -->
+                        <div class="text-center py-5 mb-3" id="loading" style="display: none;">
+                            <div class="spinner-border text-primary mb-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="text-muted">Analyzing symptoms...</p>
+                        </div>
+
+                        <!-- Result Container -->
+                        <div id="results-container" style="display: none;">
+                          <div class="card bg-light mb-3">
+                              <div class="card-body">
+                                  <h3 class="h6 mb-2">
+                                      <i class="fas fa-brain me-2"></i>Image based Prediction
+                                  </h3>
+                                  <div class="display-4 text-primary text-center my-3" id="ml-probability">--</div>
+                                  <p class="text-center text-muted small mb-0">Raw ML Probability</p>
+                              </div>
+                          </div>
+                        </div>
+                    <!-- End of sec-card -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+  .card-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  .upload-container {
+      width: 55%;
+      height: 250px;
+      border: 2px dashed var(--border-color);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      cursor: pointer;
+      transition: 0.3s;
+      background-color: var(--input-bg);
+      position: relative; 
+      overflow: hidden;
+  }
+
+  body.dark-mode .upload-container {
+    background-color: #444444;
+  }
+
+  .upload-container.dragover {
+    border-color: #0d6efd;
+    background-color: #eef4ff;
+  }
+
+  .upload-container:hover {
+    box-shadow: 0 8px 24px var(--shadow-color);
+  }
+
+  .upload-box p {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-secondary);
+  }
+
+  .sec-card {
+    background-color: var(--input-bg);
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 1rem; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .preview-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    border-radius: 12px;
+    background: var(--bg-secondary);
+  }
+
+  .browse-btn {
+    border: 1px solid #3498db;
+    color: #3498db;
+    border-radius: 7px;
+    background-color: transparent;
+  }
+
+  .browse-btn:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+    color: white;
+    transition: all 0.3s ease;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+</style>
+
+<script>
+  let selectedImageFile = null;
+
+  const uploadContainer = document.getElementById("uploadContainer");
+  const uploadBox = document.getElementById("uploadBox");
+  const imageInput = document.getElementById("imageInput");
+  const browseBtn = document.getElementById("browseBtn");
+  const previewImage = document.getElementById("previewImage");
+
+  function initializeImageUpload() {
+    browseBtn.addEventListener("click", () => {
+      imageInput.click();
+    });
+
+    uploadContainer.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      uploadContainer.classList.add("dragover");
+    });
+
+    uploadContainer.addEventListener("dragleave", () => {
+      uploadContainer.classList.remove("dragover");
+    });
+
+    uploadContainer.addEventListener("drop", (e) => {
+      e.preventDefault();
+      uploadContainer.classList.remove("dragover");
+      handleImageFile(e.dataTransfer.files[0]);
+    });
+
+    imageInput.addEventListener("change", () => {
+      handleImageFile(imageInput.files[0]);
+    });
+  }
+
+  function handleImageFile(file) {
+    if (!file || !file.type.startsWith("image/")) {
+      alert("Please upload a valid image file");
+      return;
+    }
+
+    selectedImageFile = file; // ✅ image is now officially selected
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      previewImage.src = reader.result;
+      previewImage.classList.remove("d-none");
+
+      uploadBox.style.display = "none";
+      browseBtn.style.display = "none";
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Initialize upload once DOM is ready
+  initializeImageUpload();
+
+  async function predictDiseaseType() {
+    // 🚫 Block prediction if no image uploaded
+    if (!selectedImageFile) {
+      alert("Please upload an image before running prediction.");
+      return;
+    }
+
+    // Show loading
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('results-container').style.display = 'none';
+
+    // TODO: Replace with real API call
+    setTimeout(() => {
+      const mockData = {
+        ml_prediction: {
+          raw_probability: Math.random() * 80 + 10
+        }
+      };
+
+      document.getElementById("ml-probability").innerText =
+        mockData.ml_prediction.raw_probability.toFixed(2) + "%";
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('results-container').style.display = 'block';
+    }, 1500);
+  }
+
+</script>
+
+
+
+{% endblock %}

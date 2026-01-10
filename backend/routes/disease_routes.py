@@ -374,3 +374,10 @@ def download_ml_results():
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+@disease_bp.route('/disease-detection-dashboard')
+def disease_detection_dashboard():
+    """Render the disease detection dashboard page"""
+    types = ["Eyes", "Skin"]
+    return render_template('disease_detection_dashboard.html', types=types)

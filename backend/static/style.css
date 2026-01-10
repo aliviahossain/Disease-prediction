@@ -9,11 +9,11 @@
     --text-primary: #34495e;
     --text-secondary: #6c757d;
     --text-muted: #6c757d;
-    --card-bg: #ffffff;
+    --card-bg: #fdfefe;;
     --navbar-bg: #2c3e50;
     --footer-bg: #343a40; /* classic charcoal footer */
     --border-color: #dee2e6;
-    --input-bg: #ffffff;
+    --input-bg: #f9fafb;
     --input-border: #ced4da;
     --shadow-color: rgba(44, 62, 80, 0.15);
     --error-bg: #fff6f5;
@@ -28,7 +28,7 @@ body.dark-mode {
     --text-primary: #e0e0e0;
     --text-secondary: #b0b0b0;
     --text-muted: #9ca3af;
-    --card-bg: #2d2d2d;
+    --card-bg: #303030;
     --navbar-bg: #1f1f1f;
     --footer-bg: #212529;
     --border-color: #404040;
