@@ -33,7 +33,13 @@ def create_app():
     )
 
     # Configure Database
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(backend_root, 'site.db')
+    database_url = os.getenv("DATABASE_URL")
+
+    if database_url:
+        app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    else:
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(backend_root, "site.db")
+
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'your_secret_key_here' # Change this in production!
 
