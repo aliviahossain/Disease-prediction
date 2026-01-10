@@ -309,57 +309,13 @@
   
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <!-- Chatbot Widget -->
+    {% include 'chatbot_widget.html' %}
+
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script>
-        // Navbar toggler icon switch for mobile
-        document.addEventListener('DOMContentLoaded', function () {
-            const navbarCollapse = document.getElementById('navbarNav');
-            const burger = document.querySelector('.navbar-toggler .burger');
-            const cross = document.querySelector('.navbar-toggler .cross');
-
-            if (navbarCollapse && burger && cross) {
-                navbarCollapse.addEventListener('show.bs.collapse', function () {
-                    burger.style.display = 'none';
-                    cross.style.display = 'block';
-                });
-
-                navbarCollapse.addEventListener('hide.bs.collapse', function () {
-                    burger.style.display = 'block';
-                    cross.style.display = 'none';
-                });
-            }
-
-            // Dashboard Menu Toggle
-            const dashboardToggle = document.getElementById('dashboardMenuToggle');
-            const dashboardDropdown = document.getElementById('dashboardDropdown');
-            
-            if (dashboardToggle && dashboardDropdown) {
-                dashboardToggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const isOpen = dashboardDropdown.classList.contains('show');
-                    dashboardDropdown.classList.toggle('show');
-                    dashboardToggle.setAttribute('aria-expanded', !isOpen);
-                });
-
-                // Close dropdown when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (!dashboardToggle.contains(e.target) && !dashboardDropdown.contains(e.target)) {
-                        dashboardDropdown.classList.remove('show');
-                        dashboardToggle.setAttribute('aria-expanded', 'false');
-                    }
-                });
-
-                // Close on escape key
-                document.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape') {
-                        dashboardDropdown.classList.remove('show');
-                        dashboardToggle.setAttribute('aria-expanded', 'false');
-                    }
-                });
-            }
-        });
-    </script>
+    <script src="{{ url_for('static', filename='chatbot_script.js') }}"></script>
 </body>
 
 </html>
