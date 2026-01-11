@@ -9,6 +9,14 @@ The system features two core functionalities:
 
 ---
 
+## ⚠️ Disclaimer
+
+This project is intended strictly for **educational and research purposes**.  
+
+This project is not intended for clinical use or real-world medical decision-making.
+
+All predictions and probability estimates are illustrative and should be interpreted with caution. Always consult a qualified healthcare professional for medical concerns.
+
 ## 📌 Key Features
 
 1.Symptom-Based Prediction (Home)
@@ -286,6 +294,38 @@ Recommended Next Steps:
   ```
 
 ---
+
+## 🔒 Privacy & Data Handling
+
+All image processing and probability calculations are performed **locally** on the user’s machine.  
+No images, symptoms, or personal data are uploaded, stored, or shared externally by default.
+
+
+## 🧠 Model Architecture
+
+The eye-disease image classification model is based on a deep convolutional neural network using a ResNet architecture inspired by:
+
+He, K., Zhang, X., Ren, S., & Sun, J. (2016).  
+*Deep Residual Learning for Image Recognition*. Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
+
+
+## 📊 Dataset Sources
+
+The eye-disease image prediction model was trained using the following publicly available dataset from Kaggle:
+
+- **Eye Diseases Classification Dataset**  
+  https://www.kaggle.com/datasets/gunavenkatdoddi/eye-diseases-classification
+
+This dataset includes labeled images for:
+
+- Normal eyes
+- Glaucoma
+- Diabetic Retinopathy
+- Cataract
+
+All dataset credits belong to their respective authors and contributors. 
+This project does not claim ownership of the dataset. Please refer to the dataset page for licensing and usage terms.
+
 
 ## 📜 License
 

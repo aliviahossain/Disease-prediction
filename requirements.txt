@@ -14,3 +14,6 @@ reportlab
 streamlit
 plotly
 flask-login
+tensorflow>=2.13
+numpy
+pillow

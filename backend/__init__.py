@@ -82,6 +82,13 @@ def create_app():
         print("'scalability_routes' blueprint registered successfully")
     except ImportError as e:
         print(f"Warning: Could not import 'scalability_routes'. Error: {e}")
+
+    try:
+        from backend.routes.predict_disease_type_routes import predict_disease_type_bp
+        app.register_blueprint(predict_disease_type_bp)
+        print("'predict_disease_type_bp_routes' blueprint registered successfully")
+    except ImportError as e:
+        print(f"Warning: Could not import 'predict_disease_type_bp_routes'. Error: {e}")
     
     # Import models before creating tables
     from backend.models.user import User

@@ -20,11 +20,12 @@
                             <i class="fas fa-disease me-1"></i> 
                             Select the type of disease you want to identify
                         </label>
-                        <select id="type-select" class="form-select form-select-lg">
+                        <select id="type-select" class="form-select form-select-lg mb-2">
                             {% for type in types %}
                             <option value="{{ type }}">{{ type }}</option>
                             {% endfor %}
                         </select>
+                        <p class="text-muted small text-center">More options coming soon.</p>
                     </div>
                     <div class="sec-card p-5">
                         <h5 class="mb-3">Upload the image below</h5>
@@ -43,13 +44,34 @@
                           </div>
 
                           <!-- Browse Button -->
-                          <button type="button" class="browse-btn px-3 py-2 mt-3" id="browseBtn">
+                          <button type="button" class="browse-btn sec-btn px-3 py-2 mt-3" id="browseBtn">
                               Browse from system
                           </button>
 
                           <!-- Uploaded image -->
                           <img id="previewImage" class="preview-image d-none" />
                         </div>
+                        
+                        <!-- Re-upload and Demo Image Button -->
+                        <div class="mb-3">
+                          <button type="button" class="re-upload-btn sec-btn px-3 py-2 mt-3" id="reUploadBtn" onclick="removeImg()">
+                              <i class="fas fa-sync-alt me-2"></i>
+                              Re-upload Image
+                          </button>
+                          <button type="button" class="demo-image-btn sec-btn px-3 py-2 mt-3" id="demoImageBtn" onclick="getDemoImage()">
+                              <i class="fas fa-images me-2"></i>
+                              Get Demo Image
+                          </button>
+                        </div>
+                        
+                        <!-- Disclaimer and info about Demo Images -->
+                        <p class="text-center text-muted small mb-3">
+                          Don’t have an image? Click the <strong>Get Demo Image</strong> button above to try the feature with sample images.
+                          <br>
+                          <span class="opacity-75">
+                            Demo images are provided for demonstration purposes only and may not represent real clinical cases.
+                          </span>
+                        </p>
                         
                         <!-- Predict Button -->
                         <button class="btn btn-primary btn-lg mb-3" id="predict-btn" onclick="predictDiseaseType()">
@@ -66,14 +88,39 @@
 
                         <!-- Result Container -->
                         <div id="results-container" style="display: none;">
-                          <div class="card bg-light mb-3">
-                              <div class="card-body">
-                                  <h3 class="h6 mb-2">
-                                      <i class="fas fa-brain me-2"></i>Image based Prediction
-                                  </h3>
-                                  <div class="display-4 text-primary text-center my-3" id="ml-probability">--</div>
-                                  <p class="text-center text-muted small mb-0">Raw ML Probability</p>
+                          <div class="card bg-light mb-3 shadow-sm">
+                            <div class="card-body">
+
+                              <!-- Header -->
+                              <h3 class="h6 mb-3 text-center">
+                                <i class="fas fa-brain me-2"></i>
+                                Image-based Prediction Result
+                              </h3>
+
+                              <!-- Predicted Disease -->
+                              <div class="text-center mb-2">
+                                <p class="text-muted small mb-1">Predicted Condition</p>
+                                <h4 class="fw-bold text-primary" id="ml-prediction-label">
+                                  --
+                                </h4>
                               </div>
+
+                              <!-- Confidence -->
+                              <div class="text-center mb-3">
+                                <p class="text-muted small mb-1">Model Confidence</p>
+                                <div class="display-6 fw-semibold text-success"
+                                    id="ml-probability">
+                                  --
+                                </div>
+                              </div>
+
+                              <!-- Disclaimer -->
+                              <p class="text-muted small text-center mb-0">
+                                Note: This result is generated by a machine learning model and is intended
+                                for demonstration purposes only. It should not be used as a medical diagnosis.
+                              </p>
+
+                            </div>
                           </div>
                         </div>
                     <!-- End of sec-card -->
@@ -93,7 +140,7 @@
   }
   .upload-container {
       width: 55%;
-      height: 250px;
+      height: 300px;
       border: 2px dashed var(--border-color);
       border-radius: 12px;
       display: flex;
@@ -147,14 +194,14 @@
     background: var(--bg-secondary);
   }
 
-  .browse-btn {
+  .sec-btn {
     border: 1px solid #3498db;
     color: #3498db;
     border-radius: 7px;
     background-color: transparent;
   }
 
-  .browse-btn:hover {
+  .sec-btn:hover {
     background-color: #2980b9;
     border-color: #2980b9;
     color: white;
@@ -163,9 +210,24 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 
+  #ml-prediction-label {
+    letter-spacing: 0.3px;
+  }
+
+  @media (max-width: 768px) {
+    .upload-container {
+      width: 100%;
+    }
+    .sec-card {
+      padding-left: 1.5rem !important;
+      padding-right: 1.5rem !important;
+    }
+  }
+
 </style>
 
 <script>
+  // State to hold the selected image file
   let selectedImageFile = null;
 
   const uploadContainer = document.getElementById("uploadContainer");
@@ -205,7 +267,7 @@
       return;
     }
 
-    selectedImageFile = file; // ✅ image is now officially selected
+    selectedImageFile = file; // image is now officially selected
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -222,7 +284,7 @@
   initializeImageUpload();
 
   async function predictDiseaseType() {
-    // 🚫 Block prediction if no image uploaded
+    // Block prediction if no image uploaded
     if (!selectedImageFile) {
       alert("Please upload an image before running prediction.");
       return;
@@ -232,24 +294,95 @@
     document.getElementById('loading').style.display = 'block';
     document.getElementById('results-container').style.display = 'none';
 
-    // TODO: Replace with real API call
-    setTimeout(() => {
-      const mockData = {
-        ml_prediction: {
-          raw_probability: Math.random() * 80 + 10
-        }
-      };
+    const formData = new FormData();
+    formData.append("image", selectedImageFile);
+    formData.append("type", document.getElementById("type-select").value);
 
-      document.getElementById("ml-probability").innerText =
-        mockData.ml_prediction.raw_probability.toFixed(2) + "%";
+    try {
+      const response = await fetch("/predict", {
+        method: "POST",
+        body: formData
+      });
 
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('results-container').style.display = 'block';
-    }, 1500);
+      const data = await response.json();
+
+      // Insert the prediction results in the DOM
+      document.getElementById("ml-prediction-label").innerText = data.prediction;
+      document.getElementById("ml-probability").innerText = data.confidence + "%";
+
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("results-container").style.display = "block";
+    } catch (error) {
+      alert("Prediction failed");
+      console.error(error);
+    }
+  }
+
+  function removeImg() {
+    // 1. Clear selected image state
+    selectedImageFile = null;
+
+    // 2. Reset file input
+    imageInput.value = "";
+
+    // 3. Remove preview image
+    previewImage.src = "";
+    previewImage.classList.add("d-none");
+
+    // 4. Restore upload UI
+    uploadBox.style.display = "flex";
+    browseBtn.style.display = "inline-flex";
+
+    // 5. Remove dragover state if any
+    uploadContainer.classList.remove("dragover");
+
+    // 6. Hide prediction results
+    document.getElementById("results-container").style.display = "none";
+
+    // 7. Hide loading if visible (safety)
+    document.getElementById("loading").style.display = "none";
+  }
+
+  async function getDemoImage() {
+    // List of demo images
+    const demoImages = [
+      "../static/assets/demo_images/eyes_demo_images/eye_demo_1.png",
+      "../static/assets/demo_images/eyes_demo_images/eye_demo_2.jpeg",
+      "../static/assets/demo_images/eyes_demo_images/eye_demo_3.jpg",
+      "../static/assets/demo_images/eyes_demo_images/eye_demo_4.jpg",
+      "../static/assets/demo_images/eyes_demo_images/eye_demo_5.jpg",
+    ];
+
+    const randomIndex = Math.floor(Math.random() * demoImages.length);
+    const demoImageSrc = demoImages[randomIndex];
+
+    try {
+      // Fetch image and convert to Blob
+      const response = await fetch(demoImageSrc);
+      const blob = await response.blob();
+
+      // Convert Blob → File
+      const file = new File([blob], "demo-image.jpg", {
+        type: blob.type,
+      });
+
+      selectedImageFile = file; // NOW backend-compatible
+
+      // Show preview
+      previewImage.src = demoImageSrc;
+      previewImage.classList.remove("d-none");
+
+      uploadBox.style.display = "none";
+      browseBtn.style.display = "none";
+      uploadContainer.classList.remove("dragover");
+
+      document.getElementById("results-container").style.display = "none";
+    } catch (error) {
+      alert("Failed to load demo image");
+      console.error(error);
+    }
   }
 
 </script>
-
-
 
 {% endblock %}
