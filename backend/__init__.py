@@ -95,6 +95,13 @@ def create_app():
         print("✅ 'chat_routes' blueprint registered successfully")
     except ImportError as e:
         print(f"⚠️ Warning: Could not import 'chat_routes'. Error: {e}")
+
+    try:
+        from backend.routes.predict_disease_type_routes import predict_disease_type_bp
+        app.register_blueprint(predict_disease_type_bp)
+        print("'predict_disease_type_bp_routes' blueprint registered successfully")
+    except ImportError as e:
+        print(f"Warning: Could not import 'predict_disease_type_bp_routes'. Error: {e}")
     
     @app.context_processor
     def inject_current_year():
