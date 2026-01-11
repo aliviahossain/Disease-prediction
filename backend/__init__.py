@@ -33,7 +33,13 @@ def create_app():
     )
 
     # Configure Database
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(backend_root, 'site.db')
+    database_url = os.getenv("DATABASE_URL")
+
+    if database_url:
+        app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    else:
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(backend_root, "site.db")
+
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'your_secret_key_here' # Change this in production!
 
@@ -81,23 +87,14 @@ def create_app():
         app.register_blueprint(scalability_bp)
         print("'scalability_routes' blueprint registered successfully")
     except ImportError as e:
-        print(f"Warning: Could not import 'scalability_routes'. Error: {e}")
+        print(f"⚠️ Warning: Could not import 'scalability_routes'. Error: {e}")
 
     try:
-        from backend.routes.predict_disease_type_routes import predict_disease_type_bp
-        app.register_blueprint(predict_disease_type_bp)
-        print("'predict_disease_type_bp_routes' blueprint registered successfully")
+        from backend.routes.chat_routes import chat_bp
+        app.register_blueprint(chat_bp)
+        print("✅ 'chat_routes' blueprint registered successfully")
     except ImportError as e:
-        print(f"Warning: Could not import 'predict_disease_type_bp_routes'. Error: {e}")
-    
-    # Import models before creating tables
-    from backend.models.user import User
-    from backend.models.prediction import PredictionHistory
-    
-    # Create Database Tables
-    with app.app_context():
-        db.create_all()
-        print("✅ Database tables created/verified")
+        print(f"⚠️ Warning: Could not import 'chat_routes'. Error: {e}")
     
     @app.context_processor
     def inject_current_year():

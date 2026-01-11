@@ -1,5 +1,6 @@
 /* --- Google Font Import --- */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+@import url('chatbot_style.css');
 
 /* --- CSS Variables for Light/Dark Mode --- */
 :root {
@@ -11,7 +12,8 @@
     --text-muted: #6c757d;
     --card-bg: #fdfefe;;
     --navbar-bg: #2c3e50;
-    --footer-bg: #343a40; /* classic charcoal footer */
+    --footer-bg: #343a40;
+    /* classic charcoal footer */
     --border-color: #dee2e6;
     --input-bg: #f9fafb;
     --input-border: #ced4da;
@@ -325,11 +327,11 @@ footer {
 
 footer {
     color: #f8f9fa;
-    border-top: 1px solid rgba(255,255,255,0.03);
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 footer a {
-    color: rgba(248,249,250,0.85);
+    color: rgba(248, 249, 250, 0.85);
     text-decoration: none;
 }
 
