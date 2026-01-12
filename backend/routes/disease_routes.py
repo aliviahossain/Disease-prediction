@@ -73,7 +73,10 @@ def preset():
                     false_pos = float(row["FalsePositive"])
 
                     # Bayes' Theorem calculation (using utility)
-                    p_d_given_pos = bayesian_survival(p_d, sensitivity, false_pos)
+                    try:
+                        p_d_given_pos = bayesian_survival(p_d, sensitivity, false_pos)
+                    except ValueError as e:
+                        return jsonify({"error": str(e)}), 400
 
                     return jsonify({
                         "p_d_given_pos": round(p_d_given_pos, 4),
