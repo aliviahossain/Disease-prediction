@@ -76,4 +76,4 @@ def predict():
         "prediction": CLASS_NAMES[idx],
         "confidence": round(confidence * 100, 2),
         "type": disease_type
-    })
+    }), 200
