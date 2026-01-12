@@ -298,6 +298,7 @@ def download_ml_results():
         likelihood = float(data.get("likelihood", 0))
         posterior_probability = float(data.get("posterior_probability", 0))
         risk_level = data.get("risk_level", "Low Risk")
+        missing_symptoms = data.get("missing_symptoms", [])
         
         # Create PDF
         buffer = io.BytesIO()
@@ -351,6 +352,26 @@ def download_ml_results():
         
         story.append(table)
         story.append(Spacer(1, 0.3*inch))
+        
+        # Add Missing Symptoms Table if present
+        if missing_symptoms:
+            story.append(Paragraph("<b>Missing Key Symptoms</b>", styles['Normal']))
+            story.append(Spacer(1, 0.1*inch))
+            
+            ms_data = [['Symptom', 'Importance']]
+            for item in missing_symptoms:
+                ms_data.append([item['name'], f"{item['weight']*100:.0f}%"])
+                
+            ms_table = Table(ms_data, colWidths=[2.5*inch, 2.5*inch])
+            ms_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e74c3c')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ]))
+            story.append(ms_table)
+            story.append(Spacer(1, 0.3*inch))
         
         # Add risk color coding
         risk_color = "#27ae60" if risk_level == "Low Risk" else ("#f39c12" if risk_level == "Moderate Risk" else "#e74c3c")
