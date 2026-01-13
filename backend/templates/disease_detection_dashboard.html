@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}Disease Detection Dashboard - Disease  System{% endblock %}
+
+{% block content %}
+
+<!-- Heading -->
+<div class="text-center mb-5 animate-fade-in">
+    <h1 class="display-5 fw-bold">Image based Disease Detection</h1>
+    <p class="lead text-muted">Drop the image and let specialized ML models predict the disease</p>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <label for="type-select" class="form-label">
+                            <i class="fas fa-disease me-1"></i> 
+                            Select the type of disease you want to identify
+                        </label>
+                        <select id="type-select" class="form-select form-select-lg mb-2">
+                            {% for type in types %}
+                            <option value="{{ type }}">{{ type }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="text-muted small text-center">More options coming soon.</p>
+                    </div>
+                    <div class="sec-card p-5">
+                        <h5 class="mb-3">Upload the image below</h5>
+                        <div class="upload-container mb-3" id="uploadContainer">
+                          <!-- Hidden file input -->
+                          <input
+                              type="file"
+                              id="imageInput"
+                              accept="image/*"
+                              hidden
+                          />
+
+                          <!-- Drag & Drop Area -->
+                          <div class="upload-box" id="uploadBox">
+                              <p>Drag and drop an image here</p>
+                          </div>
+
+                          <!-- Browse Button -->
+                          <button type="button" class="browse-btn sec-btn px-3 py-2 mt-3" id="browseBtn">
+                              Browse from system
+                          </button>
+
+                          <!-- Uploaded image -->
+                          <img id="previewImage" class="preview-image d-none" />
+                        </div>
+                        
+                        <!-- Re-upload and Demo Image Button -->
+                        <div class="mb-3">
+                          <button type="button" class="re-upload-btn sec-btn px-3 py-2 mt-3" id="reUploadBtn" onclick="removeImg()">
+                              <i class="fas fa-sync-alt me-2"></i>
+                              Re-upload Image
+                          </button>
+                          <button type="button" class="demo-image-btn sec-btn px-3 py-2 mt-3" id="demoImageBtn" onclick="getDemoImage()">
+                              <i class="fas fa-images me-2"></i>
+                              Get Demo Image
+                          </button>
+                        </div>
+                        
+                        <!-- Disclaimer and info about Demo Images -->
+                        <p class="text-center text-muted small mb-3">
+                          Don’t have an image? Click the <strong>Get Demo Image</strong> button above to try the feature with sample images.
+                          <br>
+                          <span class="opacity-75">
+                            Demo images are provided for demonstration purposes only and may not represent real clinical cases.
+                          </span>
+                        </p>
+                        
+                        <!-- Predict Button -->
+                        <button class="btn btn-primary btn-lg mb-3" id="predict-btn" onclick="predictDiseaseType()">
+                            <i class="fas fa-calculator me-2"></i>Predict Disease Type
+                        </button>
+                    
+                        <!-- Loading div -->
+                        <div class="text-center py-5 mb-3" id="loading" style="display: none;">
+                            <div class="spinner-border text-primary mb-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="text-muted">Analyzing symptoms...</p>
+                        </div>
+
+                        <!-- Result Container -->
+                        <div id="results-container" style="display: none;">
+                          <div class="card bg-light mb-3 shadow-sm">
+                            <div class="card-body">
+
+                              <!-- Header -->
+                              <h3 class="h6 mb-3 text-center">
+                                <i class="fas fa-brain me-2"></i>
+                                Image-based Prediction Result
+                              </h3>
+
+                              <!-- Predicted Disease -->
+                              <div class="text-center mb-2">
+                                <p class="text-muted small mb-1">Predicted Condition</p>
+                                <h4 class="fw-bold text-primary" id="ml-prediction-label">
+                                  --
+                                </h4>
+                              </div>
+
+                              <!-- Confidence -->
+                              <div class="text-center mb-3">
+                                <p class="text-muted small mb-1">Model Confidence</p>
+                                <div class="display-6 fw-semibold text-success"
+                                    id="ml-probability">
+                                  --
+                                </div>
+                              </div>
+
+                              <!-- Disclaimer -->
+                              <p class="text-muted small text-center mb-0">
+                                Note: This result is generated by a machine learning model and is intended
+                                for demonstration purposes only. It should not be used as a medical diagnosis.
+                              </p>
+
+                            </div>
+                          </div>
+                        </div>
+                    <!-- End of sec-card -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+  .card-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  .upload-container {
+      width: 55%;
+      height: 300px;
+      border: 2px dashed var(--border-color);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      cursor: pointer;
+      transition: 0.3s;
+      background-color: var(--input-bg);
+      position: relative; 
+      overflow: hidden;
+  }
+
+  body.dark-mode .upload-container {
+    background-color: #444444;
+  }
+
+  .upload-container.dragover {
+    border-color: #0d6efd;
+    background-color: #eef4ff;
+  }
+
+  .upload-container:hover {
+    box-shadow: 0 8px 24px var(--shadow-color);
+  }
+
+  .upload-box p {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-secondary);
+  }
+
+  .sec-card {
+    background-color: var(--input-bg);
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 1rem; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .preview-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    border-radius: 12px;
+    background: var(--bg-secondary);
+  }
+
+  .sec-btn {
+    border: 1px solid #3498db;
+    color: #3498db;
+    border-radius: 7px;
+    background-color: transparent;
+  }
+
+  .sec-btn:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+    color: white;
+    transition: all 0.3s ease;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  #ml-prediction-label {
+    letter-spacing: 0.3px;
+  }
+
+  @media (max-width: 768px) {
+    .upload-container {
+      width: 100%;
+    }
+    .sec-card {
+      padding-left: 1.5rem !important;
+      padding-right: 1.5rem !important;
+    }
+  }
+
+</style>
+
+<script>
+  // State to hold the selected image file
+  let selectedImageFile = null;
+
+  const uploadContainer = document.getElementById("uploadContainer");
+  const uploadBox = document.getElementById("uploadBox");
+  const imageInput = document.getElementById("imageInput");
+  const browseBtn = document.getElementById("browseBtn");
+  const previewImage = document.getElementById("previewImage");
+
+  function initializeImageUpload() {
+    browseBtn.addEventListener("click", () => {
+      imageInput.click();
+    });
+
+    uploadContainer.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      uploadContainer.classList.add("dragover");
+    });
+
+    uploadContainer.addEventListener("dragleave", () => {
+      uploadContainer.classList.remove("dragover");
+    });
+
+    uploadContainer.addEventListener("drop", (e) => {
+      e.preventDefault();
+      uploadContainer.classList.remove("dragover");
+      handleImageFile(e.dataTransfer.files[0]);
+    });
+
+    imageInput.addEventListener("change", () => {
+      handleImageFile(imageInput.files[0]);
+    });
+  }
+
+  function handleImageFile(file) {
+    if (!file || !file.type.startsWith("image/")) {
+      alert("Please upload a valid image file");
+      return;
+    }
+
+    selectedImageFile = file; // image is now officially selected
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      previewImage.src = reader.result;
+      previewImage.classList.remove("d-none");
+
+      uploadBox.style.display = "none";
+      browseBtn.style.display = "none";
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Initialize upload once DOM is ready
+  initializeImageUpload();
+
+  async function predictDiseaseType() {
+    // Block prediction if no image uploaded
+    if (!selectedImageFile) {
+      alert("Please upload an image before running prediction.");
+      return;
+    }
+
+    // Show loading
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('results-container').style.display = 'none';
+
+    const formData = new FormData();
+    formData.append("image", selectedImageFile);
+    formData.append("type", document.getElementById("type-select").value);
+
+    try {
+      const response = await fetch("/predict", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
+
+      // Insert the prediction results in the DOM
+      document.getElementById("ml-prediction-label").innerText = data.prediction;
+      document.getElementById("ml-probability").innerText = data.confidence + "%";
+
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("results-container").style.display = "block";
+    } catch (error) {
+      alert("Prediction failed");
+      console.error(error);
+    }
+  }
+
+  function removeImg() {
+    // 1. Clear selected image state
+    selectedImageFile = null;
+
+    // 2. Reset file input
+    imageInput.value = "";
+
+    // 3. Remove preview image
+    previewImage.src = "";
+    previewImage.classList.add("d-none");
+
+    // 4. Restore upload UI
+    uploadBox.style.display = "flex";
+    browseBtn.style.display = "inline-flex";
+
+    // 5. Remove dragover state if any
+    uploadContainer.classList.remove("dragover");
+
+    // 6. Hide prediction results
+    document.getElementById("results-container").style.display = "none";
+
+    // 7. Hide loading if visible (safety)
+    document.getElementById("loading").style.display = "none";
+  }
+
+  async function getDemoImage() {
+    // List of demo images
+    const demoImages = [
+      "../static/assets/demo_images/eyes_demo_images/eye_demo_1.png",
+      "../static/assets/demo_images/eyes_demo_images/eye_demo_2.jpeg",
+      "../static/assets/demo_images/eyes_demo_images/eye_demo_3.jpg",
+      "../static/assets/demo_images/eyes_demo_images/eye_demo_4.jpg",
+      "../static/assets/demo_images/eyes_demo_images/eye_demo_5.jpg",
+    ];
+
+    const randomIndex = Math.floor(Math.random() * demoImages.length);
+    const demoImageSrc = demoImages[randomIndex];
+
+    try {
+      // Fetch image and convert to Blob
+      const response = await fetch(demoImageSrc);
+      const blob = await response.blob();
+
+      // Convert Blob → File
+      const file = new File([blob], "demo-image.jpg", {
+        type: blob.type,
+      });
+
+      selectedImageFile = file; // NOW backend-compatible
+
+      // Show preview
+      previewImage.src = demoImageSrc;
+      previewImage.classList.remove("d-none");
+
+      uploadBox.style.display = "none";
+      browseBtn.style.display = "none";
+      uploadContainer.classList.remove("dragover");
+
+      document.getElementById("results-container").style.display = "none";
+    } catch (error) {
+      alert("Failed to load demo image");
+      console.error(error);
+    }
+  }
+
+</script>
+
+{% endblock %}

@@ -90,6 +90,22 @@
                         </div>
                     </div>
 
+                    <!-- Missing Symptom Analysis -->
+                    <div class="card bg-light mb-3" id="missing-symptoms-card" style="display: none;">
+                        <div class="card-body">
+                            <h3 class="h6 mb-3">
+                                <i class="fas fa-clipboard-check me-2"></i>Missing Key Symptoms
+                            </h3>
+                            <div id="missing-symptoms-list" class="list-group list-group-flush bg-transparent">
+                                <!-- Dynamically populated -->
+                            </div>
+                            <p class="text-muted small mt-2 mb-0">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Symptoms often associated with this disease that you didn't report.
+                            </p>
+                        </div>
+                    </div>
+
                     <!-- Bayesian Analysis -->
                     <div class="card bg-light mb-3">
                         <div class="card-body">
@@ -443,6 +459,27 @@
 
         // Store data for download function
         window.lastMLResults = data;
+
+        // Missing Symptoms
+        const missing = ml.missing_symptoms || [];
+        const missingCard = document.getElementById('missing-symptoms-card');
+        const missingList = document.getElementById('missing-symptoms-list');
+
+        if (missing.length > 0) {
+            let html = '';
+            missing.forEach(item => {
+                html += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>${item.name}</span>
+                        <span class="badge bg-secondary rounded-pill">Impact: ${(item.weight * 100).toFixed(0)}%</span>
+                    </div>
+                `;
+            });
+            missingList.innerHTML = html;
+            missingCard.style.display = 'block';
+        } else {
+            missingCard.style.display = 'none';
+        }
     }
 
     async function downloadMLResults() {
@@ -466,7 +503,8 @@
                     prior_probability: bayes.prior / 100,
                     likelihood: bayes.likelihood / 100,
                     posterior_probability: bayes.posterior / 100,
-                    risk_level: risk.level + ' Risk'
+                    risk_level: risk.level + ' Risk',
+                    missing_symptoms: ml.missing_symptoms || []
                 })
             });
 

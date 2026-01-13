@@ -71,6 +71,9 @@ def predict_disease():
         # Get ML prediction
         ml_prediction = ml_model.predict_disease_probability(disease, symptoms, age=age)
         
+        # Get missing symptom analysis
+        missing_symptoms = ml_model.analyze_missing_symptoms(disease, symptoms)
+        
         # Calculate Bayesian probabilities
         calculator = BayesCalculator()
         bayesian_result = calculator.calculate_posterior(
@@ -112,7 +115,8 @@ def predict_disease():
             'ml_prediction': {
                 'raw_probability': round(ml_prediction['raw_probability'] * 100, 2),
                 'confidence_score': round(ml_prediction['confidence_score'] * 100, 2),
-                'symptoms_analyzed': ml_prediction['symptoms_matched']
+                'symptoms_analyzed': ml_prediction['symptoms_matched'],
+                'missing_symptoms': missing_symptoms
             },
             'bayesian_analysis': {
                 'prior': round(bayesian_result['prior'] * 100, 2),

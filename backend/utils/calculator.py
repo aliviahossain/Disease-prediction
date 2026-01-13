@@ -6,7 +6,26 @@ def bayesian_survival(prevalence, sensitivity, false_positive):
     P(Disease | Positive) = (Sensitivity * Prevalence) /
                             [(Sensitivity * Prevalence) + (FalsePositive * (1 - Prevalence))]
     """
+    try:
+        prevalence = float(prevalence)
+        sensitivity = float(sensitivity)
+        false_positive = float(false_positive)
+    except (TypeError, ValueError):
+        raise ValueError("All inputs must be numeric")
+
+    for name, value in [
+        ("Prevalence", prevalence),
+        ("Sensitivity", sensitivity),
+        ("False positive rate", false_positive)
+    ]:
+        if not (0.0 <= value <= 1.0):
+            raise ValueError(f"{name} must be between 0 and 1. Got {value}")
+
     p_pos = (sensitivity * prevalence) + (false_positive * (1 - prevalence))
+
+    if p_pos == 0:
+        raise ValueError("Invalid inputs caused division by zero")
+
     posterior = (sensitivity * prevalence) / p_pos
     return posterior
 
@@ -75,11 +94,11 @@ class BayesCalculator:
         except (TypeError, ValueError):
             raise ValueError(f"Non-numeric input provided")
         
-        # Clamp values to [0, 1]
-        prior = max(0.0, min(1.0, prior))
-        likelihood = max(0.0, min(1.0, likelihood))
-        false_positive_rate = max(0.0, min(1.0, false_positive_rate))
-        
+        # Strict validation (do NOT silently fix values)
+        for name, value in [("Prior probability", prior),("Likelihood", likelihood),("False positive rate", false_positive_rate)]:
+            if not (0.0 <= value <= 1.0):
+                raise ValueError(f"{name} must be between 0 and 1. Got {value}")
+
         # Bayes' Theorem: P(D|S) = P(S|D) * P(D) / P(S)
         # P(S) = P(S|D) * P(D) + P(S|~D) * P(~D)
         numerator = likelihood * prior
@@ -117,10 +136,9 @@ class BayesCalculator:
         except (TypeError, ValueError):
             raise ValueError(f"Non-numeric input provided")
         
-        # Clamp values
-        prior = max(0.0, min(1.0, prior))
-        sensitivity = max(0.0, min(1.0, sensitivity))
-        specificity = max(0.0, min(1.0, specificity))
+        for name, value in [("Prior probability", prior),("Sensitivity", sensitivity),("Specificity", specificity)]:
+            if not (0.0 <= value <= 1.0):
+                raise ValueError(f"{name} must be between 0 and 1. Got {value}")
         
         false_positive_rate = 1 - specificity
         

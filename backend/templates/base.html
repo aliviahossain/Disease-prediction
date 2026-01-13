@@ -12,15 +12,17 @@
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-    <!-- Google Fonts (Poppins) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <!-- Select2 CSS -->
+
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <!-- Custom CSS -->
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
+
     <style>
         /* Mobile-specific navbar adjustments */
         @media (max-width: 991.98px) {
@@ -81,9 +83,9 @@
             top: 100%;
             right: 0;
             margin-top: 0.5rem;
-            min-width: 200px;
-            background: var(--card-bg, #ffffff);
-            border: 1px solid var(--border-color, #dee2e6);
+            min-width: 220px;
+            background: #ffffff;
+            border: 1px solid #dee2e6;
             border-radius: 0.5rem;
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
             opacity: 0;
@@ -103,7 +105,7 @@
             display: flex;
             align-items: center;
             padding: 0.75rem 1rem;
-            color: var(--text-primary, #34495e);
+            color: #34495e;
             text-decoration: none;
             transition: background 0.2s ease;
         }
@@ -127,14 +129,14 @@
 
         .dashboard-dropdown-divider {
             height: 1px;
-            background: var(--border-color, #dee2e6);
+            background: #dee2e6;
             margin: 0;
         }
 
         .dashboard-dropdown-label {
             font-size: 0.7rem;
             text-transform: uppercase;
-            color: var(--text-muted, #6c757d);
+            color: #6c757d;
             padding: 0.5rem 1rem 0.25rem;
             font-weight: 600;
             letter-spacing: 0.05em;
@@ -143,10 +145,8 @@
         @media (max-width: 991.98px) {
             .dashboard-dropdown {
                 position: static;
-                margin-top: 0.5rem;
                 width: 100%;
                 box-shadow: none;
-                border: 1px solid var(--border-color);
             }
         }
     </style>
@@ -267,6 +267,11 @@
                                     Patient Dashboard
                                     <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Soon</span>
                                 </a>
+                                <a href="/disease-detection-dashboard"
+                                    class="dashboard-dropdown-item {% if '/disease-detection-dashboard' in request.path %}active{% endif %}">
+                                    <i class="fas fa-user-injured"></i>
+                                    Disease Detection Dashboard
+                                </a>
                                 <div class="dashboard-dropdown-divider"></div>
                                 <!-- Pages Section -->
                                 <div class="dashboard-dropdown-label">Pages</div>
@@ -318,7 +323,6 @@
             </div>
         </div>
     </nav>
-    <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
         {% block content %}{% endblock %}
     </main>
@@ -347,7 +351,7 @@
             </p>
         </div>
     </footer>
-    <!-- jQuery -->
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- Bootstrap JS -->
@@ -356,12 +360,29 @@
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-    <!-- Chatbot Widget -->
     {% include 'chatbot_widget.html' %}
 
-    <!-- Custom JS -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const menuToggle = document.getElementById('dashboardMenuToggle');
+            const dropdown = document.getElementById('dashboardDropdown');
+
+            if (menuToggle && dropdown) {
+                menuToggle.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('show');
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!menuToggle.contains(e.target) && !dropdown.contains(e.target)) {
+                        dropdown.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script src="{{ url_for('static', filename='chatbot_script.js') }}"></script>
 </body>
 
 </html>

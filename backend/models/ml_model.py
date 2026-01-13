@@ -1,6 +1,9 @@
 import numpy as np
 from typing import List, Dict, Tuple
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 class DiseaseMLModel:
     """
@@ -138,19 +141,31 @@ class DiseaseMLModel:
             age: Optional age of the patient
         """
         # Normalize disease key
-        disease_key = disease.lower().replace(' ', '_').replace('-', '_')
+    def _get_disease_key(self, disease_name: str) -> str:
+        """
+        Normalize and fuzzy match disease name to internal key.
+        """
+        disease_key = disease_name.lower().replace(' ', '_').replace('-', '_')
         
-        # Fuzzy match if exact match fail (handle 'diabetes type 2' vs 'diabetes_type_2')
-        if disease_key not in self.disease_weights:
-            # Try to find a partial match
-            for key in self.disease_weights.keys():
-                if key.replace('_', '') == disease_key.replace('_', ''):
-                    disease_key = key
-                    break
-        
-        if disease_key not in self.disease_weights:
-            # Fallback for UI safety if totally unknown
-            raise ValueError(f"Disease '{disease}' (key: {disease_key}) not found in model")
+        # Exact match check
+        if disease_key in self.disease_weights:
+            return disease_key
+            
+        # Fuzzy match: try to find a key that matches when underscores are removed
+        normalized_input = disease_key.replace('_', '')
+        for key in self.disease_weights.keys():
+            if key.replace('_', '') == normalized_input:
+                return key
+                
+        # If no match found, raise ValueError
+        raise ValueError(f"Disease '{disease_name}' (key: {disease_key}) not found in model")
+
+    def predict_disease_probability(self, disease: str, symptoms: List[str], age: int = None) -> Dict:
+        """
+        Predict disease probability based on selected symptoms and optional age.
+        """
+        # Use helper for robust lookup
+        disease_key = self._get_disease_key(disease)
         
         weights = self.disease_weights[disease_key]
         symptom_weights = weights['symptoms']
@@ -195,16 +210,7 @@ class DiseaseMLModel:
         return list(self.disease_weights.keys())
     
     def get_disease_symptoms(self, disease: str) -> Dict[str, str]:
-        disease_key = disease.lower().replace(' ', '_').replace('-', '_')
-        # match key logic
-        if disease_key not in self.disease_weights:
-             for key in self.disease_weights.keys():
-                if key.replace('_', '') == disease_key.replace('_', ''):
-                    disease_key = key
-                    break
-        
-        if disease_key not in self.disease_weights:
-            raise ValueError(f"Disease '{disease}' not found in model")
+        disease_key = self._get_disease_key(disease)
         
         symptom_keys = self.disease_weights[disease_key]['symptoms'].keys()
         return {
@@ -218,21 +224,19 @@ class DiseaseMLModel:
             try:
                 prediction = self.predict_disease_probability(disease, symptoms)
                 predictions.append(prediction)
-            except Exception as e:
-                continue
+            except Exception:
+                logger.error(
+                    f"Prediction failed for disease '{disease}'",
+                    exc_info=True
+                )
+
+        # Sort by raw probability (highest first)
         predictions.sort(key=lambda x: x['raw_probability'], reverse=True)
         return predictions
+
     
     def get_symptom_importance(self, disease: str) -> Dict[str, float]:
-        disease_key = disease.lower().replace(' ', '_').replace('-', '_')
-        if disease_key not in self.disease_weights:
-             for key in self.disease_weights.keys():
-                if key.replace('_', '') == disease_key.replace('_', ''):
-                    disease_key = key
-                    break
-                    
-        if disease_key not in self.disease_weights:
-            raise ValueError(f"Disease '{disease}' not found in model")
+        disease_key = self._get_disease_key(disease)
         
         symptoms = self.disease_weights[disease_key]['symptoms']
         importance = {
@@ -240,5 +244,40 @@ class DiseaseMLModel:
             for key, weight in symptoms.items()
         }
         return dict(sorted(importance.items(), key=lambda x: x[1], reverse=True))
+
+    def analyze_missing_symptoms(self, disease: str, present_symptoms: List[str]) -> List[Dict[str, float]]:
+        """
+        Identify high-importance symptoms for a disease that are missing from the present symptoms.
+        
+        Args:
+            disease: The name of the disease to analyze.
+            present_symptoms: List of symptom keys provided by the user.
+            
+        Returns:
+            List of missing symptoms with their weights, sorted by importance.
+        """
+        try:
+            disease_key = self._get_disease_key(disease)
+        except ValueError:
+            return []
+
+        # Get all symptoms and weights for the disease
+        all_symptoms = self.disease_weights[disease_key]['symptoms']
+        
+        missing = []
+        for symptom_key, weight in all_symptoms.items():
+            # If the symptom is NOT in the user's list AND has high importance
+            if symptom_key not in present_symptoms and weight >= 0.75:
+                missing.append({
+                    'key': symptom_key,
+                    'name': self.symptom_display_names.get(symptom_key, symptom_key.replace('_', ' ').title()),
+                    'weight': weight
+                })
+        
+        # Sort by weight descending
+        missing.sort(key=lambda x: x['weight'], reverse=True)
+        
+        # Return top 5 missing symptoms
+        return missing[:5]
 
 ml_model = DiseaseMLModel()

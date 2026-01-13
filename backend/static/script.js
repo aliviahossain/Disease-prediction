@@ -773,11 +773,16 @@ function calculateInteractive() {
     const falsePositive = parseFloat(falsePositiveSlider.value || 0);
     const testResult = testResultSelect ? testResultSelect.value : 'positive';
 
-    // Validate inputs
-    if (isNaN(prior) || isNaN(sensitivity) || isNaN(falsePositive)) {
+    // Validate numeric and range [0,1]
+    if (
+      isNaN(prior) || prior < 0 || prior > 1 ||
+      isNaN(sensitivity) || sensitivity < 0 || sensitivity > 1 ||
+      isNaN(falsePositive) || falsePositive < 0 || falsePositive > 1
+    ) {
       hideUpdatingState();
       return;
     }
+
 
     // Calculate posterior probability using Bayes' Theorem
     const specificity = 1 - falsePositive;
@@ -808,6 +813,21 @@ function calculateInteractive() {
     hideUpdatingState();
 
   }, 250); // 250ms debounce
+
+  // Enforce probability bounds on input blur
+  document.querySelectorAll("#pD, #sensitivity, #falsePositive").forEach(input => {
+    input.addEventListener("blur", () => {
+      const value = parseFloat(input.value);
+
+      if (isNaN(value)) {
+        input.value = "";
+        return;
+      }
+
+      if (value < 0) input.value = 0;
+      if (value > 1) input.value = 1;
+    });
+  });
 }
 
 // Update the interactive result display

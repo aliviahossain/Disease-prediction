@@ -33,7 +33,13 @@ def create_app():
     )
 
     # Configure Database
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(backend_root, 'site.db')
+    database_url = os.getenv("DATABASE_URL")
+
+    if database_url:
+        app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    else:
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(backend_root, "site.db")
+
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'your_secret_key_here' # Change this in production!
 
@@ -70,6 +76,20 @@ def create_app():
     
     # Register other blueprints if you have them
     try:
+        from backend.routes.history_routes import history_bp
+        app.register_blueprint(history_bp)
+        print("✅ 'history_routes' blueprint registered successfully")
+    except ImportError as e:
+        print(f"⚠️ Warning: Could not import 'history_routes'. Error: {e}")
+
+    try:
+        from backend.routes.predict_disease_type_routes import predict_disease_type_bp
+        app.register_blueprint(predict_disease_type_bp)
+        print("'predict_disease_type_bp_routes' blueprint registered successfully")
+    except ImportError as e:
+        print(f"Warning: Could not import 'predict_disease_type_bp_routes'. Error: {e}")
+
+    try:
         from backend.routes.general_routes import general_bp
         app.register_blueprint(general_bp)
         print("'general_routes' blueprint registered successfully")
@@ -89,14 +109,6 @@ def create_app():
         print("✅ 'chat_routes' blueprint registered successfully")
     except ImportError as e:
         print(f"⚠️ Warning: Could not import 'chat_routes'. Error: {e}")
-
-    try:
-        from backend.routes.history_routes import history_bp
-        app.register_blueprint(history_bp)
-        print("✅ 'history_routes' blueprint registered successfully")
-    except ImportError as e:
-        print(f"⚠️ Warning: Could not import 'history_routes'. Error: {e}")
-
     
     @app.context_processor
     def inject_current_year():
