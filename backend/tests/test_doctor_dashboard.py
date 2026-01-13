@@ -276,7 +276,8 @@ class TestDoctorDashboardPage:
         response = client.get('/doctor-dashboard')
         assert response.status_code == 200
     
-    def test_patient_dashboard_page_loads(self, client):
-        """Test that patient dashboard page loads successfully."""
+    def test_patient_dashboard_requires_login(self, client):
+        """Test that patient dashboard redirects unauthenticated users to login."""
         response = client.get('/patient-dashboard')
-        assert response.status_code == 200
+        # Should redirect to login page
+        assert response.status_code == 302

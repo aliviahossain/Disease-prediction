@@ -3,34 +3,788 @@
 {% block title %}Patient Dashboard - Disease Prediction System{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-body text-center py-5">
-                    <div class="mb-4">
-                        <i class="fas fa-user-injured fa-4x text-muted opacity-50"></i>
+<div class="container-fluid px-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="fas fa-user-injured me-2"></i>My Health Dashboard
+            </h1>
+            <p class="text-muted mb-0">Your personal health overview and prediction history</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-primary btn-sm" onclick="refreshDashboard()">
+                <i class="fas fa-sync-alt me-1"></i>Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="dashboard-loading" class="text-center py-5">
+        <div class="spinner-border text-primary mb-3" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-muted">Loading your health data...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="dashboard-error" class="alert alert-danger d-none" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <span id="error-message">Failed to load dashboard data.</span>
+        <button class="btn btn-sm btn-outline-danger ms-3" onclick="refreshDashboard()">Retry</button>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div id="dashboard-content" class="d-none">
+        <!-- User Info Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="avatar-circle bg-primary bg-opacity-10 text-primary">
+                            <i class="fas fa-user fa-2x"></i>
+                        </div>
                     </div>
-                    <h2 class="h3 mb-3">Patient Dashboard</h2>
-                    <p class="text-muted mb-4">
-                        The Patient Dashboard is currently under development.<br>
-                        This feature will be available soon.
-                    </p>
-                    <div class="alert alert-info d-inline-block">
-                        <i class="fas fa-tools me-2"></i>
-                        <strong>Coming Soon:</strong> View your health records, prediction history, and personalized recommendations.
+                    <div class="col">
+                        <h5 class="mb-1" id="user-name">--</h5>
+                        <p class="text-muted mb-0" id="user-email">--</p>
                     </div>
-                    <div class="mt-4">
-                        <a href="/" class="btn btn-primary">
-                            <i class="fas fa-home me-2"></i>Return to Home
-                        </a>
-                        <a href="/doctor-dashboard" class="btn btn-outline-secondary ms-2">
-                            <i class="fas fa-user-md me-2"></i>Doctor Dashboard
-                        </a>
+                    <div class="col-auto text-end">
+                        <small class="text-muted">Last Activity</small>
+                        <p class="mb-0 fw-semibold" id="last-activity">--</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Cards Row -->
+        <div class="row g-4 mb-4">
+            <!-- Total Predictions Card -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card dashboard-card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="dashboard-icon bg-primary bg-opacity-10 text-primary rounded-circle p-3 me-3">
+                                <i class="fas fa-clipboard-list fa-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1">Total Predictions</p>
+                                <h3 class="mb-0 fw-bold" id="total-predictions">--</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- High Risk Card -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card dashboard-card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="dashboard-icon bg-warning bg-opacity-10 text-warning rounded-circle p-3 me-3">
+                                <i class="fas fa-exclamation-triangle fa-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1">High Risk</p>
+                                <h3 class="mb-0 fw-bold" id="high-risk-count">--</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Critical Risk Card -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card dashboard-card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="dashboard-icon bg-danger bg-opacity-10 text-danger rounded-circle p-3 me-3">
+                                <i class="fas fa-heartbeat fa-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1">Critical Risk</p>
+                                <h3 class="mb-0 fw-bold" id="critical-risk-count">--</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Most Common Disease Card -->
+            <div class="col-xl-3 col-md-6">
+                <div class="card dashboard-card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="dashboard-icon bg-info bg-opacity-10 text-info rounded-circle p-3 me-3">
+                                <i class="fas fa-virus fa-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1">Most Checked</p>
+                                <h5 class="mb-0 fw-bold text-truncate" id="most-common-disease" style="max-width: 150px;">--</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <h6 class="mb-3"><i class="fas fa-bolt me-2"></i>Quick Actions</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>New Prediction
+                    </a>
+                    <a href="{{ url_for('auth.profile') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-user me-1"></i>View Profile
+                    </a>
+                    <button class="btn btn-outline-success" onclick="exportToCSV()">
+                        <i class="fas fa-download me-1"></i>Export to CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Distribution and Summary Row -->
+        <div class="row g-4 mb-4">
+            <!-- Risk Distribution Chart -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-pie me-2"></i>Your Risk Distribution
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="chart-empty-state" class="text-center py-5 d-none">
+                            <i class="fas fa-chart-pie fa-3x text-muted opacity-50 mb-3"></i>
+                            <p class="text-muted">No predictions yet. Make your first prediction to see your risk distribution.</p>
+                        </div>
+                        <canvas id="risk-chart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Summary -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list-alt me-2"></i>Risk Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="risk-summary-item d-flex align-items-center justify-content-between p-3 mb-2 rounded" style="background-color: rgba(40, 167, 69, 0.1);">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-success me-2">&nbsp;</span>
+                                <span>Low Risk</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold" id="low-risk-count">--</span>
+                                <small class="text-muted ms-1">(<span id="low-risk-pct">--</span>%)</small>
+                            </div>
+                        </div>
+
+                        <div class="risk-summary-item d-flex align-items-center justify-content-between p-3 mb-2 rounded" style="background-color: rgba(255, 193, 7, 0.1);">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-warning me-2">&nbsp;</span>
+                                <span>Medium Risk</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold" id="medium-risk-count">--</span>
+                                <small class="text-muted ms-1">(<span id="medium-risk-pct">--</span>%)</small>
+                            </div>
+                        </div>
+
+                        <div class="risk-summary-item d-flex align-items-center justify-content-between p-3 mb-2 rounded" style="background-color: rgba(255, 152, 0, 0.1);">
+                            <div class="d-flex align-items-center">
+                                <span class="badge me-2" style="background-color: #ff9800 !important;">&nbsp;</span>
+                                <span>High Risk</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold" id="high-risk-summary">--</span>
+                                <small class="text-muted ms-1">(<span id="high-risk-pct">--</span>%)</small>
+                            </div>
+                        </div>
+
+                        <div class="risk-summary-item d-flex align-items-center justify-content-between p-3 rounded" style="background-color: rgba(220, 53, 69, 0.1);">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-danger me-2">&nbsp;</span>
+                                <span>Critical Risk</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold" id="critical-risk-summary">--</span>
+                                <small class="text-muted ms-1">(<span id="critical-risk-pct">--</span>%)</small>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top">
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                Last updated: <span id="last-updated">--</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prediction History Table -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-transparent border-0 pt-4">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h5 class="mb-0">
+                            <i class="fas fa-history me-2"></i>Prediction History
+                        </h5>
+                    </div>
+                    <div class="col-auto">
+                        <div class="input-group input-group-sm" style="width: 250px;">
+                            <span class="input-group-text bg-transparent border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0" id="search-predictions" placeholder="Search predictions...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Empty State -->
+                <div id="history-empty-state" class="text-center py-5 d-none">
+                    <i class="fas fa-clipboard-list fa-3x text-muted opacity-50 mb-3"></i>
+                    <h5 class="text-muted">No Predictions Yet</h5>
+                    <p class="text-muted mb-4">Start by making your first disease prediction to track your health journey.</p>
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Make Your First Prediction
+                    </a>
+                </div>
+
+                <!-- Table -->
+                <div id="history-table-container">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle" id="predictions-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" class="sortable" data-sort="created_at">
+                                        Date/Time <i class="fas fa-sort ms-1"></i>
+                                    </th>
+                                    <th scope="col" class="sortable" data-sort="disease">
+                                        Disease <i class="fas fa-sort ms-1"></i>
+                                    </th>
+                                    <th scope="col">Symptoms</th>
+                                    <th scope="col" class="sortable" data-sort="ml_probability">
+                                        ML Probability <i class="fas fa-sort ms-1"></i>
+                                    </th>
+                                    <th scope="col" class="sortable" data-sort="bayesian_posterior">
+                                        Bayesian Score <i class="fas fa-sort ms-1"></i>
+                                    </th>
+                                    <th scope="col" class="sortable" data-sort="risk_level">
+                                        Risk Level <i class="fas fa-sort ms-1"></i>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="predictions-tbody">
+                                <!-- Rows will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="text-muted small">
+                            Showing <span id="showing-start">0</span>-<span id="showing-end">0</span> of <span id="total-items">0</span> predictions
+                        </div>
+                        <nav aria-label="Prediction history pagination">
+                            <ul class="pagination pagination-sm mb-0" id="pagination">
+                                <!-- Pagination will be populated by JavaScript -->
+                            </ul>
+                        </nav>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+let riskChart = null;
+let allPredictions = [];
+let filteredPredictions = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+let sortColumn = 'created_at';
+let sortDirection = 'desc';
+
+// Fetch dashboard data from API
+async function fetchDashboardData() {
+    const response = await fetch('/api/patient/dashboard');
+    const result = await response.json();
+    
+    if (result.success) {
+        return result.data;
+    } else {
+        throw new Error(result.message || 'Failed to fetch data');
+    }
+}
+
+// Update dashboard UI with data
+function updateDashboard(data) {
+    // Update user info
+    document.getElementById('user-name').textContent = data.user_info.username;
+    document.getElementById('user-email').textContent = data.user_info.email;
+    
+    // Update last activity
+    if (data.statistics.last_prediction_date) {
+        const lastDate = new Date(data.statistics.last_prediction_date);
+        document.getElementById('last-activity').textContent = lastDate.toLocaleDateString();
+    } else {
+        document.getElementById('last-activity').textContent = 'No activity';
+    }
+    
+    // Update metric cards
+    document.getElementById('total-predictions').textContent = data.statistics.total_predictions.toLocaleString();
+    document.getElementById('high-risk-count').textContent = data.statistics.high_risk_count.toLocaleString();
+    document.getElementById('critical-risk-count').textContent = data.statistics.critical_risk_count.toLocaleString();
+    document.getElementById('most-common-disease').textContent = data.statistics.most_common_disease || 'N/A';
+    
+    // Update risk summary
+    const dist = data.risk_distribution;
+    document.getElementById('low-risk-count').textContent = dist.low.count.toLocaleString();
+    document.getElementById('low-risk-pct').textContent = dist.low.percentage;
+    document.getElementById('medium-risk-count').textContent = dist.medium.count.toLocaleString();
+    document.getElementById('medium-risk-pct').textContent = dist.medium.percentage;
+    document.getElementById('high-risk-summary').textContent = dist.high.count.toLocaleString();
+    document.getElementById('high-risk-pct').textContent = dist.high.percentage;
+    document.getElementById('critical-risk-summary').textContent = dist.critical.count.toLocaleString();
+    document.getElementById('critical-risk-pct').textContent = dist.critical.percentage;
+    
+    // Update last updated timestamp
+    const lastUpdated = new Date(data.last_updated);
+    document.getElementById('last-updated').textContent = lastUpdated.toLocaleString();
+    
+    // Store predictions for table
+    allPredictions = data.predictions;
+    filteredPredictions = [...allPredictions];
+    
+    // Check if there are predictions
+    if (data.statistics.total_predictions === 0) {
+        document.getElementById('chart-empty-state').classList.remove('d-none');
+        document.getElementById('risk-chart').classList.add('d-none');
+        document.getElementById('history-empty-state').classList.remove('d-none');
+        document.getElementById('history-table-container').classList.add('d-none');
+    } else {
+        document.getElementById('chart-empty-state').classList.add('d-none');
+        document.getElementById('risk-chart').classList.remove('d-none');
+        document.getElementById('history-empty-state').classList.add('d-none');
+        document.getElementById('history-table-container').classList.remove('d-none');
+        
+        // Update chart
+        updateRiskChart(dist);
+        
+        // Render table
+        renderPredictionsTable();
+    }
+}
+
+// Update or create the risk distribution chart
+function updateRiskChart(distribution) {
+    const ctx = document.getElementById('risk-chart').getContext('2d');
+    
+    const chartData = {
+        labels: ['Low Risk', 'Medium Risk', 'High Risk', 'Critical Risk'],
+        datasets: [{
+            data: [
+                distribution.low.count,
+                distribution.medium.count,
+                distribution.high.count,
+                distribution.critical.count
+            ],
+            backgroundColor: [
+                'rgba(40, 167, 69, 0.8)',
+                'rgba(255, 193, 7, 0.8)',
+                'rgba(255, 152, 0, 0.8)',
+                'rgba(220, 53, 69, 0.8)'
+            ],
+            borderColor: [
+                'rgba(40, 167, 69, 1)',
+                'rgba(255, 193, 7, 1)',
+                'rgba(255, 152, 0, 1)',
+                'rgba(220, 53, 69, 1)'
+            ],
+            borderWidth: 2
+        }]
+    };
+    
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    usePointStyle: true
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
+                        return `${context.label}: ${context.raw} predictions (${percentage}%)`;
+                    }
+                }
+            }
+        }
+    };
+    
+    if (riskChart) {
+        riskChart.data = chartData;
+        riskChart.update();
+    } else {
+        riskChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: chartData,
+            options: chartOptions
+        });
+    }
+}
+
+// Get risk level badge
+function getRiskBadge(riskLevel) {
+    const badges = {
+        'low': '<span class="badge bg-success">Low</span>',
+        'medium': '<span class="badge bg-warning text-dark">Medium</span>',
+        'high': '<span class="badge" style="background-color: #ff9800;">High</span>',
+        'critical': '<span class="badge bg-danger">Critical</span>'
+    };
+    return badges[riskLevel] || '<span class="badge bg-secondary">Unknown</span>';
+}
+
+// HTML-encode string for safe attribute insertion
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// Format symptoms for display
+function formatSymptoms(symptoms) {
+    if (!symptoms || symptoms.length === 0) return '<em class="text-muted">None</em>';
+    
+    const displayCount = 2;
+    const displayed = escapeHtml(symptoms.slice(0, displayCount).join(', '));
+    const remaining = symptoms.length - displayCount;
+    
+    if (remaining > 0) {
+        const tooltipText = escapeHtml(symptoms.join(', '));
+        return `${displayed} <span class="badge bg-secondary ms-1" title="${tooltipText}">+${remaining} more</span>`;
+    }
+    return displayed;
+}
+
+// Render predictions table
+function renderPredictionsTable() {
+    const tbody = document.getElementById('predictions-tbody');
+    
+    // Sort predictions
+    const sorted = [...filteredPredictions].sort((a, b) => {
+        let aVal = a[sortColumn];
+        let bVal = b[sortColumn];
+        
+        // Handle null values
+        if (aVal === null) aVal = '';
+        if (bVal === null) bVal = '';
+        
+        // Special handling for risk_level to sort by severity
+        if (sortColumn === 'risk_level') {
+            const order = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
+            aVal = order[aVal] || 0;
+            bVal = order[bVal] || 0;
+        }
+        
+        if (sortDirection === 'asc') {
+            return aVal > bVal ? 1 : -1;
+        } else {
+            return aVal < bVal ? 1 : -1;
+        }
+    });
+    
+    // Paginate
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginated = sorted.slice(startIndex, endIndex);
+    
+    // Update showing info
+    document.getElementById('showing-start').textContent = filteredPredictions.length > 0 ? startIndex + 1 : 0;
+    document.getElementById('showing-end').textContent = Math.min(endIndex, filteredPredictions.length);
+    document.getElementById('total-items').textContent = filteredPredictions.length;
+    
+    // Render rows
+    tbody.innerHTML = paginated.map(pred => {
+        const date = new Date(pred.created_at);
+        return `
+            <tr>
+                <td>
+                    <small>${date.toLocaleDateString()}</small><br>
+                    <small class="text-muted">${date.toLocaleTimeString()}</small>
+                </td>
+                <td><strong>${escapeHtml(pred.disease)}</strong></td>
+                <td>${formatSymptoms(pred.symptoms)}</td>
+                <td>${(pred.ml_probability * 100).toFixed(1)}%</td>
+                <td>${pred.bayesian_posterior ? (pred.bayesian_posterior * 100).toFixed(1) + '%' : 'N/A'}</td>
+                <td>${getRiskBadge(pred.risk_level)}</td>
+            </tr>
+        `;
+    }).join('');
+    
+    // Render pagination
+    renderPagination();
+}
+
+// Render pagination
+function renderPagination() {
+    const totalPages = Math.ceil(filteredPredictions.length / itemsPerPage);
+    const pagination = document.getElementById('pagination');
+    
+    let html = '';
+    
+    // Previous button
+    html += `
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="goToPage(${currentPage - 1}); return false;">&laquo;</a>
+        </li>
+    `;
+    
+    // Page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+            html += `
+                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="goToPage(${i}); return false;">${i}</a>
+                </li>
+            `;
+        } else if (i === currentPage - 2 || i === currentPage + 2) {
+            html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+    }
+    
+    // Next button
+    html += `
+        <li class="page-item ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="goToPage(${currentPage + 1}); return false;">&raquo;</a>
+        </li>
+    `;
+    
+    pagination.innerHTML = html;
+}
+
+// Go to specific page
+function goToPage(page) {
+    const totalPages = Math.ceil(filteredPredictions.length / itemsPerPage);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderPredictionsTable();
+}
+
+// Sort by column
+function sortBy(column) {
+    if (sortColumn === column) {
+        sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortColumn = column;
+        sortDirection = 'desc';
+    }
+    currentPage = 1;
+    renderPredictionsTable();
+    updateSortIcons();
+}
+
+// Update sort icons in table headers
+function updateSortIcons() {
+    document.querySelectorAll('.sortable').forEach(th => {
+        const icon = th.querySelector('i');
+        if (th.dataset.sort === sortColumn) {
+            icon.className = sortDirection === 'asc' ? 'fas fa-sort-up ms-1' : 'fas fa-sort-down ms-1';
+        } else {
+            icon.className = 'fas fa-sort ms-1';
+        }
+    });
+}
+
+// Search predictions
+function searchPredictions(query) {
+    query = query.toLowerCase().trim();
+    if (!query) {
+        filteredPredictions = [...allPredictions];
+    } else {
+        filteredPredictions = allPredictions.filter(pred => {
+            return pred.disease.toLowerCase().includes(query) ||
+                   (pred.symptoms && pred.symptoms.some(s => s.toLowerCase().includes(query))) ||
+                   pred.risk_level.toLowerCase().includes(query);
+        });
+    }
+    currentPage = 1;
+    renderPredictionsTable();
+}
+
+// Escape CSV cell value per RFC 4180 (double quotes must be escaped by doubling)
+function escapeCsvCell(value) {
+    const str = String(value);
+    return '"' + str.replace(/"/g, '""') + '"';
+}
+
+// Export to CSV
+function exportToCSV() {
+    if (allPredictions.length === 0) {
+        alert('No predictions to export.');
+        return;
+    }
+    
+    const headers = ['Date', 'Disease', 'Symptoms', 'ML Probability', 'Bayesian Score', 'Risk Level'];
+    const rows = allPredictions.map(pred => [
+        new Date(pred.created_at).toLocaleString(),
+        pred.disease,
+        (pred.symptoms || []).join('; '),
+        (pred.ml_probability * 100).toFixed(1) + '%',
+        pred.bayesian_posterior ? (pred.bayesian_posterior * 100).toFixed(1) + '%' : 'N/A',
+        pred.risk_level
+    ]);
+    
+    const csv = [headers, ...rows].map(row => row.map(escapeCsvCell).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `health_predictions_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// Show loading state
+function showLoading() {
+    document.getElementById('dashboard-loading').classList.remove('d-none');
+    document.getElementById('dashboard-content').classList.add('d-none');
+    document.getElementById('dashboard-error').classList.add('d-none');
+}
+
+// Show error state
+function showError(message) {
+    document.getElementById('dashboard-loading').classList.add('d-none');
+    document.getElementById('dashboard-content').classList.add('d-none');
+    document.getElementById('dashboard-error').classList.remove('d-none');
+    document.getElementById('error-message').textContent = message || 'Failed to load dashboard data.';
+}
+
+// Show content
+function showContent() {
+    document.getElementById('dashboard-loading').classList.add('d-none');
+    document.getElementById('dashboard-error').classList.add('d-none');
+    document.getElementById('dashboard-content').classList.remove('d-none');
+}
+
+// Refresh dashboard
+async function refreshDashboard() {
+    showLoading();
+    
+    try {
+        const data = await fetchDashboardData();
+        updateDashboard(data);
+        showContent();
+    } catch (error) {
+        console.error('Dashboard fetch error:', error);
+        showError(error.message);
+    }
+}
+
+// Initialize dashboard on page load
+document.addEventListener('DOMContentLoaded', function() {
+    refreshDashboard();
+    
+    // Setup search
+    const searchInput = document.getElementById('search-predictions');
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => searchPredictions(this.value), 300);
+    });
+    
+    // Setup sortable columns
+    document.querySelectorAll('.sortable').forEach(th => {
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', () => sortBy(th.dataset.sort));
+    });
+});
+</script>
+
+<style>
+/* Patient Dashboard specific styles */
+.avatar-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dashboard-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.dashboard-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.risk-summary-item {
+    transition: background-color 0.2s ease;
+}
+
+.risk-summary-item:hover {
+    filter: brightness(0.95);
+}
+
+#risk-chart {
+    max-height: 350px;
+}
+
+.sortable:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+#predictions-table th {
+    white-space: nowrap;
+}
+
+/* Dark mode adjustments */
+body.dark-mode .dashboard-card {
+    background-color: var(--card-bg);
+}
+
+body.dark-mode .risk-summary-item {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+body.dark-mode .table-light {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .sortable:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+</style>
 {% endblock %}
