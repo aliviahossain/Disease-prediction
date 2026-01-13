@@ -4,15 +4,15 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
+
     <title>{% block title %}Bayesian Disease Probability Calculator{% endblock %}</title>
-  
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  
+
     <!-- Google Fonts (Poppins) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,31 +25,39 @@
         /* Mobile-specific navbar adjustments */
         @media (max-width: 991.98px) {
             .navbar-brand .navbar-title {
-                font-size: 0.9rem !important; /* Slightly smaller title font on mobile */
+                font-size: 0.9rem !important;
+                /* Slightly smaller title font on mobile */
             }
+
             /* Ensure toggler is positioned right next to brand on mobile */
             .navbar .container {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
             }
+
             .navbar-toggler {
-                order: 2; /* Ensures toggler comes after brand in flex order if needed */
+                order: 2;
+                /* Ensures toggler comes after brand in flex order if needed */
                 margin-left: auto;
             }
+
             .navbar-toggler .burger,
             .navbar-toggler .cross {
                 display: block;
                 transition: opacity 0.2s ease;
             }
+
             .navbar-toggler .cross {
                 display: none;
             }
         }
+
         /* Dashboard Menu Styles */
         .dashboard-menu-wrapper {
             position: relative;
         }
+
         .dashboard-menu-toggle {
             background: none;
             border: none;
@@ -62,10 +70,12 @@
             justify-content: center;
             transition: all 0.2s ease;
         }
+
         .dashboard-menu-toggle:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.5);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
         }
+
         .dashboard-dropdown {
             position: absolute;
             top: 100%;
@@ -75,18 +85,20 @@
             background: var(--card-bg, #ffffff);
             border: 1px solid var(--border-color, #dee2e6);
             border-radius: 0.5rem;
-            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
             opacity: 0;
             visibility: hidden;
             transform: translateY(-10px);
             transition: all 0.2s ease;
             z-index: 1050;
         }
+
         .dashboard-dropdown.show {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
         }
+
         .dashboard-dropdown-item {
             display: flex;
             align-items: center;
@@ -95,25 +107,30 @@
             text-decoration: none;
             transition: background 0.2s ease;
         }
+
         .dashboard-dropdown-item:hover {
             background: rgba(26, 188, 156, 0.1);
             color: #1abc9c;
         }
+
         .dashboard-dropdown-item i,
         .dashboard-dropdown-item svg {
             width: 20px;
             margin-right: 0.75rem;
             flex-shrink: 0;
         }
+
         .dashboard-dropdown-item.disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
+
         .dashboard-dropdown-divider {
             height: 1px;
             background: var(--border-color, #dee2e6);
             margin: 0;
         }
+
         .dashboard-dropdown-label {
             font-size: 0.7rem;
             text-transform: uppercase;
@@ -122,6 +139,7 @@
             font-weight: 600;
             letter-spacing: 0.05em;
         }
+
         @media (max-width: 991.98px) {
             .dashboard-dropdown {
                 position: static;
@@ -133,22 +151,26 @@
         }
     </style>
 </head>
+
 <body class="d-flex flex-column min-vh-100">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-custom-dark shadow-sm">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="/">
-                 <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Medical Health Logo"
-                     class="me-2" style="height: 40px; width: auto;">
+                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Medical Health Logo" class="me-2"
+                    style="height: 40px; width: auto;">
                 <span class="fw-semibold navbar-title">Disease-prediction App</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <svg class="burger" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-expanded="false" aria-label="Toggle navigation">
+                <svg class="burger" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="3" y1="6" x2="21" y2="6"></line>
                     <line x1="3" y1="12" x2="21" y2="12"></line>
                     <line x1="3" y1="18" x2="21" y2="18"></line>
                 </svg>
-                <svg class="cross" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="cross" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
@@ -158,8 +180,9 @@
                     <li class="nav-item">
                         <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                 stroke-linejoin="round" class="me-1 align-text-bottom" style="transform: translateY(-3px);">
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="me-1 align-text-bottom"
+                                style="transform: translateY(-3px);">
                                 <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
                             </svg>
@@ -167,10 +190,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if '/calculator' in request.path %}active{% endif %}" href="{{ url_for('disease.calculator') }}">
+                        <a class="nav-link {% if '/calculator' in request.path %}active{% endif %}"
+                            href="{{ url_for('disease.calculator') }}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                 stroke-linejoin="round" class="me-1 align-text-bottom" style="transform: translateY(-3px);">
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="me-1 align-text-bottom"
+                                style="transform: translateY(-3px);">
                                 <rect x="4" y="2" width="16" height="20" rx="2"></rect>
                                 <line x1="8" y1="6" x2="16" y2="6"></line>
                                 <line x1="8" y1="10" x2="16" y2="10"></line>
@@ -218,8 +243,11 @@
                     <!-- Hamburger Menu -->
                     <li class="nav-item ms-2">
                         <div class="dashboard-menu-wrapper">
-                            <button class="dashboard-menu-toggle" id="dashboardMenuToggle" aria-label="Menu" aria-expanded="false">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <button class="dashboard-menu-toggle" id="dashboardMenuToggle" aria-label="Menu"
+                                aria-expanded="false">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
                                     <line x1="3" y1="6" x2="21" y2="6"></line>
                                     <line x1="3" y1="12" x2="21" y2="12"></line>
                                     <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -228,11 +256,13 @@
                             <div class="dashboard-dropdown" id="dashboardDropdown">
                                 <!-- Dashboards Section -->
                                 <div class="dashboard-dropdown-label">Dashboards</div>
-                                <a href="/doctor-dashboard" class="dashboard-dropdown-item {% if '/doctor-dashboard' in request.path %}active{% endif %}">
+                                <a href="/doctor-dashboard"
+                                    class="dashboard-dropdown-item {% if '/doctor-dashboard' in request.path %}active{% endif %}">
                                     <i class="fas fa-user-md"></i>
                                     Doctor Dashboard
                                 </a>
-                                <a href="/patient-dashboard" class="dashboard-dropdown-item {% if '/patient-dashboard' in request.path %}active{% endif %}">
+                                <a href="/patient-dashboard"
+                                    class="dashboard-dropdown-item {% if '/patient-dashboard' in request.path %}active{% endif %}">
                                     <i class="fas fa-user-injured"></i>
                                     Patient Dashboard
                                     <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;">Soon</span>
@@ -240,14 +270,25 @@
                                 <div class="dashboard-dropdown-divider"></div>
                                 <!-- Pages Section -->
                                 <div class="dashboard-dropdown-label">Pages</div>
-                                <a href="/scalability" class="dashboard-dropdown-item {% if '/scalability' in request.path %}active{% endif %}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <a href="/scalability"
+                                    class="dashboard-dropdown-item {% if '/scalability' in request.path %}active{% endif %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
                                         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                                     </svg>
                                     Scalability
                                 </a>
-                                <a href="/help" class="dashboard-dropdown-item {% if '/help' in request.path %}active{% endif %}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <a href="/history"
+                                    class="dashboard-dropdown-item {% if '/history' in request.path %}active{% endif %}">
+                                    <i class="fas fa-history"></i>
+                                    History
+                                </a>
+                                <a href="/help"
+                                    class="dashboard-dropdown-item {% if '/help' in request.path %}active{% endif %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
                                         <circle cx="12" cy="12" r="10"></circle>
                                         <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                                         <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -258,12 +299,14 @@
                                 <!-- Account Section -->
                                 <div class="dashboard-dropdown-label">Account</div>
                                 {% if session.get('user_id') %}
-                                <a href="{{ url_for('auth.profile') }}" class="dashboard-dropdown-item {% if '/profile' in request.path %}active{% endif %}">
+                                <a href="{{ url_for('auth.profile') }}"
+                                    class="dashboard-dropdown-item {% if '/profile' in request.path %}active{% endif %}">
                                     <i class="fas fa-user-circle"></i>
                                     Profile
                                 </a>
                                 {% else %}
-                                <a href="{{ url_for('auth.auth') }}" class="dashboard-dropdown-item {% if '/auth' in request.path %}active{% endif %}">
+                                <a href="{{ url_for('auth.auth') }}"
+                                    class="dashboard-dropdown-item {% if '/auth' in request.path %}active{% endif %}">
                                     <i class="fas fa-sign-in-alt"></i>
                                     Sign In / Register
                                 </a>
@@ -279,11 +322,12 @@
     <main class="container my-5 flex-grow-1">
         {% block content %}{% endblock %}
     </main>
-  
+
     <!-- Footer -->
     <footer class="bg-custom-dark text-white text-center py-4 mt-auto">
         <div class="container">
-            <p class="mb-1">&copy; {{ current_year }} Disease-prediction App — Prediction-based medical insights for everyone.</p>
+            <p class="mb-1">&copy; {{ current_year }} Disease-prediction App — Prediction-based medical insights for
+                everyone.</p>
             <p class="small mb-2">
                 <a href="/privacy" class="text-white text-decoration-none">Privacy</a>
                 <span class="mx-2">·</span>
@@ -292,10 +336,12 @@
                 <a href="/contact" class="text-white text-decoration-none">Contact</a>
             </p>
             <p class="mb-0">
-                <a href="https://github.com/aliviahossain/Disease-prediction" target="_blank" rel="noopener" class="text-white me-3" aria-label="GitHub">
+                <a href="https://github.com/aliviahossain/Disease-prediction" target="_blank" rel="noopener"
+                    class="text-white me-3" aria-label="GitHub">
                     <i class="fab fa-github fa-lg"></i>
                 </a>
-                <a href="https://www.linkedin.com/in/alivia-hossain-513a3a365/" target="_blank" rel="noopener" class="text-white" aria-label="LinkedIn">
+                <a href="https://www.linkedin.com/in/alivia-hossain-513a3a365/" target="_blank" rel="noopener"
+                    class="text-white" aria-label="LinkedIn">
                     <i class="fab fa-linkedin fa-lg"></i>
                 </a>
             </p>
@@ -303,10 +349,10 @@
     </footer>
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  
+
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
