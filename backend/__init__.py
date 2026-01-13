@@ -114,4 +114,7 @@ def create_app():
     def inject_current_year():
         return {"current_year": datetime.utcnow().year}
 
+    with app.app_context():
+        db.create_all()
+
     return app
