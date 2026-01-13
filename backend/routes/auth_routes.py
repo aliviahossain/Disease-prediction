@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from urllib.parse import urlparse, urljoin
 from backend import db, bcrypt
 from backend.models.user import User
+from flask import session
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -84,6 +85,7 @@ def profile():
 @login_required
 def logout():
     logout_user()
+    session.clear()
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))
 
