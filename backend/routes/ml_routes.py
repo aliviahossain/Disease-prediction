@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify
+from flask_login import current_user
 from backend.models.ml_model import ml_model
 from backend.utils.calculator import BayesCalculator
 from backend.models.prediction import PredictionHistory
@@ -89,6 +90,7 @@ def predict_disease():
         # Save prediction to database
         try:
             prediction_record = PredictionHistory(
+                user_id=current_user.id if current_user.is_authenticated else None,
                 disease=disease,
                 symptoms=json.dumps(symptoms),
                 patient_age=age,
