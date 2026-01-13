@@ -53,11 +53,54 @@ function initDarkMode() {
   }
 }
 
+
 // Initialize dark mode on page load
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initDarkMode);
 } else {
   initDarkMode();
+}
+
+// ============================================
+// Dashboard Menu Functionality
+// ============================================
+function initDashboardMenu() {
+  const menuToggle = document.getElementById('dashboardMenuToggle');
+  const dropdown = document.getElementById('dashboardDropdown');
+
+  if (menuToggle && dropdown) {
+    // Toggle menu on click
+    menuToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle('show');
+      const isExpanded = dropdown.classList.contains('show');
+      menuToggle.setAttribute('aria-expanded', isExpanded);
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!menuToggle.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.remove('show');
+        menuToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Close menu on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && dropdown.classList.contains('show')) {
+        dropdown.classList.remove('show');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.focus();
+      }
+    });
+  }
+}
+
+// Initialize dashboard menu
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initDashboardMenu);
+} else {
+  initDashboardMenu();
 }
 
 
@@ -430,7 +473,7 @@ function getAIRecommendations() {
 // Handle language change for recommendations
 async function changeRecommendationLanguage() {
   if (!contentGenerated) return;
-  
+
   // showing the recommendations container again
   await showRecommendationsContainer();
   // Call the recommendations function again after changing language
@@ -562,7 +605,7 @@ function initInteractiveSliders() {
         pDSlider.value = value;
         updateSliderValue('pDValue', value);
       }
-    }); 
+    });
 
   }
 
@@ -627,40 +670,40 @@ function initInteractiveSliders() {
   // Restore previous calculator state if available
   const savedState = localStorage.getItem(STORAGE_KEY);
 
-    if (savedState) {
-      try {
-        const state = JSON.parse(savedState);
+  if (savedState) {
+    try {
+      const state = JSON.parse(savedState);
 
-        // Restore Prior Probability
-        pDSlider.value = state.pD;
-        pDInput.value = state.pD;
-        updateSliderValue("pDValue", state.pD);
+      // Restore Prior Probability
+      pDSlider.value = state.pD;
+      pDInput.value = state.pD;
+      updateSliderValue("pDValue", state.pD);
 
-        // Restore Sensitivity
-        sensitivitySlider.value = state.sensitivity;
-        sensitivityInput.value = state.sensitivity;
-        updateSliderValue("sensitivityValue", state.sensitivity);
+      // Restore Sensitivity
+      sensitivitySlider.value = state.sensitivity;
+      sensitivityInput.value = state.sensitivity;
+      updateSliderValue("sensitivityValue", state.sensitivity);
 
-        // Restore False Positive Rate
-        falsePositiveSlider.value = state.falsePositive;
-        falsePositiveInput.value = state.falsePositive;
-        updateSliderValue("falsePositiveValue", state.falsePositive);
+      // Restore False Positive Rate
+      falsePositiveSlider.value = state.falsePositive;
+      falsePositiveInput.value = state.falsePositive;
+      updateSliderValue("falsePositiveValue", state.falsePositive);
 
-        // Restore Test Result
-        testResultSelect.value = state.testResult;
+      // Restore Test Result
+      testResultSelect.value = state.testResult;
 
-        // Restore Result + Chart
-        updateInteractiveResult(state.pD, state.posterior, state.testResult);
-        renderProbabilityChart(state.pD, state.posterior);
+      // Restore Result + Chart
+      updateInteractiveResult(state.pD, state.posterior, state.testResult);
+      renderProbabilityChart(state.pD, state.posterior);
 
-      } catch (err) {
-        console.warn("Failed to restore calculator state", err);
-      }
-    } else {
-      // No saved state → start clean
-      resetResultDisplay();
+    } catch (err) {
+      console.warn("Failed to restore calculator state", err);
     }
+  } else {
+    // No saved state → start clean
+    resetResultDisplay();
   }
+}
 /**
  * Handle "Check" button click
  * Implements loading state and triggers calculation
