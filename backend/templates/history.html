@@ -56,21 +56,14 @@
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="progress flex-grow-1 me-2" style="height: 6px; max-width: 100px;">
-                                        {% if item.ml_probability is not none %}
-                                        <div class="progress-bar {% if item.ml_probability > 0.7 %}bg-danger{% elif item.ml_probability > 0.4 %}bg-warning{% else %}bg-success{% endif %}"
+                                        <div class="progress-bar {% if item.ml_probability is not none and item.ml_probability > 0.7 %}bg-danger{% elif item.ml_probability is not none and item.ml_probability > 0.4 %}bg-warning{% else %}bg-success{% endif %}"
                                             role="progressbar"
-                                            style="width: {{ '%.1f'|format(item.ml_probability * 100) }}%"></div>
-                                        {% else %}
-                                        <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%">
+                                            style="width: {{ (item.ml_probability * 100) | round(1) if item.ml_probability is not none else 0 }}%;">
                                         </div>
-                                        {% endif %}
                                     </div>
                                     <span class="small text-muted">
-                                        {% if item.ml_probability is not none %}
-                                        {{ "%.1f"|format(item.ml_probability * 100) }}%
-                                        {% else %}
-                                        N/A
-                                        {% endif %}
+                                        {{ "%.1f"|format(item.ml_probability * 100) if item.ml_probability is not none
+                                        else "N/A" }}
                                     </span>
                                 </div>
                             </td>
