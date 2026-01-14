@@ -52,10 +52,6 @@ def predict_disease():
         height = data.get("height_cm")
         weight = data.get("weight_kg")
 
-        print("DEBUG PAYLOAD →", data)
-        print("DEBUG HEIGHT →", height)
-        print("DEBUG WEIGHT →", weight)
-
         # Validate age if provided
         if age is not None:
             try:
