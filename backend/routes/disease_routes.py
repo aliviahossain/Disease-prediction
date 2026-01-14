@@ -139,6 +139,10 @@ def disease():
     except Exception as e:
         return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
 
+@disease_bp.route("/contact")
+def contact():
+    """Render the Contact page"""
+    return render_template("contact.html")
 
 @disease_bp.route("/gemini-recommendations", methods=["POST"])
 def gemini_recommendations():
