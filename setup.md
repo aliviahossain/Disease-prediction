@@ -27,7 +27,7 @@ git --version
 Clone the repository and move into the project directory:
 
 ```bash
-git clone https://github.com/Amangp/Disease-prediction.git
+git clone https://github.com/your-username/Disease-prediction.git
 cd Disease-prediction
 ```
 
