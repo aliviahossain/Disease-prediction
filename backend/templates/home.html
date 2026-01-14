@@ -37,6 +37,33 @@
                 </div>
 
                 <div class="mb-4">
+                    <label for="height-input" class="form-label">
+                        <i class="fas fa-ruler-vertical me-1"></i> Height (in cm)
+                    </label>
+                    <input type="range" id="height-input" class="form-range form-range-lg"
+                        placeholder="Enter height (e.g. 154)" value="170" min="50" max="280" step="1" oninput="updateHeight(this.value)">
+                    <div class="text-muted">
+                        <span id="height-value">170</span>cm
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="weight-input" class="form-label">
+                        <i class="fas fa-ruler-vertical me-1"></i> Weight (in kg)
+                    </label>
+                    <input type="range" id="weight-input" class="form-range form-range-lg"
+                        placeholder="Enter weight (e.g. 67 kg)" value="60" min="2" max="170" step="1" oninput="updateWeight(this.value)">
+                    <div class="text-muted">
+                        <span id="weight-value">60</span>kg
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-3" id="bmi-box">
+                    BMI: <strong id="bmi-value">—</strong>
+                    <span class="badge bg-secondary" id="bmi-category"></span>
+                </div>
+
+                <div class="mb-4">
                     <label class="form-label">
                         <i class="fas fa-list-check me-1"></i> Select Symptoms
                         <span id="symptom-count" class="badge bg-primary ms-2">0 selected</span>
@@ -371,6 +398,49 @@
         document.getElementById('symptom-count').textContent = `${count} selected`;
     }
 
+    // height updation 
+    function updateHeight(val) {
+        document.getElementById("height-value").innerText = val;
+        calculateBMI();
+    }
+
+    // weight updation
+    function updateWeight(val) {
+        document.getElementById("weight-value").innerText = val;
+        calculateBMI();
+    }
+
+    function calculateBMI() {
+        const h = document.getElementById("height-input").value / 100;
+        const w = document.getElementById("weight-input").value;
+
+        if (!h || !w) return;
+
+        const bmi = (w / (h * h)).toFixed(1);
+        document.getElementById("bmi-value").innerText = bmi;
+
+        let category = "Normal";
+        let badge = "bg-success";
+
+        if (bmi < 18.5) {
+            category = "Underweight";
+            badge = "bg-warning";
+        } else if (bmi < 25) {
+            category = "Normal";
+            badge = "bg-success";
+        } else if (bmi < 30) {
+            category = "Overweight";
+            badge = "bg-warning";
+        } else {
+            category = "Obese";
+            badge = "bg-danger";
+        }
+
+        const catEl = document.getElementById("bmi-category");
+        catEl.innerText = category;
+        catEl.className = `badge ${badge}`;
+    }
+
     async function predictDisease() {
         if (!currentDisease) {
             alert('Please select a disease first');
@@ -383,13 +453,24 @@
         }
 
         const ageInput = document.getElementById('age-input');
+        const heightInput = document.getElementById('height-input');
+        const weightInput = document.getElementById('weight-input');
         let age = null;
+        let height_cm = null;
+        let weight_kg = null;
+
         if (ageInput && ageInput.value) {
             age = parseInt(ageInput.value);
             if (isNaN(age) || age < 1 || age > 120) {
                 alert('Please enter a valid age between 1 and 120');
                 return;
             }
+        }
+        if (heightInput && heightInput.value) {
+            height_cm = parseFloat(heightInput.value);
+        }
+        if (weightInput && weightInput.value) {
+            weight_kg = parseFloat(weightInput.value);
         }
 
         // Show loading
@@ -406,7 +487,9 @@
                 body: JSON.stringify({
                     disease: currentDisease,
                     symptoms: selectedSymptoms,
-                    age: age
+                    age: age,
+                    height_cm: height_cm,
+                    weight_kg: weight_kg
                 })
             });
 

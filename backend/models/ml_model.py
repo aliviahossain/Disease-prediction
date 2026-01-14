@@ -131,16 +131,31 @@ class DiseaseMLModel:
     def sigmoid(z: float) -> float:
         """Sigmoid activation function for logistic regression"""
         return 1 / (1 + np.exp(-z))
+
+    def _calculate_bmi(self, height_cm: float, weight_kg: float) -> float:
+        if not height_cm or not weight_kg:
+            return None
+        height_m = height_cm / 100
+        return weight_kg / (height_m ** 2)
     
-    def predict_disease_probability(self, disease: str, symptoms: List[str], age: int = None) -> Dict:
+    def _global_bmi_effect(self, bmi: float) -> float:
         """
-        Predict disease probability based on selected symptoms and optional age.
-        Args:
-            disease: Disease name (e.g., 'diabetes', 'hypertension')
-            symptoms: List of symptom keys (e.g., ['fever', 'cough'])
-            age: Optional age of the patient
+        Global BMI impact on disease risk (applies to all diseases).
+        Small values so symptoms remain dominant.
         """
-        # Normalize disease key
+        if bmi is None:
+            return 0.0
+
+        if bmi < 18.5:
+            return 0.25   # underweight risk
+        elif bmi < 25:
+            return 0.0    # normal
+        elif bmi < 30:
+            return 0.35   # overweight
+        else:
+            return 0.6    # obese
+
+    # Normalize disease key
     def _get_disease_key(self, disease_name: str) -> str:
         """
         Normalize and fuzzy match disease name to internal key.
@@ -160,7 +175,7 @@ class DiseaseMLModel:
         # If no match found, raise ValueError
         raise ValueError(f"Disease '{disease_name}' (key: {disease_key}) not found in model")
 
-    def predict_disease_probability(self, disease: str, symptoms: List[str], age: int = None) -> Dict:
+    def predict_disease_probability(self, disease: str, symptoms: List[str], age: int = None, height_cm: float = None, weight_kg: float = None) -> Dict:
         """
         Predict disease probability based on selected symptoms and optional age.
         """
@@ -177,8 +192,24 @@ class DiseaseMLModel:
                 bias += 0.5  # Higher risk for older age
             elif age < 20:
                 bias -= 0.5  # Lower risk for younger age
+        z  = bias 
+
+        # BMI contribution
+        bmi = self._calculate_bmi(height_cm, weight_kg)
+        bmi_effect = self._global_bmi_effect(bmi)
+        z += bmi_effect
+
+        bmi_category = None
+        if bmi:
+            if bmi < 18.5:
+                bmi_category = "Underweight"
+            elif bmi < 25:
+                bmi_category = "Normal"
+            elif bmi < 30:
+                bmi_category = "Overweight"
+            else:
+                bmi_category = "Obese"
         
-        z = bias
         matched_symptoms = []
         
         for symptom in symptoms:
@@ -198,12 +229,16 @@ class DiseaseMLModel:
             'likelihood': float(likelihood),
             'symptoms_matched': len(matched_symptoms),
             'total_symptoms': len(symptoms),
-            'confidence_score': self._calculate_confidence(len(matched_symptoms), raw_probability)
+            'confidence_score': self._calculate_confidence(len(matched_symptoms), raw_probability, bmi),
+            'bmi': round(bmi, 2) if bmi else None,
+            'bmi_category': bmi_category,
+            'bmi_effect': bmi_effect
         }
     
-    def _calculate_confidence(self, num_symptoms: int, probability: float) -> float:
+    def _calculate_confidence(self, num_symptoms: int, probability: float, bmi : float = None) -> float:
         symptom_factor = min(1.0, num_symptoms / 5)
-        confidence = (symptom_factor * 0.5) + (probability * 0.5)
+        bmi_factor = 0.1 if bmi and (bmi < 18.5 or bmi > 30) else 0.0
+        confidence = (symptom_factor * 0.5) + (probability * 0.4) + bmi_factor
         return float(confidence)
     
     def get_available_diseases(self) -> List[str]:

@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, request, jsonify
-from flask_login import current_user
 from backend.models.ml_model import ml_model
 from backend.utils.calculator import BayesCalculator
 from backend.models.prediction import PredictionHistory
@@ -50,6 +49,8 @@ def predict_disease():
         disease = data.get('disease').lower()
         symptoms = data.get('symptoms', [])
         age = data.get('age')
+        height = data.get("height_cm")
+        weight = data.get("weight_kg")
 
         # Validate age if provided
         if age is not None:
@@ -69,7 +70,7 @@ def predict_disease():
             return jsonify({'error': 'No symptoms provided'}), 400
         
         # Get ML prediction
-        ml_prediction = ml_model.predict_disease_probability(disease, symptoms, age=age)
+        ml_prediction = ml_model.predict_disease_probability(disease, symptoms, age=age, height_cm=height, weight_kg=weight)
         
         # Get missing symptom analysis
         missing_symptoms = ml_model.analyze_missing_symptoms(disease, symptoms)
@@ -90,7 +91,6 @@ def predict_disease():
         # Save prediction to database
         try:
             prediction_record = PredictionHistory(
-                user_id=current_user.id if current_user.is_authenticated else None,
                 disease=disease,
                 symptoms=json.dumps(symptoms),
                 patient_age=age,
@@ -112,6 +112,8 @@ def predict_disease():
         result = {
             'success': True,
             'disease': disease.replace('_', ' ').title(),
+            'bmi': ml_prediction.get('bmi'),
+            'bmi_category': ml_prediction.get('bmi_category'),
             'ml_prediction': {
                 'raw_probability': round(ml_prediction['raw_probability'] * 100, 2),
                 'confidence_score': round(ml_prediction['confidence_score'] * 100, 2),
