@@ -131,6 +131,17 @@ class DiseaseMLModel:
     def sigmoid(z: float) -> float:
         """Sigmoid activation function for logistic regression"""
         return 1 / (1 + np.exp(-z))
+    
+    # NOTE:
+    # Raw sigmoid probabilities tend to be overconfident.
+    # Temperature scaling is applied to improve calibration and interpretability.
+
+    def calibrated_sigmoid(self, z: float, temperature: float = 1.8) -> float:
+        """
+        Temperature-scaled sigmoid for probability calibration.
+        Higher temperature -> less overconfident probabilities.
+        """
+        return 1 / (1 + np.exp(-(z / temperature)))
 
     def _calculate_bmi(self, height_cm: float, weight_kg: float) -> float:
         if not height_cm or not weight_kg:
@@ -218,6 +229,7 @@ class DiseaseMLModel:
                 matched_symptoms.append(symptom)
         
         raw_probability = self.sigmoid(z)
+        calibrated_probability = self.calibrated_sigmoid(z)
         
         prior = min(0.95, max(0.05, raw_probability))
         likelihood = 0.75 + (raw_probability * 0.20)
@@ -225,6 +237,7 @@ class DiseaseMLModel:
         return {
             'disease': disease,
             'raw_probability': float(raw_probability),
+            'calibrated_probability': float(calibrated_probability),
             'prior_probability': float(prior),
             'likelihood': float(likelihood),
             'symptoms_matched': len(matched_symptoms),
@@ -266,7 +279,7 @@ class DiseaseMLModel:
                 )
 
         # Sort by raw probability (highest first)
-        predictions.sort(key=lambda x: x['raw_probability'], reverse=True)
+        predictions.sort(key=lambda x: x['calibrated_probability'], reverse=True)
         return predictions
 
     
