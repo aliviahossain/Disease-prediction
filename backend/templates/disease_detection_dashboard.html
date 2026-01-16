@@ -20,7 +20,7 @@
                             <i class="fas fa-disease me-1"></i> 
                             Select the type of disease you want to identify
                         </label>
-                        <select id="type-select" class="form-select form-select-lg mb-2">
+                        <select id="type-select" class="form-select form-select-lg mb-2" onchange="removeImg()">
                             {% for type in types %}
                             <option value="{{ type }}">{{ type }}</option>
                             {% endfor %}
@@ -344,14 +344,35 @@
   }
 
   async function getDemoImage() {
-    // List of demo images
-    const demoImages = [
+    // List of demo images for eyes
+    const eyeDemoImages = [
       "../static/assets/demo_images/eyes_demo_images/eye_demo_1.png",
       "../static/assets/demo_images/eyes_demo_images/eye_demo_2.jpeg",
       "../static/assets/demo_images/eyes_demo_images/eye_demo_3.jpg",
       "../static/assets/demo_images/eyes_demo_images/eye_demo_4.jpg",
       "../static/assets/demo_images/eyes_demo_images/eye_demo_5.jpg",
     ];
+
+    // List of demo images for eyes
+    const skinDemoImages = [
+      "../static/assets/demo_images/skin_demo_images/skin_demo_1.jpg",
+      "../static/assets/demo_images/skin_demo_images/skin_demo_2.jpg",
+      "../static/assets/demo_images/skin_demo_images/skin_demo_3.jpg",
+      "../static/assets/demo_images/skin_demo_images/skin_demo_4.jpg",
+      "../static/assets/demo_images/skin_demo_images/skin_demo_5.jpg",
+      "../static/assets/demo_images/skin_demo_images/skin_demo_6.jpg",
+      "../static/assets/demo_images/skin_demo_images/skin_demo_7.jpg",
+      "../static/assets/demo_images/skin_demo_images/skin_demo_8.jpg",
+    ]
+
+    // stores the demo images based on type
+    let demoImages = eyeDemoImages;
+
+    const type = document.getElementById("type-select").value;
+    
+    if (type === "Skin"){
+      demoImages = skinDemoImages;
+    }
 
     const randomIndex = Math.floor(Math.random() * demoImages.length);
     const demoImageSrc = demoImages[randomIndex];
