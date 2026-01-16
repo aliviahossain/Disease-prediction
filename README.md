@@ -323,6 +323,24 @@ This dataset includes labeled images for:
 - Diabetic Retinopathy
 - Cataract
 
+The skin-disease image prediction model was trained using the following publicly available dataset from Kaggle:
+
+- **Skin Diseases Image Dataset**
+  https://www.kaggle.com/datasets/ismailpromus/skin-diseases-image-dataset
+
+This dataset includes labeled images for the following conditions:
+
+- Atopic Dermatitis
+- Basal Cell Carcinoma
+- Benign Keratosis-like Lesions
+- Eczema
+- Melanocytic Nevi
+- Melanoma
+- Psoriasis
+- Seborrheic Keratoses and other Benign Tumors
+- Tinea Ringworm, Candidiasis, and other Fungal Infections
+- Warts, Molluscum, and other Viral Infections
+
 All dataset credits belong to their respective authors and contributors. 
 This project does not claim ownership of the dataset. Please refer to the dataset page for licensing and usage terms.
 
