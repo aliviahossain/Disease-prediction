@@ -509,25 +509,50 @@ function formatMarkdownToHTML(text) {
 // Attach reset logic after page loads
 window.addEventListener("DOMContentLoaded", attachResetOnInput);
 
-$('#diseaseSelect').select2({
-  placeholder: "Type to search disease...",
-  width: '100%',
-  allowClear: true,
-  dropdownParent: $('#diseaseSelect').parent(),
-}).on('select2:open', function () {
-  // Use a timeout to ensure the search field is fully rendered
-  setTimeout(function () {
-    // Find the search field inside the currently open dropdown
-    const searchField = $('.select2-container--open .select2-search__field');
+// $('#diseaseSelect').select2({
+//   placeholder: "Type to search disease...",
+//   width: '100%',
+//   allowClear: true,
+//   dropdownParent: $('#diseaseSelect').parent(),
+// }).on('select2:open', function () {
+//   // Use a timeout to ensure the search field is fully rendered
+//   setTimeout(function () {
+//     // Find the search field inside the currently open dropdown
+//     const searchField = $('.select2-container--open .select2-search__field');
 
-    // Set the placeholder text for the search box
-    searchField.attr('placeholder', 'Type here to search...');
+//     // Set the placeholder text for the search box
+//     searchField.attr('placeholder', 'Type here to search...');
 
-    // Set focus to place the cursor in the search box
-    searchField.focus();
+//     // Set focus to place the cursor in the search box
+//     searchField.focus();
 
-  }, 50); // A 50ms delay for reliability
-});
+//   }, 50); // A 50ms delay for reliability
+// });
+
+function initDiseaseSelect() {
+  if (typeof window.$ === 'undefined' || !$.fn.select2) {
+    console.warn("jQuery or Select2 not loaded");
+    return;
+  }
+
+  const $el = $('#diseaseSelect');
+  if (!$el.length) return;
+
+  $el.select2({
+    width: '100%',
+    allowClear: true,
+    placeholder: $el.data('placeholder'),
+    dropdownParent: $el.parent()
+  }).on('select2:open', function () {
+    setTimeout(() => {
+      const searchField = $('.select2-container--open .select2-search__field');
+      searchField.attr('placeholder', 'Type here to search...');
+      searchField.focus();
+    }, 50);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initDiseaseSelect);
 
 // ============================================
 // Interactive Real-Time Slider Functionality
