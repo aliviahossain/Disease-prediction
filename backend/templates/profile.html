@@ -30,24 +30,24 @@
 
                 <div class="card">
                     <h4>Contact Info</h4>
-                    <input class="editable" type="tel" name="phone" placeholder="Phone" value="{{ profile.phone }}" disabled>
-                    <input class="editable" name="address" placeholder="Address" value="{{ profile.address }}" disabled>
+                    <input class="editable" type="tel" name="phone" placeholder="Phone" value="{{ user.phone }}" disabled>
+                    <input class="editable" name="address" placeholder="Address" value="{{ user.address }}" disabled>
                 </div>
 
                 <div class="card">
                     <h4>Emergency Contact</h4>
-                    <input class="editable" name="emergency_name" placeholder="Name" value="{{ profile.emergency_name }}" disabled>
-                    <input class="editable" name="emergency_relation" placeholder="Relation" value="{{ profile.emergency_relation }}" disabled>
-                    <input class="editable" type="tel" name="emergency_phone" placeholder="Phone" value="{{ profile.emergency_phone }}" disabled>
+                    <input class="editable" name="emergency_name" placeholder="Name" value="{{ user.emergency_name }}" disabled>
+                    <input class="editable" name="emergency_relation" placeholder="Relation" value="{{ user.emergency_relation }}" disabled>
+                    <input class="editable" type="tel" name="emergency_phone" placeholder="Phone" value="{{ user.emergency_phone }}" disabled>
                 </div>
 
                 <div class="card">
                     <h4>Demographics</h4>
-                    <input class="editable" type="date" name="dob" value="{{ profile.dob }}" disabled>
+                    <input class="editable" type="date" name="dob" value="{{ user.dob }}" disabled>
                     <select class="editable" name="gender" disabled>
-                        <option value="Male" {% if profile.gender=='Male' %}selected{% endif %}>Male</option>
-                        <option value="Female" {% if profile.gender=='Female' %}selected{% endif %}>Female</option>
-                        <option value="Other" {% if profile.gender=='Other' %}selected{% endif %}>Other</option>
+                        <option value="Male" {% if user.gender=='Male' %}selected{% endif %}>Male</option>
+                        <option value="Female" {% if user.gender=='Female' %}selected{% endif %}>Female</option>
+                        <option value="Other" {% if user.gender=='Other' %}selected{% endif %}>Other</option>
                     </select>
                 </div>
 
@@ -60,15 +60,15 @@
 
                 <div class="card">
                     <h4>Physical Metrics</h4>
-                    <input class="editable" id="height" type="number" name="height" placeholder="Height (cm)" value="{{ profile.height }}" disabled oninput="calculateBMI()">
-                    <input class="editable" id="weight" type="number" name="weight" placeholder="Weight (kg)" value="{{ profile.weight }}" disabled oninput="calculateBMI()">
-                    <input id="bmi" readonly placeholder="BMI" value="{{ profile.bmi }}">
+                    <input class="editable" id="height" type="number" name="height" placeholder="Height (cm)" value="{{ user.height }}" disabled oninput="calculateBMI()">
+                    <input class="editable" id="weight" type="number" name="weight" placeholder="Weight (kg)" value="{{ user.weight }}" disabled oninput="calculateBMI()">
+                    <input id="bmi" readonly placeholder="BMI" value="{{ user.bmi }}">
                 </div>
 
                 <div class="card">
                     <h4>Medical Safety</h4>
-                    <input class="editable" name="allergies" placeholder="Allergies" value="{{ profile.allergies }}" disabled>
-                    <textarea class="editable" name="medical_notes" placeholder="Medical Notes" disabled>{{ profile.medical_notes }}</textarea>
+                    <input class="editable" name="allergies" placeholder="Allergies" value="{{ user.allergies }}" disabled>
+                    <textarea class="editable" name="medical_notes" placeholder="Medical Notes" disabled>{{ user.medical_notes }}</textarea>
                 </div>
 
             </div>
