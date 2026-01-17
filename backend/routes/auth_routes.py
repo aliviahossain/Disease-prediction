@@ -81,7 +81,8 @@ def signup():
 def profile():
     return render_template('profile.html', user=current_user)
 
-@auth.route('/profile/update', methods=['POST'])
+@auth_bp.route('/profile/update', methods=['POST'])
+@login_required
 def update_profile():
     # handle form update logic here
     return redirect(url_for('auth.profile'))
