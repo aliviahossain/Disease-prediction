@@ -386,6 +386,22 @@ if (dropdown) dropdown.classList.remove('show');
 });
 });
 </script>
+<div id="chatbot-launcher" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; cursor: pointer;">
+    {% include 'chatbot_widget.html' %}
+</div>
+
+<style>
+    /* Styling to ensure the widget looks like a floating button if it isn't already */
+    #chatbot-launcher {
+        transition: transform 0.3s ease;
+    }
+    #chatbot-launcher:hover {
+        transform: scale(1.1); /* Subtle pop effect on hover */
+    }
+    
+    /* Optional: Ensure the actual chatbot window (inside chatbot_widget.html) 
+       is hidden by default or positioned correctly relative to this launcher */
+</style>
 </body>
 
 </html>
