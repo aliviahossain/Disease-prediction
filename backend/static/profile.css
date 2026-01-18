@@ -1,0 +1,198 @@
+.profile-container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 30px;
+}
+
+/* Header */
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: #2563eb;
+    padding: 20px;
+    border-radius: 14px;
+    color: white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: background 0.3s;
+}
+
+.profile-header:hover {
+    background: #1e40af;
+}
+
+/* Avatar */
+.avatar {
+    width: 70px;
+    height: 70px;
+    background: #93c5fd;
+    color: #1e3a8a;
+    font-size: 2rem;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    transition: transform 0.2s, background 0.3s;
+}
+
+.avatar:hover {
+    transform: scale(1.1);
+    background: #60a5fa;
+}
+
+/* Edit Button */
+.edit-btn {
+    margin-left: auto;
+    background: #ffffff;
+    color: #2563eb;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.edit-btn:hover {
+    background: #e0f2fe;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    margin: 25px 0;
+    gap: 10px;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    background: #f3f4f6;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+    background: #2563eb;
+    color: white;
+}
+
+.tab-btn:hover:not(.active) {
+    background: #dbeafe;
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Grid Cards */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.08);
+}
+
+/* Card Headers with subtle colors */
+.card h4 {
+    margin-bottom: 12px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s;
+}
+.card:nth-child(1) h4 { color: #2563eb; border-color: #93c5fd; } /* Contact Info */
+.card:nth-child(2) h4 { color: #f59e0b; border-color: #fde68a; } /* Emergency */
+.card:nth-child(3) h4 { color: #10b981; border-color: #6ee7b7; } /* Demographics */
+.card:nth-child(4) h4 { color: #3b82f6; border-color: #93c5fd; } /* Physical */
+.card:nth-child(5) h4 { color: #ef4444; border-color: #fca5a5; } /* Medical */
+
+/* Inputs & Textarea */
+.card input,
+.card textarea,
+.card select {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.card input:focus,
+.card textarea:focus,
+.card select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 5px rgba(37,99,235,0.3);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Actions */
+.actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.save-btn {
+    background: #16a34a;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.save-btn:hover {
+    background: #15803d;
+}
+
+.logout-btn {
+    background: #ef4444;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.logout-btn:hover {
+    background: #dc2626;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .profile-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .actions {
+        flex-direction: column;
+    }
+}
