@@ -155,6 +155,54 @@ This project visualizes this shift clearly using charts and explanations.
 - Reinstall dependencies
 - Activate virtual environment
 ## 🔒 Privacy & Data Handling
+
+All image processing and probability calculations are performed **locally** on the user’s machine.  
+No images, symptoms, or personal data are uploaded, stored, or shared externally by default.
+
+
+## 🧠 Model Architecture
+
+The eye-disease image classification model is based on a deep convolutional neural network using a ResNet architecture inspired by:
+
+He, K., Zhang, X., Ren, S., & Sun, J. (2016).  
+*Deep Residual Learning for Image Recognition*. Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
+
+
+## 📊 Dataset Sources
+
+The eye-disease image prediction model was trained using the following publicly available dataset from Kaggle:
+
+- **Eye Diseases Classification Dataset**  
+  https://www.kaggle.com/datasets/gunavenkatdoddi/eye-diseases-classification
+
+This dataset includes labeled images for:
+
+- Normal eyes
+- Glaucoma
+- Diabetic Retinopathy
+- Cataract
+
+The skin-disease image prediction model was trained using the following publicly available dataset from Kaggle:
+
+- **Skin Diseases Image Dataset**
+  https://www.kaggle.com/datasets/ismailpromus/skin-diseases-image-dataset
+
+This dataset includes labeled images for the following conditions:
+
+- Atopic Dermatitis
+- Basal Cell Carcinoma
+- Benign Keratosis-like Lesions
+- Eczema
+- Melanocytic Nevi
+- Melanoma
+- Psoriasis
+- Seborrheic Keratoses and other Benign Tumors
+- Tinea Ringworm, Candidiasis, and other Fungal Infections
+- Warts, Molluscum, and other Viral Infections
+
+All dataset credits belong to their respective authors and contributors. 
+This project does not claim ownership of the dataset. Please refer to the dataset page for licensing and usage terms.
+
 - All computations run locally
 - No personal data is stored or transmitted
 - AI requests only include probability values (no user identity)
