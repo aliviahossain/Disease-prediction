@@ -131,7 +131,8 @@ To verify the fix works:
 1. **Development Mode (with .env):**
    ```bash
    python run.py
-   # Should print: "Using SECRET_KEY from environment"
+   # Should start without any SECRET_KEY warnings or errors
+   # No special message is printed when SECRET_KEY is loaded correctly
    ```
 
 2. **Development Mode (without .env):**

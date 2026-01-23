@@ -46,7 +46,10 @@ def create_app():
     # ✅ SECURITY FIX: Load SECRET_KEY from environment variable
     secret_key = os.getenv('SECRET_KEY')
     if not secret_key:
-        if app.debug:
+        # Check if we're in development mode
+        is_development = os.getenv('FLASK_ENV') == 'development' or os.getenv('FLASK_DEBUG') == '1'
+        
+        if is_development:
             # Development fallback: generate random key
             secret_key = secrets.token_hex(32)
             print("\n⚠️  WARNING: SECRET_KEY not set in environment.")

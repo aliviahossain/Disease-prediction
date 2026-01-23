@@ -3,7 +3,6 @@ import numpy as np
 import os
 from PIL import Image
 from flask import Flask, Blueprint, render_template, request, jsonify
-from functools import lru_cache
 
 # Supress TensorFlow Logging
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
@@ -16,23 +15,10 @@ warnings.filterwarnings(
     message=".*np.object.*"
 )
 
-# ✅ LAZY LOAD: Import TensorFlow only when actually needed (not at module load)
-@lru_cache(maxsize=1)
-def _load_tensorflow():
-    """Lazy load TensorFlow to avoid blocking app startup"""
-    from tensorflow.keras.models import load_model
-    from tensorflow.keras.applications.resnet50 import preprocess_input
-    return load_model, preprocess_input
-
-def load_model(*args, **kwargs):
-    """Wrapper that lazy-loads TensorFlow"""
-    _load_model, _ = _load_tensorflow()
-    return _load_model(*args, **kwargs)
-
-def preprocess_input(*args, **kwargs):
-    """Wrapper that lazy-loads TensorFlow"""
-    _, _preprocess_input = _load_tensorflow()
-    return _preprocess_input(*args, **kwargs)
+# Import TensorFlow models (loaded when route is accessed)
+import tensorflow as tf
+from tensorflow.keras.models import load_model
+from tensorflow.keras.applications.resnet50 import preprocess_input
 
 predict_disease_type_bp = Blueprint("disease-type", __name__)
 

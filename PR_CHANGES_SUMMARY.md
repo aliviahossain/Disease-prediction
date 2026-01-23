@@ -71,10 +71,16 @@ GEMINI_API_KEY=your_api_key_here
 
 ---
 
-### 3. **.env** ✅ CREATED (NEW FILE)
+### 3. **.env** ⚠️ LOCAL-ONLY FILE (NOT IN GIT)
+**Note:** This file is created locally for development and is NOT committed to git (per .gitignore).
+
 ```dotenv
-# Generated secure key for development
-SECRET_KEY=a7f9e2b1c3d5e7f9a1b3c5d7e9f1a3b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5
+# Development/Production Mode
+FLASK_ENV=development  # Set to 'production' in production
+
+# Security
+SECRET_KEY=<your_generated_secret_key_here>
+# Generate with: python -c "import secrets; print(secrets.token_hex(32))"
 
 # Gemini API Configuration
 GEMINI_API_KEY=your_api_key_here
@@ -84,8 +90,9 @@ GEMINI_API_KEY=your_api_key_here
 ```
 
 **Impact:**
-- ✅ Development-only file (not committed to git via .gitignore)
+- ⚠️ Development-only file (not committed to git via .gitignore)
 - ✅ Required for local testing
+- ✅ Each developer must create their own
 - ✅ No production impact
 
 ---
