@@ -2,11 +2,6 @@
 # Flask applications cannot run as Netlify serverless functions
 # Python is not supported - only TypeScript, JavaScript, and Go
 
-# Build configuration
-[build]
-  command = "echo 'This is a backend-only repository. Please visit the Render deployment.'"
-  publish = "public"
-
 [[redirects]]
   from = "/*"
   to = "https://disease-prediction-dbgi.onrender.com/:splat"
@@ -18,5 +13,3 @@
   [headers.values]
     X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
-    X-XSS-Protection = "1; mode=block"
-    Referrer-Policy = "strict-origin-when-cross-origin"
