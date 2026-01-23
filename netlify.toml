@@ -1,6 +1,12 @@
 # This site redirects to the Render deployment
 # Flask applications cannot run as Netlify serverless functions
 # Python is not supported - only TypeScript, JavaScript, and Go
+# The actual frontend (React/Vite) is in README_Design_Kit folder
+
+[build]
+  base = "README_Design_Kit"
+  command = "npm run build"
+  publish = "README_Design_Kit/dist"
 
 [[redirects]]
   from = "/*"
