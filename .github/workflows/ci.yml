@@ -15,6 +15,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run and check
+        env:
+          SECRET_KEY: test_secret_key_for_ci_only_not_for_production
+          FLASK_ENV: development
         run:  |
           python run.py > server.log 2>&1 &
           server_pid=$!
