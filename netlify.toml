@@ -5,7 +5,6 @@
 # Build configuration
 [build]
   command = "echo 'This is a backend-only repository. Please visit the Render deployment.'"
-  functions = "functions"
   publish = "public"
 
 [[redirects]]
@@ -20,3 +19,4 @@
     X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
