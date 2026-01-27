@@ -167,32 +167,25 @@ import io
 import numpy as np
 import os
 from PIL import Image
-from flask import Flask, Blueprint, render_template, request, jsonify
-from functools import lru_cache  # ✅ Added
+import numpy as np
+import os
+from PIL import Image
+from flask import Blueprint, request, jsonify
+import tensorflow as tf
 
-# Supress TensorFlow Logging
-...
+# Suppress TensorFlow logging
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-# ✅ LAZY LOAD: Import TensorFlow only when actually needed
-@lru_cache(maxsize=1)
-def _load_tensorflow():
-    """Lazy load TensorFlow to avoid blocking app startup"""
-    from tensorflow.keras.models import load_model
-    from tensorflow.keras.applications.resnet50 import preprocess_input
-    return load_model, preprocess_input
-
-def load_model(*args, **kwargs):
-    """Wrapper that lazy-loads TensorFlow"""
-    _load_model, _ = _load_tensorflow()
-    return _load_model(*args, **kwargs)
-...
+# Import TensorFlow models
+from tensorflow.keras.models import load_model
+from tensorflow.keras.applications.resnet50 import preprocess_input
 ```
 
 **Impact:**
-- ✅ Improves startup performance
-- ✅ No functional changes
-- ✅ TensorFlow still works the same way
-- ✅ Only loads when actually used
+- ✅ Direct imports for clarity and reliability
+- ✅ No lazy loading - imports occur at module load time (acceptable for this app scale)
+- ✅ TensorFlow functionality works consistently
+- ✅ Simpler code maintenance
 
 ---
 

@@ -108,6 +108,8 @@ def test_secret_key_length_validation(monkeypatch):
 
 def test_secret_key_not_hardcoded():
     """Test that SECRET_KEY is not hardcoded in the application"""
+    import re
+    
     # Read the source file
     init_file = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -117,12 +119,18 @@ def test_secret_key_not_hardcoded():
     with open(init_file, 'r') as f:
         content = f.read()
     
-    # Assert - check that no hardcoded secret key exists
-    # (look for common patterns like 'SECRET_KEY = ')
-    assert "app.config['SECRET_KEY'] = " not in content or "os.getenv" in content
+    # Remove comments
+    lines = [line.split('#')[0] for line in content.split('\n')]
+    content_no_comments = '\n'.join(lines)
     
-    # Make sure we're loading from environment
-    assert "os.getenv('SECRET_KEY')" in content
+    # Assert - ensure SECRET_KEY is loaded from environment, not hardcoded
+    # Should have os.getenv('SECRET_KEY') somewhere
+    assert "os.getenv('SECRET_KEY')" in content_no_comments
+    
+    # Verify no literal key assignments (e.g., secret_key = 'hardcoded_value')
+    # This pattern checks for literal string assignments without environment loading
+    hardcoded_pattern = r"secret_key\s*=\s*['\"][^'\"]+['\"]"
+    assert not re.search(hardcoded_pattern, content_no_comments), "Found literal SECRET_KEY assignment"
 
 
 if __name__ == '__main__':
