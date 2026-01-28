@@ -25,6 +25,10 @@ import tensorflow as tf
 # Suppress TensorFlow logging
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
+# Import TensorFlow models
+from tensorflow.keras.models import load_model
+from tensorflow.keras.applications.resnet50 import preprocess_input
+
 predict_disease_type_bp = Blueprint("disease-type", __name__)
 
 # CONFIG 

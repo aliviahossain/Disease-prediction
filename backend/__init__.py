@@ -1,5 +1,6 @@
 from flask import Flask, render_template
 import os
+import secrets
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 
@@ -41,7 +42,27 @@ def create_app():
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(backend_root, "site.db")
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECRET_KEY'] = 'your_secret_key_here' # Change this in production!
+    
+    # ✅ SECURITY FIX: Load SECRET_KEY from environment variable
+    secret_key = os.getenv('SECRET_KEY')
+    if not secret_key:
+        # Check if we're in development mode
+        is_development = os.getenv('FLASK_ENV') == 'development' or os.getenv('FLASK_DEBUG') == '1'
+        
+        if is_development:
+            # Development fallback: generate random key
+            secret_key = secrets.token_hex(32)
+            print("\n⚠️  WARNING: SECRET_KEY not set in environment.")
+            print("   Using random key for development only.")
+            print("   For production, set SECRET_KEY in your .env file!\n")
+        else:
+            raise ValueError(
+                "\n❌ CRITICAL ERROR: SECRET_KEY environment variable is required!\n"
+                "   Please set SECRET_KEY in your .env file.\n"
+                "   Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\"\n"
+            )
+    
+    app.config['SECRET_KEY'] = secret_key
 
     # Initialize extensions with app
     db.init_app(app)

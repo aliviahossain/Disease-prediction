@@ -15,7 +15,5 @@ streamlit
 plotly
 flask-login
 PyMySQL
-pandas
-python-dotenv
 tensorflow
 pillow

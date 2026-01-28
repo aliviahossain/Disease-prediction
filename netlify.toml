@@ -1,9 +1,20 @@
 # This site redirects to the Render deployment
 # Flask applications cannot run as Netlify serverless functions
 # Python is not supported - only TypeScript, JavaScript, and Go
+# The actual backend runs on Render: https://disease-prediction-dbgi.onrender.com
+
+[build]
+  publish = "public"
+  command = "echo 'Static site - no build needed'"
 
 [[redirects]]
   from = "/*"
   to = "https://disease-prediction-dbgi.onrender.com/:splat"
   status = 200
   force = true
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"

@@ -53,7 +53,37 @@ source venv/bin/activate
 
 ---
 
-## 3. Install Dependencies
+## 3. Configure Environment Variables
+
+Create a `.env` file in the project root directory by copying the example:
+
+```bash
+cp .env.example .env
+```
+
+### 🔐 Generate a Secure SECRET_KEY
+
+For security, you **must** generate a unique SECRET_KEY for your environment:
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+Copy the generated key and update your `.env` file:
+
+```dotenv
+SECRET_KEY=<paste_generated_key_here>
+GEMINI_API_KEY=your_api_key_here
+```
+
+**⚠️ IMPORTANT:**
+- Never commit `.env` to git (it's already in `.gitignore`)
+- Each environment should have a different SECRET_KEY
+- Keep your SECRET_KEY private and secure
+
+---
+
+## 4. Install Dependencies
 
 If a `requirements.txt` file is present, install dependencies using:
 
@@ -69,7 +99,7 @@ pip install flask numpy pandas scikit-learn matplotlib seaborn
 
 ---
 
-## 4. Run the Application
+## 5. Run the Application
 
 Run the main application file using one of the following commands:
 
