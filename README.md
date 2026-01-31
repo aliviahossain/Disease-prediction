@@ -25,18 +25,20 @@ Always consult a qualified healthcare professional for medical advice.
 
 ## 📑 Table of Contents
 - [Quick Start (30 seconds)](#-quick-start-30-seconds)
+- [System Architecture](#-system-architecture)
+- [Logical Data Pipeline](#-logical-data-pipeline)
 - [Key Features](#-key-features)
   - [Educational Features](#-educational-features)
   - [ML Features](#-ml-features)
   - [AI Features](#-ai-features)
-  - [Project Structure](#project-structure)
-  - [Getting Started](#getting-started-detailed)
+- [Project Structure](#-project-structure)
+- [Getting Started](#getting-started-(detailed))
 - [Using AI-Powered Recommendations](#-using-ai-powered-recommendations)
 - [Bayes’ Theorem Explained](#-bayes-theorem-explained)
-- [Troubleshooting](#-troubleshooting)
-- [Privacy & Data Handling](#-privacy--data-handling)
+- [Troubleshooting](#-troubleshooting--setup-faq)
 - [Dataset & Model](#-dataset--model)
 - [License](#-license)
+
 ---
 
 ## 🚀 Quick Start (30 seconds)
@@ -47,9 +49,51 @@ pip install -r requirements.txt
 python run.py
 ```
 Open in your browser:
-👉 http://127.0.0.1:5001/
+👉 `http://127.0.0.1:5001/`
 
 That’s it 🎉
+
+---
+
+## 🏗️ System Architecture
+
+The system operates on a hybrid architecture combining a **Flask** backend for logic/API management and a **Streamlit** dashboard for interactive visualization.
+
+```mermaid
+graph LR
+    subgraph Frontend [User Interface]
+        A[Streamlit Dashboard]
+        B[Flask Web Templates]
+    end
+
+    subgraph Logic_Layer [Backend Processing]
+        C[Flask Routes]
+        D[ML Engine - ResNet]
+        E[Bayesian Probability Calculator]
+    end
+
+    subgraph Intelligence [External AI]
+        F[Google Gemini API]
+    end
+
+    A <--> C
+    B <--> C
+    C --> D
+    D --> E
+    E --> F
+    F --> A
+```
+---
+
+## 🔄 Logical Data Pipeline
+The diagnostic reasoning follows a structured 5-step pipeline:
+1. **Symptom Input:** User provides symptoms or uploads diagnostic images.
+2. **ML Prior:** ResNet model generates an initial "Prior" probability based on image patterns.
+3. **Diagnostic Evidence:** Users adjust sliders/inputs based on clinical test results.
+4. **Bayesian Update:** The system applies Bayes' Theorem to calculate the "Posterior" probability.
+5. **AI Interpretation:** Google Gemini analyzes the final result to provide a natural language summary.
+
+---
 
 ## 📌 Key Features
 ### 📘 Educational Features
@@ -57,12 +101,12 @@ That’s it 🎉
 - Step-by-step visualization of Bayes’ Theorem
 - Interactive probability sliders for experimentation
 - Built-in glossary and help section
-## 🤖 ML Features
+### 🤖 ML Features
 - Symptom-based disease prediction
 - Disease selection with predefined symptom sets
 - ML-generated probability scores
 - Risk categorization (Low / Medium / High)
-## 🧠 AI Features
+### 🧠 AI Features
 - AI-powered interpretation of probability results
 - Suggested next steps (consultation, testing, lifestyle review)
 - Multi-language AI output:
@@ -70,10 +114,12 @@ That’s it 🎉
   - 🇮🇳 Hindi
   - 🇮🇳 Gujarati
   - 🇮🇳 Tamil
+- Powered by Google Gemini API
 
-Powered by Google Gemini API
+---
 
 ## 🗂️ Project Structure
+
 ```bash
 Disease-prediction/
 ├── run.py                      # Application entry point
@@ -90,31 +136,31 @@ Disease-prediction/
 ├── LICENSE
 └── Scalability_report.txt
 ```
-## 🛠️ Getting Started (Detailed)
-## 1️⃣ Create a Virtual Environment (Recommended)
 
+---
+
+## 🛠️ Getting Started (Detailed)
+### 1️⃣ Create a Virtual Environment (Recommended)
 ```bash
 python -m venv venv
 source venv/bin/activate   # macOS/Linux
 venv\Scripts\activate      # Windows
 ```
-## 2️⃣ Install Dependencies
+### 2️⃣ Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
-## 3️⃣ Run the Application
+### 3️⃣ Run the Application
 ```bash
 python run.py
 ```
-## 🤖 Using AI-Powered Recommendations
+### 🤖 Using AI-Powered Recommendations
 Enable Gemini AI (Optional but Recommended)
 
 **Step 1: Get an API Key**
-
 Get your free API key from Google AI Studio
 
 **Step 2: Configure the API Key**
-
 Using `.env` file (recommended):
 ```env
 GEMINI_API_KEY=your_api_key_here
@@ -123,7 +169,8 @@ GEMINI_API_KEY=your_api_key_here
 ```bash
 export GEMINI_API_KEY=your_api_key_here   # macOS/Linux
 ```
-## How It Works
+
+### How It Works
 1) Calculate disease probability
 2) Choose a language 🌐
 3) Click “**Get AI Recommendations**”
@@ -131,6 +178,9 @@ export GEMINI_API_KEY=your_api_key_here   # macOS/Linux
     - Probability interpretation
     - Suggested next actions
     - Medical disclaimers
+
+---
+
 ## 🧮 Bayes’ Theorem Explained
 Bayes’ Theorem updates the probability of a condition after observing new evidence, such as a test result.
 ### **Formula:**
@@ -144,31 +194,29 @@ Where:
 - **P(A|B)** → Posterior probability
 
 This project visualizes this shift clearly using charts and explanations.
-## 🔧 Troubleshooting
-### AI Not Working?
-- Ensure `GEMINI_API_KEY` is set
-- Restart the application
-- Check internet connectivity
-- Verify API quota availability
-### App Not Starting?
-- Confirm Python ≥ 3.9
-- Reinstall dependencies
-- Activate virtual environment
-## 🔒 Privacy & Data Handling
 
-All image processing and probability calculations are performed **locally** on the user’s machine.  
-No images, symptoms, or personal data are uploaded, stored, or shared externally by default.
+---
 
+## 🔧 Troubleshooting & Setup FAQ
 
-## 🧠 Model Architecture
+### 🔑 API & Authentication
+* **Error: `GEMINI_API_KEY not found`**
+    * Ensure your `.env` file is in the root directory.
+    * Restart your terminal after setting environment variables.
+* **Quota Exceeded:** If using a free Google AI Studio key, ensure you stay within the rate limits (RPM/TPM).
+
+### 💻 Environment Issues
+* **`ModuleNotFoundError`:** Ensure your virtual environment is activated before running `pip install`.
+* **Flask vs Streamlit Ports:** By default, Flask runs on `5001` and Streamlit on `8501`. Ensure these ports are not blocked by your firewall.
+  
+---
+
+## 🧠 Dataset & Model
 
 The eye-disease image classification model is based on a deep convolutional neural network using a ResNet architecture inspired by:
 
 He, K., Zhang, X., Ren, S., & Sun, J. (2016).  
 *Deep Residual Learning for Image Recognition*. Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
-
-
-## 📊 Dataset Sources
 
 The eye-disease image prediction model was trained using the following publicly available dataset from Kaggle:
 
@@ -206,19 +254,14 @@ This project does not claim ownership of the dataset. Please refer to the datase
 - All computations run locally
 - No personal data is stored or transmitted
 - AI requests only include probability values (no user identity)
-## 📊 Dataset & Model
-###  Dataset
-- Eye Diseases Classification Dataset (Kaggle)
-   - Normal
-   - Glaucoma
-   - Diabetic Retinopathy
-   - Cataract
-### Model Architecture
-- CNN based on ResNet
-- Inspired by He et al., 2016 - Deep Residual Learning
+
+---
 
 ## 📜 License
 This project is licensed under the MIT License. See the [LICENSE](https://github.com/aliviahossain/Disease-prediction/blob/main/LICENSE) file for details.
+
+---
+
 ## 🙌 Acknowledgements
 Created and maintained by Alivia Hossain.
 
