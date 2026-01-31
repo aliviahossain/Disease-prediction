@@ -5,7 +5,9 @@
 
 [build]
   publish = "public"
-  command = "echo 'Static site - no build needed'"
+  command = "echo 'skip build'"
+[build.environment]
+  NETLIFY_USE_MISE = "false"
 
 [[redirects]]
   from = "/*"
