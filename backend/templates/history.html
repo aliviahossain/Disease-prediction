@@ -68,10 +68,11 @@
                                 </div>
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-light text-muted"
-                                    title="Details currently not implemented">
+                                <a href="{{ url_for('history.history_detail', prediction_id=item.id) }}"
+                                   class="btn btn-sm btn-light text-muted"
+                                   title="View detailed prediction information">
                                     <i class="fas fa-chevron-right"></i>
-                                </button>
+                                </a>
                             </td>
                         </tr>
                         {% endfor %}

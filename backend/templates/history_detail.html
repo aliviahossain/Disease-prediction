@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction Details{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fas fa-notes-medical me-2 text-primary"></i>Prediction Details
+            </h2>
+            <p class="text-muted mb-0 small">
+                Recorded on
+                {% if prediction.created_at %}
+                    {{ prediction.created_at.strftime('%Y-%m-%d %H:%M') }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </p>
+        </div>
+        <div>
+            <a href="{{ url_for('history.get_history') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Back to History
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Overview</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="text-muted small">Disease</div>
+                            <div class="fw-semibold fs-5">{{ prediction.disease }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="text-muted small">Risk Level</div>
+                            <div>
+                                {% set risk = prediction.risk_level|lower if prediction.risk_level else 'low' %}
+                                {% if risk == 'critical' %}
+                                    <span class="badge bg-danger rounded-pill px-3 py-2">Critical</span>
+                                {% elif risk == 'high' %}
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2">High</span>
+                                {% elif risk == 'medium' %}
+                                    <span class="badge bg-info text-dark rounded-pill px-3 py-2">Medium</span>
+                                {% else %}
+                                    <span class="badge bg-success rounded-pill px-3 py-2">Low</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="text-muted small">ML Probability</div>
+                            <div class="d-flex align-items-center">
+                                <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                    <div class="progress-bar
+                                        {% if prediction.ml_probability is not none and prediction.ml_probability > 0.7 %}
+                                            bg-danger
+                                        {% elif prediction.ml_probability is not none and prediction.ml_probability > 0.4 %}
+                                            bg-warning
+                                        {% else %}
+                                            bg-success
+                                        {% endif %}"
+                                        role="progressbar"
+                                        style="width: {{ (prediction.ml_probability * 100) | round(1) if prediction.ml_probability is not none else 0 }}%;">
+                                    </div>
+                                </div>
+                                <span class="small text-muted">
+                                    {{ "%.1f"|format(prediction.ml_probability * 100) if prediction.ml_probability is not none else "N/A" }}%
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="text-muted small">Confidence Score</div>
+                            <div>
+                                {% if prediction.confidence_score is not none %}
+                                    {{ "%.1f"|format(prediction.confidence_score * 100) }}%
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Symptoms</h5>
+                    {% set symptoms_list = prediction.get_symptoms_list() %}
+                    {% if symptoms_list %}
+                        <ul class="list-group list-group-flush">
+                            {% for symptom in symptoms_list %}
+                                <li class="list-group-item px-0">
+                                    <i class="fas fa-circle text-primary me-2" style="font-size: 0.5rem;"></i>
+                                    {{ symptom }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted mb-0">No symptoms recorded for this prediction.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body">
+                    <h6 class="text-muted text-uppercase small mb-3">Prediction Metrics</h6>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>ML Probability</span>
+                            <span>
+                                {{ "%.1f"|format(prediction.ml_probability * 100) if prediction.ml_probability is not none else "N/A" }}%
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar" role="progressbar"
+                                 style="width: {{ (prediction.ml_probability * 100) | round(1) if prediction.ml_probability is not none else 0 }}%;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Bayesian Posterior</span>
+                            <span>
+                                {% if prediction.bayesian_posterior is not none %}
+                                    {{ "%.3f"|format(prediction.bayesian_posterior) }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="progress bg-light" style="height: 6px;">
+                            <div class="progress-bar bg-info" role="progressbar"
+                                 style="width: {{ (prediction.bayesian_posterior * 100) | round(1) if prediction.bayesian_posterior is not none else 0 }}%;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-0 small text-muted">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Risk Level</span>
+                            <span class="text-capitalize">{{ prediction.risk_level or 'low' }}</span>
+                        </div>
+                        {% if prediction.patient_age %}
+                        <div class="d-flex justify-content-between">
+                            <span>Patient Age</span>
+                            <span>{{ prediction.patient_age }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
