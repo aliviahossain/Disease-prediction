@@ -410,3 +410,9 @@ def disease_detection_dashboard():
     # The types include the list of disease detection types available (Only "Eyes" for now)
     types = ["Eyes", "Skin"]
     return render_template('disease_detection_dashboard.html', types=types)
+
+from backend.middleware.error_handler import NotFoundError
+
+@disease_bp.route("/test-custom")
+def test_custom():
+    raise NotFoundError("Disease", "xyz")

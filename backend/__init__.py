@@ -3,6 +3,7 @@ import os
 import secrets
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
+from backend.middleware.error_handler import ErrorHandler
 
 # Initialize extensions
 db = SQLAlchemy()
@@ -130,7 +131,10 @@ def create_app():
         print("✅ 'chat_routes' blueprint registered successfully")
     except ImportError as e:
         print(f"⚠️ Warning: Could not import 'chat_routes'. Error: {e}")
-    
+
+    # Register centralized error handling middleware
+    ErrorHandler(app)
+
     @app.context_processor
     def inject_current_year():
         return {"current_year": datetime.utcnow().year}
