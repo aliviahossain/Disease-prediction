@@ -30,3 +30,4 @@ def connect():
 @general_bp.route('/service-worker.js')
 def service_worker():
     return current_app.send_static_file('service-worker.js')
+
