@@ -160,8 +160,12 @@ def predict_multiple_diseases():
         if not symptoms or len(symptoms) == 0:
             return jsonify({'error': 'No symptoms provided'}), 400
         
-        # Get predictions for all diseases
-        predictions = ml_model.predict_multiple_diseases(symptoms)
+        # Get predictions for all diseases with patient context
+        age = data.get('age')
+        height = data.get('height_cm')
+        weight = data.get('weight_kg')
+        
+        predictions = ml_model.predict_multiple_diseases(symptoms, age=age, height_cm=height, weight_kg=weight)
         
         # Format results
         results = []
@@ -174,18 +178,31 @@ def predict_multiple_diseases():
                 false_positive_rate=0.05
             )
             
+            # Get missing symptoms for this disease
+            missing = ml_model.analyze_missing_symptoms(pred['disease'], symptoms)
+
             results.append({
                 'disease': pred['disease'].replace('_', ' ').title(),
                 'probability': round(pred['raw_probability'] * 100, 2),
+                'prior': round(bayesian['prior'] * 100, 2),
+                'likelihood': round(bayesian['likelihood'] * 100, 2),
                 'posterior': round(bayesian['posterior'] * 100, 2),
                 'confidence': round(pred['confidence_score'] * 100, 2),
-                'risk_level': get_risk_level(bayesian['posterior'] * 100)
+                'risk_level': get_risk_level(bayesian['posterior'] * 100),
+                'missing_symptoms': missing
             })
+        
+        # Sort by posterior probability (highest first)
+        results.sort(key=lambda x: x['posterior'], reverse=True)
+        
+        # Return top 5 predictions
+        top_predictions = results[:5]
         
         return jsonify({
             'success': True,
-            'predictions': results,
-            'symptoms_count': len(symptoms)
+            'predictions': top_predictions,
+            'symptoms_count': len(symptoms),
+            'total_diseases_checked': len(predictions)
         }), 200
         
     except Exception as e:
@@ -236,6 +253,22 @@ def get_disease_symptoms(disease):
         
     except ValueError as e:
         return jsonify({'error': str(e)}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@ml_bp.route('/api/ml/symptoms', methods=['GET'])
+def get_all_symptoms():
+    """Get all unique symptoms across all diseases"""
+    try:
+        symptoms = ml_model.get_all_unique_symptoms()
+        
+        return jsonify({
+            'success': True,
+            'symptoms': symptoms,
+            'count': len(symptoms)
+        }), 200
+        
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

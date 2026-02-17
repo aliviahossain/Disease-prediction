@@ -266,11 +266,11 @@ class DiseaseMLModel:
             for key in symptom_keys
         }
     
-    def predict_multiple_diseases(self, symptoms: List[str]) -> List[Dict]:
+    def predict_multiple_diseases(self, symptoms: List[str], age: int = None, height_cm: float = None, weight_kg: float = None) -> List[Dict]:
         predictions = []
         for disease in self.disease_weights.keys():
             try:
-                prediction = self.predict_disease_probability(disease, symptoms)
+                prediction = self.predict_disease_probability(disease, symptoms, age=age, height_cm=height_cm, weight_kg=weight_kg)
                 predictions.append(prediction)
             except Exception:
                 logger.error(
@@ -327,5 +327,24 @@ class DiseaseMLModel:
         
         # Return top 5 missing symptoms
         return missing[:5]
+
+    def get_all_unique_symptoms(self) -> List[Dict[str, str]]:
+        """Get all unique symptoms across all diseases"""
+        unique_symptoms = {}
+        for disease, data in self.disease_weights.items():
+            for symptom_key in data['symptoms'].keys():
+                if symptom_key not in unique_symptoms:
+                    unique_symptoms[symptom_key] = self.symptom_display_names.get(
+                        symptom_key, 
+                        symptom_key.replace('_', ' ').title()
+                    )
+        
+        # Convert to list and sort by name
+        symptom_list = [
+            {'key': key, 'name': name}
+            for key, name in unique_symptoms.items()
+        ]
+        symptom_list.sort(key=lambda x: x['name'])
+        return symptom_list
 
 ml_model = DiseaseMLModel()
