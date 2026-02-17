@@ -10,7 +10,8 @@
     --text-primary: #34495e;
     --text-secondary: #6c757d;
     --text-muted: #6c757d;
-    --card-bg: #fdfefe;;
+    --card-bg: #fdfefe;
+    ;
     --navbar-bg: #2c3e50;
     --footer-bg: #343a40;
     /* classic charcoal footer */
@@ -40,6 +41,41 @@ body.dark-mode {
     --error-bg: #3a2525;
     --accordion-bg: #2d2d2d;
     --accordion-body-bg: #3a3a3a;
+}
+
+/* --- Global Scrollbar Styling --- */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 10px;
+    border: 2px solid var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* Dark Mode Scrollbar */
+body.dark-mode ::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border: 2px solid var(--bg-primary);
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
 }
 
 /* --- General Body Styling --- */
@@ -700,6 +736,48 @@ body.dark-mode #chartContainer .card-title {
 }
 
 /* --- ML Prediction Page Styles --- */
+.symptoms-grid {
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: #f8f9fa;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+}
+
+.symptom-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.symptom-checkbox:hover {
+    background: #e3f2fd;
+    transform: translateX(5px);
+    border-color: #3498db;
+}
+
+.symptom-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    cursor: pointer;
+}
+
+.symptom-checkbox label {
+    cursor: pointer;
+    margin: 0;
+    font-weight: 500;
+    flex: 1;
+    color: var(--text-primary);
+}
+
 .nav-container {
     display: flex;
     justify-content: space-between;
@@ -714,16 +792,18 @@ body.dark-mode .form-control::placeholder {
 }
 
 body.dark-mode .symptoms-grid {
-    background: var(--input-bg) !important;
+    background-color: var(--input-bg) !important;
     border-color: var(--border-color) !important;
 }
 
 body.dark-mode .symptom-checkbox {
-    background: var(--card-bg);
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
 }
 
 body.dark-mode .symptom-checkbox:hover {
-    background: var(--accordion-bg);
+    background-color: var(--accordion-bg);
+    border-color: #1abc9c;
 }
 
 body.dark-mode .symptom-checkbox input[type="checkbox"] {
@@ -731,7 +811,7 @@ body.dark-mode .symptom-checkbox input[type="checkbox"] {
     appearance: none;
     -webkit-appearance: none;
     background-color: var(--input-bg);
-} 
+}
 
 body.dark-mode .symptom-checkbox input[type="checkbox"]::before {
     position: absolute;
@@ -926,38 +1006,38 @@ body.dark-mode .form-range::-moz-range-thumb {
 }
 
 .preloaded-info {
-  margin-top: 20px;
+    margin-top: 20px;
 }
 
 .preloaded-info h4 {
-  font-size: 14px;
-  margin-bottom: 6px;
-  color: #333;
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: #333;
 }
 
 .preloaded-scroll {
-  max-height: 180px;
-  overflow-y: auto;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 10px;
-  background-color: #f9f9f9;
+    max-height: 180px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    background-color: #f9f9f9;
 }
 
 .preloaded-scroll ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 .preloaded-scroll li {
-  padding: 6px 0;
-  border-bottom: 1px solid #e5e5e5;
-  font-size: 13px;
+    padding: 6px 0;
+    border-bottom: 1px solid #e5e5e5;
+    font-size: 13px;
 }
 
 .preloaded-scroll li:last-child {
-  border-bottom: none;
+    border-bottom: none;
 }
 
 body.dark-mode .preloaded-scroll {
@@ -971,7 +1051,7 @@ body.dark-mode .preloaded-scroll li {
 }
 
 body.dark-mode .preloaded-info h4 {
-  color: var(--text-primary);
+    color: var(--text-primary);
 }
 
 /* Dark Mode – Home Prediction Results */
