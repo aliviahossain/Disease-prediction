@@ -1,0 +1,1331 @@
+{% extends 'base.html' %}
+{% block title %}Dataset Bias & Coverage Analysis — Disease Prediction{% endblock %}
+
+{% block content %}
+<style>
+    /* ─── CSS Custom Properties ─────────────────────────────────────────── */
+    :root {
+        --bias-primary: #6366f1;
+        --bias-primary-light: #818cf8;
+        --bias-secondary: #06b6d4;
+        --bias-accent: #f59e0b;
+        --bias-success: #10b981;
+        --bias-danger: #ef4444;
+        --bias-warning: #f59e0b;
+        --bias-surface: #ffffff;
+        --bias-surface-alt: #f8fafc;
+        --bias-border: #e2e8f0;
+        --bias-text: #1e293b;
+        --bias-text-muted: #64748b;
+        --bias-gradient-1: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        --bias-gradient-2: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);
+        --bias-gradient-3: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        --bias-gradient-4: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+        --bias-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+        --bias-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+        --bias-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+        --bias-radius: 12px;
+        --bias-radius-lg: 16px;
+    }
+
+    .dark-mode {
+        --bias-surface: #1e293b;
+        --bias-surface-alt: #0f172a;
+        --bias-border: #334155;
+        --bias-text: #f1f5f9;
+        --bias-text-muted: #94a3b8;
+        --bias-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        --bias-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ─── Page Header ───────────────────────────────────────────────────── */
+    .bias-page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+        animation: fadeInDown 0.6s ease-out;
+    }
+
+    .bias-page-header h1 {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 700;
+        font-size: 2.2rem;
+        background: var(--bias-gradient-1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+    }
+
+    .bias-page-header p {
+        color: var(--bias-text-muted);
+        font-size: 1.05rem;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    /* ─── Loading Overlay ───────────────────────────────────────────────── */
+    .bias-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .bias-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid var(--bias-border);
+        border-top: 4px solid var(--bias-primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-bottom: 1.25rem;
+    }
+
+    .bias-loading-text {
+        color: var(--bias-text-muted);
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    /* ─── Score Ring ─────────────────────────────────────────────────────── */
+    .score-ring-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .score-ring {
+        position: relative;
+        width: 140px;
+        height: 140px;
+    }
+
+    .score-ring svg {
+        transform: rotate(-90deg);
+    }
+
+    .score-ring .ring-bg {
+        fill: none;
+        stroke: var(--bias-border);
+        stroke-width: 10;
+    }
+
+    .score-ring .ring-progress {
+        fill: none;
+        stroke-width: 10;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1.5s ease;
+    }
+
+    .score-ring .ring-label {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+
+    .score-ring .ring-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--bias-text);
+        line-height: 1;
+    }
+
+    .score-ring .ring-grade {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--bias-text-muted);
+        margin-top: 2px;
+    }
+
+    /* ─── Cards & Panels ────────────────────────────────────────────────── */
+    .bias-card {
+        background: var(--bias-surface);
+        border: 1px solid var(--bias-border);
+        border-radius: var(--bias-radius-lg);
+        box-shadow: var(--bias-shadow);
+        padding: 1.75rem;
+        transition: box-shadow 0.3s ease, transform 0.3s ease;
+        animation: fadeInUp 0.5s ease-out both;
+    }
+
+    .bias-card:hover {
+        box-shadow: var(--bias-shadow-lg);
+        transform: translateY(-2px);
+    }
+
+    .bias-card-title {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+        font-size: 1.15rem;
+        color: var(--bias-text);
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .bias-card-title .card-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    /* ─── KPI Row ───────────────────────────────────────────────────────── */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .kpi-card {
+        background: var(--bias-surface);
+        border: 1px solid var(--bias-border);
+        border-radius: var(--bias-radius);
+        padding: 1.25rem 1.5rem;
+        text-align: center;
+        box-shadow: var(--bias-shadow);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.5s ease-out both;
+    }
+
+    .kpi-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+    }
+
+    .kpi-card:nth-child(1)::before {
+        background: var(--bias-gradient-1);
+    }
+
+    .kpi-card:nth-child(2)::before {
+        background: var(--bias-gradient-2);
+    }
+
+    .kpi-card:nth-child(3)::before {
+        background: var(--bias-gradient-3);
+    }
+
+    .kpi-card:nth-child(4)::before {
+        background: var(--bias-gradient-4);
+    }
+
+    .kpi-card:nth-child(5)::before {
+        background: var(--bias-gradient-1);
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--bias-shadow-lg);
+    }
+
+    .kpi-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--bias-text);
+        line-height: 1.1;
+    }
+
+    .kpi-label {
+        font-size: 0.82rem;
+        color: var(--bias-text-muted);
+        font-weight: 500;
+        margin-top: 0.35rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    /* ─── Bar Chart (CSS-only) ──────────────────────────────────────────── */
+    .bar-chart {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 500px;
+        overflow-y: auto;
+        padding-right: 4px;
+    }
+
+    .bar-chart::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .bar-chart::-webkit-scrollbar-track {
+        background: var(--bias-surface-alt);
+        border-radius: 3px;
+    }
+
+    .bar-chart::-webkit-scrollbar-thumb {
+        background: var(--bias-border);
+        border-radius: 3px;
+    }
+
+    .bar-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        animation: fadeInRight 0.4s ease-out both;
+    }
+
+    .bar-label {
+        font-size: 0.78rem;
+        color: var(--bias-text-muted);
+        min-width: 140px;
+        max-width: 140px;
+        text-align: right;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-weight: 500;
+    }
+
+    .bar-track {
+        flex: 1;
+        height: 22px;
+        background: var(--bias-surface-alt);
+        border-radius: 6px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .bar-fill {
+        height: 100%;
+        border-radius: 6px;
+        transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+        position: relative;
+        display: flex;
+        align-items: center;
+        padding-left: 8px;
+    }
+
+    .bar-fill span {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: #fff;
+        white-space: nowrap;
+    }
+
+    /* ─── Table ─────────────────────────────────────────────────────────── */
+    .bias-table-wrapper {
+        overflow-x: auto;
+        border-radius: var(--bias-radius);
+    }
+
+    .bias-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.85rem;
+    }
+
+    .bias-table thead th {
+        background: var(--bias-surface-alt);
+        color: var(--bias-text-muted);
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 0.75rem 1rem;
+        border-bottom: 2px solid var(--bias-border);
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .bias-table tbody td {
+        padding: 0.7rem 1rem;
+        border-bottom: 1px solid var(--bias-border);
+        color: var(--bias-text);
+        vertical-align: middle;
+    }
+
+    .bias-table tbody tr {
+        transition: background 0.2s ease;
+    }
+
+    .bias-table tbody tr:hover {
+        background: var(--bias-surface-alt);
+    }
+
+    /* ─── Badges / Tags ─────────────────────────────────────────────────── */
+    .severity-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .severity-badge.high {
+        background: rgba(239, 68, 68, 0.12);
+        color: var(--bias-danger);
+    }
+
+    .severity-badge.medium {
+        background: rgba(245, 158, 11, 0.12);
+        color: var(--bias-warning);
+    }
+
+    .severity-badge.low {
+        background: rgba(16, 185, 129, 0.12);
+        color: var(--bias-success);
+    }
+
+    .metric-pill {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    .metric-pill.good {
+        background: rgba(16, 185, 129, 0.12);
+        color: var(--bias-success);
+    }
+
+    .metric-pill.ok {
+        background: rgba(245, 158, 11, 0.12);
+        color: var(--bias-warning);
+    }
+
+    .metric-pill.bad {
+        background: rgba(239, 68, 68, 0.12);
+        color: var(--bias-danger);
+    }
+
+    /* ─── Tabs ──────────────────────────────────────────────────────────── */
+    .bias-tabs {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid var(--bias-border);
+        margin-bottom: 1.5rem;
+        overflow-x: auto;
+    }
+
+    .bias-tab {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--bias-text-muted);
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        white-space: nowrap;
+        transition: all 0.25s ease;
+        background: none;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+    }
+
+    .bias-tab:hover {
+        color: var(--bias-primary);
+    }
+
+    .bias-tab.active {
+        color: var(--bias-primary);
+        border-bottom-color: var(--bias-primary);
+    }
+
+    .bias-tab-content {
+        display: none;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .bias-tab-content.active {
+        display: block;
+    }
+
+    /* ─── Search & Filters ──────────────────────────────────────────────── */
+    .bias-search {
+        width: 100%;
+        padding: 0.65rem 1rem 0.65rem 2.5rem;
+        border: 1px solid var(--bias-border);
+        border-radius: 10px;
+        background: var(--bias-surface);
+        color: var(--bias-text);
+        font-size: 0.9rem;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        outline: none;
+    }
+
+    .bias-search:focus {
+        border-color: var(--bias-primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    .bias-search-wrapper {
+        position: relative;
+        margin-bottom: 1.25rem;
+    }
+
+    .bias-search-wrapper i {
+        position: absolute;
+        left: 0.9rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--bias-text-muted);
+        font-size: 0.9rem;
+    }
+
+    /* ─── Sort Controls ─────────────────────────────────────────────────── */
+    .sort-controls {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .sort-btn {
+        padding: 0.35rem 0.85rem;
+        border: 1px solid var(--bias-border);
+        border-radius: 8px;
+        background: var(--bias-surface);
+        color: var(--bias-text-muted);
+        font-size: 0.78rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .sort-btn:hover,
+    .sort-btn.active {
+        background: var(--bias-primary);
+        color: #fff;
+        border-color: var(--bias-primary);
+    }
+
+    /* ─── Reason tag ────────────────────────────────────────────────────── */
+    .reason-tag {
+        display: inline-block;
+        padding: 2px 8px;
+        margin: 2px 3px;
+        border-radius: 6px;
+        font-size: 0.72rem;
+        background: var(--bias-surface-alt);
+        color: var(--bias-text-muted);
+        border: 1px solid var(--bias-border);
+    }
+
+    /* ─── Layout Helpers ────────────────────────────────────────────────── */
+    .bias-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .bias-grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    @media (max-width: 992px) {
+
+        .bias-grid-2,
+        .bias-grid-3 {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ─── Animations ────────────────────────────────────────────────────── */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInRight {
+        from {
+            opacity: 0;
+            transform: translateX(-15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Stagger cards */
+    .bias-card:nth-child(1) {
+        animation-delay: 0.05s;
+    }
+
+    .bias-card:nth-child(2) {
+        animation-delay: 0.1s;
+    }
+
+    .bias-card:nth-child(3) {
+        animation-delay: 0.15s;
+    }
+
+    .bias-card:nth-child(4) {
+        animation-delay: 0.2s;
+    }
+
+    .kpi-card:nth-child(1) {
+        animation-delay: 0.08s;
+    }
+
+    .kpi-card:nth-child(2) {
+        animation-delay: 0.14s;
+    }
+
+    .kpi-card:nth-child(3) {
+        animation-delay: 0.20s;
+    }
+
+    .kpi-card:nth-child(4) {
+        animation-delay: 0.26s;
+    }
+
+    .kpi-card:nth-child(5) {
+        animation-delay: 0.32s;
+    }
+
+    /* ─── Overlap pair visual ───────────────────────────────────────────── */
+    .overlap-pair {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        background: var(--bias-surface-alt);
+        border: 1px solid var(--bias-border);
+        margin-bottom: 0.5rem;
+        transition: all 0.25s ease;
+    }
+
+    .overlap-pair:hover {
+        border-color: var(--bias-primary-light);
+        box-shadow: var(--bias-shadow);
+    }
+
+    .overlap-pair .pair-names {
+        flex: 1;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--bias-text);
+    }
+
+    .overlap-pair .pair-count {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--bias-primary);
+    }
+
+    .overlap-pair .pair-jaccard {
+        font-size: 0.75rem;
+        color: var(--bias-text-muted);
+        min-width: 60px;
+        text-align: right;
+    }
+
+    /* ─── Export button ──────────────────────────────────────────────────── */
+    .export-btn-group {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+        margin-bottom: 1.5rem;
+    }
+
+    .export-btn {
+        padding: 0.5rem 1.15rem;
+        border: 1px solid var(--bias-border);
+        border-radius: 10px;
+        background: var(--bias-surface);
+        color: var(--bias-text);
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .export-btn:hover {
+        background: var(--bias-primary);
+        color: #fff;
+        border-color: var(--bias-primary);
+    }
+
+    /* ─── Empty state ───────────────────────────────────────────────────── */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--bias-text-muted);
+    }
+
+    .empty-state i {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.4;
+    }
+</style>
+
+<!-- ─── Page Header ─────────────────────────────────────────────────────── -->
+<div class="bias-page-header">
+    <h1><i class="fas fa-balance-scale me-2"></i>Dataset Bias & Coverage Analysis</h1>
+    <p>Comprehensive transparency report on model fairness, class distribution, and per-disease performance across all
+        {{ "80+" }} diseases.</p>
+</div>
+
+<!-- ─── Loading State ───────────────────────────────────────────────────── -->
+<div id="bias-loading" class="bias-loading">
+    <div class="bias-spinner"></div>
+    <div class="bias-loading-text">Analyzing dataset coverage and simulating metrics…</div>
+</div>
+
+<!-- ─── Dashboard Content (hidden until data loads) ─────────────────────── -->
+<div id="bias-dashboard" style="display: none;">
+
+    <!-- ─── KPI Row ─────────────────────────────────────────────────────── -->
+    <div class="kpi-grid" id="kpi-grid"></div>
+
+    <!-- ─── Export ──────────────────────────────────────────────────────── -->
+    <div class="export-btn-group">
+        <button class="export-btn" onclick="exportJSON()">
+            <i class="fas fa-download"></i> Export JSON
+        </button>
+        <button class="export-btn" onclick="exportCSV()">
+            <i class="fas fa-file-csv"></i> Export CSV
+        </button>
+    </div>
+
+    <!-- ─── Tabs ────────────────────────────────────────────────────────── -->
+    <div class="bias-tabs" id="bias-tabs">
+        <button class="bias-tab active" data-tab="overview">Overview</button>
+        <button class="bias-tab" data-tab="distribution">Class Distribution</button>
+        <button class="bias-tab" data-tab="performance">Per-Disease Metrics</button>
+        <button class="bias-tab" data-tab="underrepresented">Underrepresented</button>
+        <button class="bias-tab" data-tab="overlap">Symptom Overlap</button>
+    </div>
+
+    <!-- ═══ TAB: Overview ═══════════════════════════════════════════════ -->
+    <div class="bias-tab-content active" id="tab-overview">
+        <div class="bias-grid-2">
+            <!-- Balance Score Ring -->
+            <div class="bias-card"
+                style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                <div class="bias-card-title">
+                    <span class="card-icon" style="background: var(--bias-gradient-1);"><i
+                            class="fas fa-tachometer-alt"></i></span>
+                    Overall Balance Score
+                </div>
+                <div class="score-ring-container" id="balance-score-ring"></div>
+                <div id="balance-breakdown"
+                    style="margin-top: 1.25rem; font-size: 0.85rem; color: var(--bias-text-muted); text-align: center;">
+                </div>
+            </div>
+
+            <!-- Bias Indicators -->
+            <div class="bias-card">
+                <div class="bias-card-title">
+                    <span class="card-icon" style="background: var(--bias-gradient-4);"><i
+                            class="fas fa-exclamation-triangle"></i></span>
+                    Bias Indicators
+                </div>
+                <div id="bias-indicators-content"></div>
+            </div>
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+            <div class="bias-card">
+                <div class="bias-card-title">
+                    <span class="card-icon" style="background: var(--bias-gradient-2);"><i
+                            class="fas fa-project-diagram"></i></span>
+                    Symptom Coverage Summary
+                </div>
+                <div id="symptom-coverage-summary"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TAB: Class Distribution ═════════════════════════════════════ -->
+    <div class="bias-tab-content" id="tab-distribution">
+        <div class="bias-card">
+            <div class="bias-card-title">
+                <span class="card-icon" style="background: var(--bias-gradient-1);"><i
+                        class="fas fa-chart-bar"></i></span>
+                Symptom Count per Disease
+            </div>
+            <div class="bias-search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" class="bias-search" id="distribution-search" placeholder="Search diseases…">
+            </div>
+            <div class="sort-controls">
+                <button class="sort-btn active" data-sort="symptom_count" data-dir="desc">Symptom Count ↓</button>
+                <button class="sort-btn" data-sort="avg_weight" data-dir="desc">Avg Weight ↓</button>
+                <button class="sort-btn" data-sort="bias" data-dir="asc">Bias ↑</button>
+            </div>
+            <div class="bar-chart" id="distribution-chart"></div>
+        </div>
+    </div>
+
+    <!-- ═══ TAB: Per-Disease Metrics ════════════════════════════════════ -->
+    <div class="bias-tab-content" id="tab-performance">
+        <div class="bias-card">
+            <div class="bias-card-title">
+                <span class="card-icon" style="background: var(--bias-gradient-3);"><i
+                        class="fas fa-stethoscope"></i></span>
+                Simulated Per-Disease Performance
+            </div>
+            <p style="font-size: 0.82rem; color: var(--bias-text-muted); margin-bottom: 1rem;">
+                <i class="fas fa-info-circle me-1"></i>
+                Metrics generated from 200 simulated positive/negative cases per disease using random symptom subsets.
+                Results indicate model sensitivity and specificity characteristics, not real-world test accuracy.
+            </p>
+            <div class="bias-search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" class="bias-search" id="performance-search" placeholder="Search diseases…">
+            </div>
+            <div class="sort-controls" id="perf-sort-controls">
+                <button class="sort-btn active" data-sort="accuracy" data-dir="desc">Accuracy ↓</button>
+                <button class="sort-btn" data-sort="f1_score" data-dir="desc">F1 ↓</button>
+                <button class="sort-btn" data-sort="sensitivity" data-dir="desc">Sensitivity ↓</button>
+                <button class="sort-btn" data-sort="specificity" data-dir="desc">Specificity ↓</button>
+            </div>
+            <div class="bias-table-wrapper" style="max-height: 600px; overflow-y: auto;">
+                <table class="bias-table" id="performance-table">
+                    <thead>
+                        <tr>
+                            <th>Disease</th>
+                            <th>Accuracy</th>
+                            <th>F1 Score</th>
+                            <th>Sensitivity</th>
+                            <th>Specificity</th>
+                            <th>Precision</th>
+                            <th>Symptoms</th>
+                        </tr>
+                    </thead>
+                    <tbody id="performance-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TAB: Underrepresented ═══════════════════════════════════════ -->
+    <div class="bias-tab-content" id="tab-underrepresented">
+        <div class="bias-grid-2">
+            <!-- Underrepresented Diseases -->
+            <div class="bias-card">
+                <div class="bias-card-title">
+                    <span class="card-icon" style="background: var(--bias-gradient-4);"><i
+                            class="fas fa-virus-slash"></i></span>
+                    Flagged Diseases
+                </div>
+                <div id="underrep-diseases"></div>
+            </div>
+
+            <!-- Underrepresented Symptoms -->
+            <div class="bias-card">
+                <div class="bias-card-title">
+                    <span class="card-icon" style="background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);"><i
+                            class="fas fa-eye-slash"></i></span>
+                    Flagged Symptoms
+                </div>
+                <div id="underrep-symptoms" style="max-height: 500px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TAB: Symptom Overlap ════════════════════════════════════════ -->
+    <div class="bias-tab-content" id="tab-overlap">
+        <div class="bias-card">
+            <div class="bias-card-title">
+                <span class="card-icon" style="background: var(--bias-gradient-2);"><i class="fas fa-link"></i></span>
+                Top Disease Pairs by Symptom Overlap
+            </div>
+            <p style="font-size: 0.82rem; color: var(--bias-text-muted); margin-bottom: 1rem;">
+                <i class="fas fa-info-circle me-1"></i>
+                Disease pairs that share the most symptoms. High overlap may cause diagnostic confusion.
+            </p>
+            <div id="overlap-pairs"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── Error State ─────────────────────────────────────────────────────── -->
+<div id="bias-error" style="display: none;">
+    <div class="empty-state">
+        <i class="fas fa-exclamation-circle"></i>
+        <h4>Failed to Load Analysis</h4>
+        <p id="error-message">An error occurred while loading the bias analysis data.</p>
+        <button class="export-btn" onclick="loadAnalysis()" style="margin-top: 1rem;">
+            <i class="fas fa-redo"></i> Retry
+        </button>
+    </div>
+</div>
+
+<script>
+    let analysisData = null;
+
+    // ────────────────────────────────────────────────────────────────────────
+    // DATA LOADING
+    // ────────────────────────────────────────────────────────────────────────
+    async function loadAnalysis() {
+        document.getElementById('bias-loading').style.display = 'flex';
+        document.getElementById('bias-dashboard').style.display = 'none';
+        document.getElementById('bias-error').style.display = 'none';
+
+        try {
+            const response = await fetch('/api/bias-analysis');
+            const result = await response.json();
+
+            if (!result.success) throw new Error(result.error || 'Unknown error');
+
+            analysisData = result.data;
+            renderDashboard(analysisData);
+
+            document.getElementById('bias-loading').style.display = 'none';
+            document.getElementById('bias-dashboard').style.display = 'block';
+        } catch (err) {
+            console.error('Failed to load analysis:', err);
+            document.getElementById('bias-loading').style.display = 'none';
+            document.getElementById('error-message').textContent = err.message;
+            document.getElementById('bias-error').style.display = 'block';
+        }
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // RENDER
+    // ────────────────────────────────────────────────────────────────────────
+    function renderDashboard(data) {
+        renderKPIs(data.summary, data.bias_indicators);
+        renderOverview(data);
+        renderDistribution(data.class_distribution);
+        renderPerformance(data.per_disease_metrics);
+        renderUnderrepresented(data.underrepresented_diseases, data.underrepresented_symptoms);
+        renderOverlap(data.symptom_overlap);
+        setupTabs();
+        setupSearches();
+    }
+
+    // ─── KPIs ──────────────────────────────────────────────────────
+    function renderKPIs(summary, bias) {
+        const grid = document.getElementById('kpi-grid');
+        const kpis = [
+            { value: summary.total_diseases, label: 'Diseases Tracked' },
+            { value: summary.total_unique_symptoms, label: 'Unique Symptoms' },
+            { value: summary.avg_symptoms_per_disease, label: 'Avg Symptoms / Disease' },
+            { value: bias.diseases_with_few_symptoms, label: 'Low-Coverage Diseases' },
+            { value: bias.diseases_with_extreme_bias, label: 'Extreme Bias Diseases' },
+        ];
+        grid.innerHTML = kpis.map(k => `
+        <div class="kpi-card">
+            <div class="kpi-value">${k.value}</div>
+            <div class="kpi-label">${k.label}</div>
+        </div>
+    `).join('');
+    }
+
+    // ─── Overview ──────────────────────────────────────────────────
+    function renderOverview(data) {
+        const score = data.bias_indicators.overall_balance_score;
+        renderScoreRing(score);
+
+        // Bias indicators
+        const bi = data.bias_indicators;
+        const indicatorsEl = document.getElementById('bias-indicators-content');
+        indicatorsEl.innerHTML = `
+        <div style="display: grid; gap: 0.85rem;">
+            ${biasRow('Gini Coefficient', bi.gini_coefficient.toFixed(4), bi.gini_coefficient < 0.15 ? 'good' : bi.gini_coefficient < 0.3 ? 'ok' : 'bad',
+            'Measures inequality in symptom counts across diseases (0 = perfect equality)')}
+            ${biasRow('Coeff. of Variation', (bi.coefficient_of_variation * 100).toFixed(1) + '%', bi.coefficient_of_variation < 0.25 ? 'good' : bi.coefficient_of_variation < 0.5 ? 'ok' : 'bad',
+                'Relative standard deviation of symptom counts')}
+            ${biasRow('Symptom Count Range', bi.symptom_count_range[0] + ' – ' + bi.symptom_count_range[1], bi.symptom_count_range[1] / bi.symptom_count_range[0] < 3 ? 'good' : 'ok',
+                    'Min to max symptoms per disease')}
+            ${biasRow('Weight Range', bi.weight_average_range[0] + ' – ' + bi.weight_average_range[1], 'good',
+                        'Average weight range across diseases')}
+            ${biasRow('Bias Std Dev', bi.bias_std.toFixed(3), bi.bias_std < 0.6 ? 'good' : bi.bias_std < 0.9 ? 'ok' : 'bad',
+                            'Standard deviation of disease bias values')}
+        </div>
+    `;
+
+        // Symptom coverage summary
+        const sc = data.symptom_coverage;
+        const coverageEl = document.getElementById('symptom-coverage-summary');
+        coverageEl.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+            <div style="text-align: center; padding: 1rem; background: var(--bias-surface-alt); border-radius: 10px;">
+                <div style="font-size: 1.6rem; font-weight: 700; color: var(--bias-primary);">${sc.total_unique_symptoms}</div>
+                <div style="font-size: 0.78rem; color: var(--bias-text-muted); margin-top: 4px;">Total Unique Symptoms</div>
+            </div>
+            <div style="text-align: center; padding: 1rem; background: var(--bias-surface-alt); border-radius: 10px;">
+                <div style="font-size: 1.6rem; font-weight: 700; color: var(--bias-secondary);">${sc.shared_symptoms}</div>
+                <div style="font-size: 0.78rem; color: var(--bias-text-muted); margin-top: 4px;">Shared Across &gt;1 Disease</div>
+            </div>
+            <div style="text-align: center; padding: 1rem; background: var(--bias-surface-alt); border-radius: 10px;">
+                <div style="font-size: 1.6rem; font-weight: 700; color: var(--bias-accent);">${sc.unique_to_one_disease}</div>
+                <div style="font-size: 0.78rem; color: var(--bias-text-muted); margin-top: 4px;">Unique to One Disease</div>
+            </div>
+            <div style="text-align: center; padding: 1rem; background: var(--bias-surface-alt); border-radius: 10px;">
+                <div style="font-size: 1.6rem; font-weight: 700; color: var(--bias-success);">${sc.most_shared_count}</div>
+                <div style="font-size: 0.78rem; color: var(--bias-text-muted); margin-top: 4px;">Most Diseases / Symptom</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 1.25rem;">
+            <h6 style="font-size: 0.85rem; font-weight: 600; color: var(--bias-text); margin-bottom: 0.75rem;">Top Shared Symptoms</h6>
+            <div class="bar-chart" style="max-height: 300px;">
+                ${Object.entries(sc.symptoms).slice(0, 15).map(([symptom, info], i) => {
+            const pct = (info.disease_count / sc.most_shared_count) * 100;
+            const hue = 220 + (i * 8);
+            return `
+                        <div class="bar-row" style="animation-delay: ${i * 0.03}s">
+                            <div class="bar-label" title="${symptom.replace(/_/g, ' ')}">${symptom.replace(/_/g, ' ')}</div>
+                            <div class="bar-track">
+                                <div class="bar-fill" style="width: ${pct}%; background: hsl(${hue}, 65%, 55%);">
+                                    <span>${info.disease_count} diseases</span>
+                                </div>
+                            </div>
+                        </div>`;
+        }).join('')}
+            </div>
+        </div>
+    `;
+    }
+
+    function biasRow(label, value, level, tooltip) {
+        return `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.55rem 0.75rem; background: var(--bias-surface-alt); border-radius: 8px;" title="${tooltip}">
+            <span style="font-size: 0.85rem; color: var(--bias-text); font-weight: 500;">${label}</span>
+            <span class="metric-pill ${level}">${value}</span>
+        </div>
+    `;
+    }
+
+    function renderScoreRing(score) {
+        const container = document.getElementById('balance-score-ring');
+        const circumference = 2 * Math.PI * 56;
+        const offset = circumference - (score.overall / 100) * circumference;
+        const color = score.grade === 'A' ? '#10b981' : score.grade === 'B' ? '#06b6d4' : score.grade === 'C' ? '#f59e0b' : '#ef4444';
+
+        container.innerHTML = `
+        <div class="score-ring">
+            <svg width="140" height="140">
+                <circle class="ring-bg" cx="70" cy="70" r="56"/>
+                <circle class="ring-progress" cx="70" cy="70" r="56"
+                    stroke="${color}"
+                    stroke-dasharray="${circumference}"
+                    stroke-dashoffset="${circumference}"
+                    id="score-progress"/>
+            </svg>
+            <div class="ring-label">
+                <div class="ring-value" id="score-value">0</div>
+                <div class="ring-grade">Grade ${score.grade}</div>
+            </div>
+        </div>
+    `;
+
+        // Animate
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                document.getElementById('score-progress').style.strokeDashoffset = offset;
+                animateValue('score-value', 0, Math.round(score.overall), 1200);
+            }, 300);
+        });
+
+        document.getElementById('balance-breakdown').innerHTML = `
+        Symptom Balance: <strong>${score.symptom_count_balance.toFixed(1)}</strong> · 
+        Bias Balance: <strong>${score.bias_balance.toFixed(1)}</strong>
+    `;
+    }
+
+    function animateValue(id, start, end, duration) {
+        const el = document.getElementById(id);
+        const range = end - start;
+        const startTime = performance.now();
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+            el.textContent = Math.round(start + range * eased);
+            if (progress < 1) requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+    }
+
+    // ─── Distribution ──────────────────────────────────────────────
+    let distributionData = {};
+    let currentDistSort = { key: 'symptom_count', dir: 'desc' };
+
+    function renderDistribution(dist) {
+        distributionData = dist.diseases;
+        renderDistributionBars(distributionData, '');
+    }
+
+    function renderDistributionBars(diseases, filter) {
+        const chart = document.getElementById('distribution-chart');
+        let entries = Object.entries(diseases);
+
+        // filter
+        if (filter) {
+            const q = filter.toLowerCase();
+            entries = entries.filter(([k, v]) => k.replace(/_/g, ' ').includes(q));
+        }
+
+        // sort
+        entries.sort((a, b) => {
+            const va = a[1][currentDistSort.key];
+            const vb = b[1][currentDistSort.key];
+            return currentDistSort.dir === 'desc' ? vb - va : va - vb;
+        });
+
+        const maxCount = Math.max(...entries.map(e => e[1].symptom_count), 1);
+
+        chart.innerHTML = entries.map(([disease, info], i) => {
+            const pct = (info.symptom_count / maxCount) * 100;
+            const hue = (i * 4) % 360;
+            return `
+            <div class="bar-row" style="animation-delay: ${Math.min(i * 0.02, 0.5)}s;">
+                <div class="bar-label" title="${disease.replace(/_/g, ' ')}">${disease.replace(/_/g, ' ')}</div>
+                <div class="bar-track">
+                    <div class="bar-fill" style="width: ${pct}%; background: hsl(${hue}, 60%, 52%);">
+                        <span>${info.symptom_count} sym · wt ${info.avg_weight}</span>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ─── Performance ───────────────────────────────────────────────
+    let perfData = {};
+    let currentPerfSort = { key: 'accuracy', dir: 'desc' };
+
+    function renderPerformance(metrics) {
+        perfData = metrics;
+        renderPerfTable(metrics, '');
+    }
+
+    function renderPerfTable(metrics, filter) {
+        let entries = Object.entries(metrics);
+
+        if (filter) {
+            const q = filter.toLowerCase();
+            entries = entries.filter(([k]) => k.replace(/_/g, ' ').includes(q));
+        }
+
+        entries.sort((a, b) => {
+            const va = a[1][currentPerfSort.key];
+            const vb = b[1][currentPerfSort.key];
+            return currentPerfSort.dir === 'desc' ? vb - va : va - vb;
+        });
+
+        const tbody = document.getElementById('performance-tbody');
+        tbody.innerHTML = entries.map(([disease, m]) => `
+        <tr>
+            <td style="font-weight: 600;">${m.display_name}</td>
+            <td>${metricPill(m.accuracy)}</td>
+            <td>${metricPill(m.f1_score)}</td>
+            <td>${metricPill(m.sensitivity)}</td>
+            <td>${metricPill(m.specificity)}</td>
+            <td>${metricPill(m.precision)}</td>
+            <td><span style="color: var(--bias-text-muted);">${m.symptom_count}</span></td>
+        </tr>
+    `).join('');
+    }
+
+    function metricPill(val) {
+        const cls = val >= 0.8 ? 'good' : val >= 0.6 ? 'ok' : 'bad';
+        return `<span class="metric-pill ${cls}">${(val * 100).toFixed(1)}%</span>`;
+    }
+
+    // ─── Underrepresented ──────────────────────────────────────────
+    function renderUnderrepresented(diseases, symptoms) {
+        // Diseases
+        const dEl = document.getElementById('underrep-diseases');
+        if (!diseases.length) {
+            dEl.innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i><p>No underrepresented diseases found.</p></div>';
+        } else {
+            dEl.innerHTML = `
+            <div style="max-height: 500px; overflow-y: auto;">
+                ${diseases.map(d => `
+                    <div style="padding: 0.75rem; border-radius: 10px; background: var(--bias-surface-alt); border: 1px solid var(--bias-border); margin-bottom: 0.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                            <span style="font-weight: 600; font-size: 0.9rem; color: var(--bias-text);">${d.display_name}</span>
+                            <span class="severity-badge ${d.severity}">
+                                <i class="fas fa-${d.severity === 'high' ? 'exclamation-circle' : 'exclamation-triangle'}" style="font-size: 0.65rem;"></i>
+                                ${d.severity}
+                            </span>
+                        </div>
+                        <div style="font-size: 0.78rem; color: var(--bias-text-muted); margin-bottom: 0.3rem;">
+                            ${d.symptom_count} symptoms · avg weight ${d.avg_weight} · bias ${d.bias}
+                        </div>
+                        <div>${d.reasons.map(r => `<span class="reason-tag">${r}</span>`).join('')}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        }
+
+        // Symptoms  
+        const sEl = document.getElementById('underrep-symptoms');
+        if (!symptoms.length) {
+            sEl.innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i><p>No underrepresented symptoms found.</p></div>';
+        } else {
+            sEl.innerHTML = symptoms.slice(0, 50).map(s => `
+            <div style="padding: 0.6rem 0.75rem; border-radius: 8px; background: var(--bias-surface-alt); border: 1px solid var(--bias-border); margin-bottom: 0.4rem; font-size: 0.82rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 600; color: var(--bias-text);">${s.display_name}</span>
+                    <span style="color: var(--bias-text-muted);">${s.disease_count} disease${s.disease_count > 1 ? 's' : ''}</span>
+                </div>
+                <div style="margin-top: 3px;">${s.reasons.map(r => `<span class="reason-tag">${r}</span>`).join('')}</div>
+            </div>
+        `).join('');
+        }
+    }
+
+    // ─── Overlap ───────────────────────────────────────────────────
+    function renderOverlap(overlap) {
+        const el = document.getElementById('overlap-pairs');
+        const pairs = overlap.top_overlapping_pairs;
+
+        el.innerHTML = pairs.map((p, i) => `
+        <div class="overlap-pair" style="animation: fadeInUp 0.4s ease-out ${i * 0.04}s both;">
+            <div class="pair-names">
+                <span style="color: var(--bias-primary); font-weight: 600;">${p.disease_1.replace(/_/g, ' ')}</span>
+                <span style="color: var(--bias-text-muted); margin: 0 6px;">↔</span>
+                <span style="color: var(--bias-secondary); font-weight: 600;">${p.disease_2.replace(/_/g, ' ')}</span>
+            </div>
+            <div class="pair-count">${p.shared_count} shared</div>
+            <div class="pair-jaccard">J: ${p.jaccard_index.toFixed(3)}</div>
+        </div>
+    `).join('');
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // TABS
+    // ────────────────────────────────────────────────────────────────────────
+    function setupTabs() {
+        document.querySelectorAll('.bias-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.bias-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.bias-tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Sort controls for distribution
+        document.querySelectorAll('#tab-distribution .sort-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#tab-distribution .sort-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentDistSort = { key: btn.dataset.sort, dir: btn.dataset.dir };
+                renderDistributionBars(distributionData, document.getElementById('distribution-search').value);
+            });
+        });
+
+        // Sort controls for performance
+        document.querySelectorAll('#perf-sort-controls .sort-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#perf-sort-controls .sort-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentPerfSort = { key: btn.dataset.sort, dir: btn.dataset.dir };
+                renderPerfTable(perfData, document.getElementById('performance-search').value);
+            });
+        });
+    }
+
+    function setupSearches() {
+        document.getElementById('distribution-search').addEventListener('input', e => {
+            renderDistributionBars(distributionData, e.target.value);
+        });
+        document.getElementById('performance-search').addEventListener('input', e => {
+            renderPerfTable(perfData, e.target.value);
+        });
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // EXPORT
+    // ────────────────────────────────────────────────────────────────────────
+    function exportJSON() {
+        if (!analysisData) return;
+        const blob = new Blob([JSON.stringify(analysisData, null, 2)], { type: 'application/json' });
+        downloadBlob(blob, 'bias_analysis_report.json');
+    }
+
+    function exportCSV() {
+        if (!analysisData?.per_disease_metrics) return;
+        const metrics = analysisData.per_disease_metrics;
+        const headers = ['Disease', 'Accuracy', 'F1 Score', 'Sensitivity', 'Specificity', 'Precision', 'Symptoms', 'Bias'];
+        const rows = Object.entries(metrics).map(([disease, m]) =>
+            [m.display_name, m.accuracy, m.f1_score, m.sensitivity, m.specificity, m.precision, m.symptom_count, m.bias].join(',')
+        );
+        const csv = [headers.join(','), ...rows].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        downloadBlob(blob, 'bias_analysis_metrics.csv');
+    }
+
+    function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // INIT
+    // ────────────────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', loadAnalysis);
+</script>
+{% endblock %}
