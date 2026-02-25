@@ -130,6 +130,13 @@ def create_app():
         print("✅ 'chat_routes' blueprint registered successfully")
     except ImportError as e:
         print(f"⚠️ Warning: Could not import 'chat_routes'. Error: {e}")
+
+    try:
+        from backend.routes.bias_routes import bias_bp
+        app.register_blueprint(bias_bp)
+        print("✅ 'bias_routes' blueprint registered successfully")
+    except ImportError as e:
+        print(f"⚠️ Warning: Could not import 'bias_routes'. Error: {e}")
     
     @app.context_processor
     def inject_current_year():
