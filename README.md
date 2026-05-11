@@ -44,6 +44,29 @@ Always consult a qualified healthcare professional for medical advice.
 git clone https://github.com/aliviahossain/Disease-prediction.git
 cd Disease-prediction
 pip install -r requirements.txt
+## Environment Setup
+
+Before running the project, create a `.env` file in the root directory.
+
+The project already includes a `.env.example` file as a reference for required environment variables.
+
+Example:
+
+```env
+SECRET_KEY=your_secret_key_here
+```
+
+### macOS/Linux
+
+```bash
+cp .env.example .env
+```
+
+### Windows
+
+Create a `.env` file manually in the project root directory and copy the required variables from `.env.example`.
+
+Make sure the `SECRET_KEY` variable is added before running the application.
 python run.py
 ```
 Open in your browser:
