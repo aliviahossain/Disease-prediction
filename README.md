@@ -40,10 +40,13 @@ Always consult a qualified healthcare professional for medical advice.
 ---
 
 ## 🚀 Quick Start (30 seconds)
+
 ```bash
 git clone https://github.com/aliviahossain/Disease-prediction.git
 cd Disease-prediction
 pip install -r requirements.txt
+```
+
 ## Environment Setup
 
 Before running the project, create a `.env` file in the root directory.
@@ -67,12 +70,15 @@ cp .env.example .env
 Create a `.env` file manually in the project root directory and copy the required variables from `.env.example`.
 
 Make sure the `SECRET_KEY` variable is added before running the application.
+
+## Run the Application
+
+```bash
 python run.py
 ```
+
 Open in your browser:
 👉 http://127.0.0.1:5001/
-
-That’s it 🎉
 
 ## 📌 Key Features
 ### 📘 Educational Features
