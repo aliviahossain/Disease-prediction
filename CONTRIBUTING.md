@@ -1,6 +1,6 @@
-# 🤝 Contributing to Probability Calculator
+# 🤝 Contributing to Disease Prediction System
 
-Welcome! We're thrilled you're interested in contributing to the **Probability Calculator** project. Whether you're a beginner or an experienced developer, your contributions are valuable and appreciated.
+Welcome! We're thrilled you're interested in contributing to the **Disease Prediction System** project. Whether you're a beginner or an experienced developer, your contributions are valuable and appreciated.
 
 ---
 
@@ -25,8 +25,8 @@ Click the **Fork** button at the top-right of this page to create your own copy 
 ### 2. Clone Your Fork
 
 ```bash
-git clone https://github.com/your-username/Probability-Calculator.git
-cd Probability-Calculator
+git clone https://github.com/aliviahossain/Disease-prediction.git
+cd Disease-prediction
 ```
 
 ### 3. Create a New Branch
@@ -76,7 +76,7 @@ Please be kind and respectful in all interactions. Harassment or discrimination 
 ## 📬 Need Help?
 
 If you're stuck or have any questions:
-- Create an [issue](https://github.com/your-username/Probability-Calculator/issues)
+- Create an [issue](https://github.com/aliviahossain/Disease-prediction/issues)
 - Tag a maintainer or mention your problem in the issue
 
 ---
