@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import current_user
 from backend.models.ml_model import ml_model
+from backend.preprocessing import PreprocessingError, clean_prediction_payload
 from backend.utils.calculator import BayesCalculator
 from backend.models.prediction import PredictionHistory
 from backend import db
@@ -47,28 +48,16 @@ def predict_disease():
         if not data:
             return jsonify({'error': 'No data provided'}), 400
         
-        disease = data.get('disease').lower()
-        symptoms = data.get('symptoms', [])
-        age = data.get('age')
-        height = data.get("height_cm")
-        weight = data.get("weight_kg")
-
-        # Validate age if provided
-        if age is not None:
-            try:
-                age = int(age)
-            except (ValueError, TypeError):
-                # If age is invalid, we can either error out or ignore it. 
-                # Choosing to ignore it for robustness, or we could return 400.
-                # data.get('age') might be a string "25", so int() handles that.
-                # If it's trash text, int() throws ValueError.
-                age = None 
-        
-        if not disease:
-            return jsonify({'error': 'Disease not specified'}), 400
-        
-        if not symptoms or len(symptoms) == 0:
-            return jsonify({'error': 'No symptoms provided'}), 400
+        cleaned = clean_prediction_payload(
+            data,
+            valid_symptoms=(item["key"] for item in ml_model.get_all_unique_symptoms()),
+            require_disease=True,
+        )
+        disease = cleaned.disease
+        symptoms = cleaned.symptoms
+        age = cleaned.age
+        height = cleaned.height_cm
+        weight = cleaned.weight_kg
         
         # Get ML prediction
         ml_prediction = ml_model.predict_disease_probability(disease, symptoms, age=age, height_cm=height, weight_kg=weight)
@@ -116,6 +105,7 @@ def predict_disease():
             'disease': disease.replace('_', ' ').title(),
             'bmi': ml_prediction.get('bmi'),
             'bmi_category': ml_prediction.get('bmi_category'),
+            'preprocessing': cleaned.metadata(),
             'ml_prediction': {
                 'raw_probability': round(ml_prediction['raw_probability'] * 100, 2),
                 'confidence_score': round(ml_prediction['confidence_score'] * 100, 2),
@@ -155,15 +145,15 @@ def predict_multiple_diseases():
         if not data:
             return jsonify({'error': 'No data provided'}), 400
         
-        symptoms = data.get('symptoms', [])
-        
-        if not symptoms or len(symptoms) == 0:
-            return jsonify({'error': 'No symptoms provided'}), 400
-        
-        # Get predictions for all diseases with patient context
-        age = data.get('age')
-        height = data.get('height_cm')
-        weight = data.get('weight_kg')
+        cleaned = clean_prediction_payload(
+            data,
+            valid_symptoms=(item["key"] for item in ml_model.get_all_unique_symptoms()),
+            require_disease=False,
+        )
+        symptoms = cleaned.symptoms
+        age = cleaned.age
+        height = cleaned.height_cm
+        weight = cleaned.weight_kg
         
         predictions = ml_model.predict_multiple_diseases(symptoms, age=age, height_cm=height, weight_kg=weight)
         
@@ -207,9 +197,12 @@ def predict_multiple_diseases():
             'success': True,
             'predictions': top_predictions,
             'symptoms_count': len(symptoms),
+            'preprocessing': cleaned.metadata(),
             'total_diseases_checked': len(predictions)
         }), 200
         
+    except PreprocessingError as e:
+        return jsonify({'error': str(e)}), 400
     except Exception as e:
         return jsonify({'error': f'Prediction failed: {str(e)}'}), 500
 
