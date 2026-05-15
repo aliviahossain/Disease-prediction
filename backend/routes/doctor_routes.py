@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import func
 from backend import db
 from backend.models.prediction import PredictionHistory
+from backend.analysis.temporal_progression import analyze_temporal_progression
 
 doctor_bp = Blueprint(
     'doctor',
@@ -204,6 +205,8 @@ def get_patient_dashboard_data(user_id):
     
     # Convert predictions to dict list
     predictions_list = [pred.to_dict() for pred in user_predictions]
+
+    temporal_progression = analyze_temporal_progression(user_predictions)
         
     return {
         'statistics': {
@@ -216,6 +219,7 @@ def get_patient_dashboard_data(user_id):
         },
         'predictions': predictions_list,
         'risk_distribution': risk_distribution,
+        'temporal_progression': temporal_progression,
         'last_updated': datetime.utcnow().isoformat()
     }
 
