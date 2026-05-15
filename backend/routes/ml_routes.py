@@ -4,6 +4,7 @@ from backend.models.ml_model import ml_model
 from backend.preprocessing import PreprocessingError, clean_prediction_payload
 from backend.utils.calculator import BayesCalculator
 from backend.models.prediction import PredictionHistory
+from backend.analysis.temporal_progression import analyze_temporal_progression
 from backend import db
 import json
 import traceback
@@ -78,6 +79,8 @@ def predict_disease():
         risk_level_map = {'Low': 'low', 'Moderate': 'medium', 'High': 'high', 'Critical': 'critical'}
         risk_level_db = risk_level_map.get(risk_assessment['level'], 'medium')
         
+        prediction_record = None
+
         # Save prediction to database
         try:
             prediction_record = PredictionHistory(
@@ -120,6 +123,16 @@ def predict_disease():
             },
             'risk_assessment': risk_assessment
         }
+
+        if current_user.is_authenticated and prediction_record is not None:
+            history = PredictionHistory.query.filter_by(
+                user_id=current_user.id,
+                disease=disease,
+            ).order_by(PredictionHistory.created_at.asc()).all()
+            result['temporal_progression'] = analyze_temporal_progression(
+                history,
+                disease=disease,
+            )
         
         return jsonify(result), 200
         
@@ -269,6 +282,46 @@ def get_all_symptoms():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@ml_bp.route('/api/ml/temporal-progress', methods=['GET'])
+def get_temporal_progress():
+    """
+    Analyze disease progression over sequential prediction history.
+
+    Optional query params:
+        disease: Limit progression analysis to one disease key/name.
+        Authenticated users receive their own history. Anonymous users receive
+        only anonymous prediction history.
+    """
+    try:
+        disease = request.args.get('disease')
+
+        query = PredictionHistory.query
+
+        if disease:
+            disease_key = ml_model._get_disease_key(disease)
+            query = query.filter(PredictionHistory.disease == disease_key)
+        else:
+            disease_key = None
+
+        if current_user.is_authenticated:
+            query = query.filter(PredictionHistory.user_id == current_user.id)
+        else:
+            query = query.filter(PredictionHistory.user_id.is_(None))
+
+        predictions = query.order_by(PredictionHistory.created_at.asc()).all()
+        progression = analyze_temporal_progression(predictions, disease=disease_key)
+
+        return jsonify({
+            'success': True,
+            'temporal_progression': progression,
+        }), 200
+
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Temporal progression analysis failed: {str(e)}'}), 500
 
 
 @ml_bp.route('/api/ml/symptom-importance/<disease>', methods=['GET'])

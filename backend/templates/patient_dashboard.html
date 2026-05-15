@@ -230,6 +230,59 @@
             </div>
         </div>
 
+        <!-- Temporal Progression Row -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>Temporal Progression
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="progression-empty-state" class="text-center py-5 d-none">
+                            <i class="fas fa-chart-line fa-3x text-muted opacity-50 mb-3"></i>
+                            <p class="text-muted">Add more predictions over time to see progression trends.</p>
+                        </div>
+                        <canvas id="progression-chart" height="260"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                        <h5 class="mb-0">
+                            <i class="fas fa-notes-medical me-2"></i>Progression Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted">Trend</span>
+                            <span class="badge bg-secondary text-uppercase" id="progression-trend">--</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted">Recent Weighted Risk</span>
+                            <span class="fw-bold" id="recent-weighted-risk">--</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted">Change Since First</span>
+                            <span class="fw-bold" id="progression-delta">--</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted">Observations</span>
+                            <span class="fw-bold" id="progression-count">--</span>
+                        </div>
+                        <div class="pt-3 border-top">
+                            <p class="small text-muted mb-2" id="progression-interpretation">--</p>
+                            <small class="text-muted d-block">New symptoms: <span id="new-symptoms">--</span></small>
+                            <small class="text-muted d-block">Resolved symptoms: <span id="resolved-symptoms">--</span></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Prediction History Table -->
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-transparent border-0 pt-4">
@@ -312,6 +365,7 @@
 
 <script>
 let riskChart = null;
+let progressionChart = null;
 let allPredictions = [];
 let filteredPredictions = [];
 let currentPage = 1;
@@ -384,9 +438,105 @@ function updateDashboard(data) {
         
         // Update chart
         updateRiskChart(dist);
+        updateProgression(data.temporal_progression);
         
         // Render table
         renderPredictionsTable();
+    }
+}
+
+function formatSymptomList(symptoms) {
+    if (!symptoms || symptoms.length === 0) return 'None';
+    return symptoms.slice(0, 3).map(symptom => symptom.replaceAll('_', ' ')).join(', ');
+}
+
+function updateProgression(progression) {
+    const canvas = document.getElementById('progression-chart');
+    const emptyState = document.getElementById('progression-empty-state');
+    const hasTimeline = progression && progression.timeline && progression.timeline.length > 0;
+
+    if (!hasTimeline) {
+        emptyState.classList.remove('d-none');
+        canvas.classList.add('d-none');
+        return;
+    }
+
+    emptyState.classList.add('d-none');
+    canvas.classList.remove('d-none');
+
+    const trend = progression.trend || {};
+    const trendLabel = trend.direction || 'insufficient_data';
+    const trendClass = {
+        worsening: 'bg-danger',
+        improving: 'bg-success',
+        stable: 'bg-info',
+        insufficient_data: 'bg-secondary'
+    }[trendLabel] || 'bg-secondary';
+
+    const trendBadge = document.getElementById('progression-trend');
+    trendBadge.className = `badge ${trendClass} text-uppercase`;
+    trendBadge.textContent = trendLabel.replaceAll('_', ' ');
+    document.getElementById('recent-weighted-risk').textContent = `${progression.recent_weighted_probability_percent.toFixed(1)}%`;
+    document.getElementById('progression-delta').textContent = `${trend.probability_delta_percent.toFixed(1)}%`;
+    document.getElementById('progression-count').textContent = progression.observation_count;
+    document.getElementById('progression-interpretation').textContent = progression.interpretation;
+    document.getElementById('new-symptoms').textContent = formatSymptomList(progression.symptom_progression.new_symptoms);
+    document.getElementById('resolved-symptoms').textContent = formatSymptomList(progression.symptom_progression.resolved_symptoms);
+
+    const labels = progression.timeline.map(point => new Date(point.created_at).toLocaleDateString());
+    const visitRisk = progression.timeline.map(point => point.probability_percent);
+    const weightedRisk = progression.dynamic_updates.map(point => point.updated_probability * 100);
+
+    const chartData = {
+        labels,
+        datasets: [
+            {
+                label: 'Visit Risk',
+                data: visitRisk,
+                borderColor: 'rgba(13, 110, 253, 1)',
+                backgroundColor: 'rgba(13, 110, 253, 0.12)',
+                tension: 0.25,
+                fill: true
+            },
+            {
+                label: 'Recent Weighted Risk',
+                data: weightedRisk,
+                borderColor: 'rgba(25, 135, 84, 1)',
+                backgroundColor: 'rgba(25, 135, 84, 0.08)',
+                borderDash: [6, 4],
+                tension: 0.25
+            }
+        ]
+    };
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                min: 0,
+                max: 100,
+                ticks: {
+                    callback: value => `${value}%`
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    };
+
+    if (progressionChart) {
+        progressionChart.data = chartData;
+        progressionChart.update();
+    } else {
+        progressionChart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: chartData,
+            options: chartOptions
+        });
     }
 }
 
