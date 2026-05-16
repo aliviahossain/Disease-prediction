@@ -17,3 +17,4 @@ flask-login
 PyMySQL
 tensorflow
 pillow
+psycopg2-binary
