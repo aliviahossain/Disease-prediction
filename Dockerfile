@@ -27,5 +27,5 @@ COPY . .
 EXPOSE 5001
 
 # Command to run the application
-# We use gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "4", "--timeout", "120", "run:app"]
+# We use only 1 worker to save memory on Render Free Tier
+CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "1", "--timeout", "120", "run:app"]
