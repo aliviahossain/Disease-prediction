@@ -1,10 +1,9 @@
-import csv
+    import csv
+import math
 
 def bayesian_survival(prevalence, sensitivity, false_positive):
     """
     Calculate posterior probability using Bayes' Theorem.
-    P(Disease | Positive) = (Sensitivity * Prevalence) /
-                            [(Sensitivity * Prevalence) + (FalsePositive * (1 - Prevalence))]
     """
     try:
         prevalence = float(prevalence)
@@ -22,13 +21,11 @@ def bayesian_survival(prevalence, sensitivity, false_positive):
             raise ValueError(f"{name} must be between 0 and 1. Got {value}")
 
     p_pos = (sensitivity * prevalence) + (false_positive * (1 - prevalence))
-
     if p_pos == 0:
         raise ValueError("Invalid inputs caused division by zero")
 
     posterior = (sensitivity * prevalence) / p_pos
     return posterior
-
 
 def load_data(filepath):
     """
@@ -46,7 +43,6 @@ def load_data(filepath):
             results.append(row)
     return results
 
-
 def display_results(results):
     """
     Display the posterior probabilities.
@@ -63,110 +59,106 @@ def display_results(results):
 
 
 # ============================================================================
-# NEW: BayesCalculator Class for ML Integration
+# UPGRADED: BayesCalculator Class for ML Integration
 # ============================================================================
 
 class BayesCalculator:
     """
     Bayesian probability calculator for disease prediction.
-    Compatible with ML model integration.
+    Enhanced with rigorous data types and educational risk stratification.
     """
     
     def __init__(self):
         pass
-    
-    def calculate_posterior(self, prior, likelihood, false_positive_rate=0.05):
+
+    def calculate_posterior(self, prior: float, likelihood: float, false_positive_rate: float = 0.05) -> dict:
         """
-        Calculate posterior probability using Bayes' Theorem.
-        
-        Args:
-            prior: Prior probability (0-1)
-            likelihood: P(symptoms|disease) - probability of symptoms given disease (0-1)
-            false_positive_rate: P(symptoms|no disease) - probability of symptoms without disease (0-1)
-        
-        Returns:
-            Dictionary with prior, likelihood, posterior, and false_positive_rate
+        Calculates the posterior probability using Bayes' Theorem for ML models.
         """
         try:
             prior = float(prior)
             likelihood = float(likelihood)
             false_positive_rate = float(false_positive_rate)
         except (TypeError, ValueError):
-            raise ValueError(f"Non-numeric input provided")
-        
-        # Strict validation (do NOT silently fix values)
-        for name, value in [("Prior probability", prior),("Likelihood", likelihood),("False positive rate", false_positive_rate)]:
+            raise ValueError("Non-numeric input provided")
+
+        for name, value in [("Prior probability", prior), ("Likelihood", likelihood), ("False positive rate", false_positive_rate)]:
             if not (0.0 <= value <= 1.0):
                 raise ValueError(f"{name} must be between 0 and 1. Got {value}")
 
-        # Bayes' Theorem: P(D|S) = P(S|D) * P(D) / P(S)
-        # P(S) = P(S|D) * P(D) + P(S|~D) * P(~D)
+        complement_prior = 1.0 - prior
         numerator = likelihood * prior
-        denominator = numerator + (false_positive_rate * (1 - prior))
-        
-        if denominator == 0:
+        denominator = numerator + (false_positive_rate * complement_prior)
+
+        if math.isclose(denominator, 0.0):
             posterior = 0.0
         else:
             posterior = numerator / denominator
-        
+
+        if posterior < 0.35:
+            risk_category = "Low"
+        elif 0.35 <= posterior < 0.70:
+            risk_category = "Medium"
+        else:
+            risk_category = "High"
+
         return {
-            'prior': prior,
-            'likelihood': likelihood,
-            'posterior': posterior,
-            'false_positive_rate': false_positive_rate
+            'prior': round(prior, 4),
+            'likelihood': round(likelihood, 4),
+            'posterior': round(posterior, 4),
+            'false_positive_rate': round(false_positive_rate, 4),
+            'risk_tier': risk_category,
+            'shift_magnitude': round(posterior - prior, 4)
         }
-    
-    def calculate_with_test_result(self, prior, sensitivity, specificity, test_result='positive'):
+
+    def calculate_with_test_result(self, prior: float, sensitivity: float, specificity: float, test_result: str = 'positive') -> dict:
         """
-        Calculate posterior probability based on test result.
-        
-        Args:
-            prior: Prior probability of disease (0-1)
-            sensitivity: True positive rate (0-1)
-            specificity: True negative rate (0-1)
-            test_result: 'positive' or 'negative'
-        
-        Returns:
-            Dictionary with calculation results
+        Calculate posterior probability based on diagnostic test result.
         """
         try:
             prior = float(prior)
             sensitivity = float(sensitivity)
             specificity = float(specificity)
         except (TypeError, ValueError):
-            raise ValueError(f"Non-numeric input provided")
-        
-        for name, value in [("Prior probability", prior),("Sensitivity", sensitivity),("Specificity", specificity)]:
+            raise ValueError("Non-numeric input provided")
+
+        for name, value in [("Prior probability", prior), ("Sensitivity", sensitivity), ("Specificity", specificity)]:
             if not (0.0 <= value <= 1.0):
                 raise ValueError(f"{name} must be between 0 and 1. Got {value}")
-        
-        false_positive_rate = 1 - specificity
-        
-        if test_result.lower() == 'positive':
-            # P(D|+) = P(+|D) * P(D) / [P(+|D) * P(D) + P(+|~D) * P(~D)]
+
+        false_positive_rate = 1.0 - specificity
+
+        if str(test_result).lower() == 'positive':
             numerator = sensitivity * prior
-            denominator = numerator + (false_positive_rate * (1 - prior))
-        else:  # negative
-            # P(D|-) = P(-|D) * P(D) / [P(-|D) * P(D) + P(-|~D) * P(~D)]
-            numerator = (1 - sensitivity) * prior
-            denominator = numerator + (specificity * (1 - prior))
-        
-        if denominator == 0:
+            denominator = numerator + (false_positive_rate * (1.0 - prior))
+        else:
+            numerator = (1.0 - sensitivity) * prior
+            denominator = numerator + (specificity * (1.0 - prior))
+
+        if math.isclose(denominator, 0.0):
             posterior = 0.0
         else:
             posterior = numerator / denominator
-        
+
+        if posterior < 0.35:
+            risk_category = "Low"
+        elif 0.35 <= posterior < 0.70:
+            risk_category = "Medium"
+        else:
+            risk_category = "High"
+
         return {
-            'prior': prior,
-            'sensitivity': sensitivity,
-            'specificity': specificity,
-            'false_positive_rate': false_positive_rate,
-            'posterior': posterior,
-            'test_result': test_result
+            'prior': round(prior, 4),
+            'sensitivity': round(sensitivity, 4),
+            'specificity': round(specificity, 4),
+            'false_positive_rate': round(false_positive_rate, 4),
+            'posterior': round(posterior, 4),
+            'test_result': test_result,
+            'risk_tier': risk_category,
+            'shift_magnitude': round(posterior - prior, 4)
         }
 
 
 if __name__ == "__main__":
-    data_file = 'C:\\Users\\Vansh\\Desktop\\October\\Projects\\disease_refactor\\hospital_data.csv'
-    results = load_data(data_file)
-    display_results(results)
+    # Internal execution fallback
+    pass
