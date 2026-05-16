@@ -1,4 +1,4 @@
-    import csv
+import csv
 import math
 
 def bayesian_survival(prevalence, sensitivity, false_positive):
@@ -59,13 +59,13 @@ def display_results(results):
 
 
 # ============================================================================
-# UPGRADED: BayesCalculator Class for ML Integration
+# UPGRADED: BayesCalculator Class for ML Integration (Netlify & Frontend Sync)
 # ============================================================================
 
 class BayesCalculator:
     """
     Bayesian probability calculator for disease prediction.
-    Enhanced with rigorous data types and educational risk stratification.
+    Enhanced with data types, risk stratification, and backwards compatibility.
     """
     
     def __init__(self):
@@ -103,12 +103,16 @@ class BayesCalculator:
             risk_category = "High"
 
         return {
+            # Legacy fields (Keeps existing frontend components working perfectly)
             'prior': round(prior, 4),
             'likelihood': round(likelihood, 4),
             'posterior': round(posterior, 4),
             'false_positive_rate': round(false_positive_rate, 4),
-            'risk_tier': risk_category,
-            'shift_magnitude': round(posterior - prior, 4)
+            # New Advanced Data Science Fields
+            "prior_probability": round(prior, 4),
+            "posterior_probability": round(posterior, 4),
+            "risk_tier": risk_category,
+            "shift_magnitude": round(posterior - prior, 4)
         }
 
     def calculate_with_test_result(self, prior: float, sensitivity: float, specificity: float, test_result: str = 'positive') -> dict:
@@ -148,17 +152,20 @@ class BayesCalculator:
             risk_category = "High"
 
         return {
+            # Legacy fields (Keeps existing frontend components working perfectly)
             'prior': round(prior, 4),
             'sensitivity': round(sensitivity, 4),
             'specificity': round(specificity, 4),
             'false_positive_rate': round(false_positive_rate, 4),
             'posterior': round(posterior, 4),
             'test_result': test_result,
-            'risk_tier': risk_category,
-            'shift_magnitude': round(posterior - prior, 4)
+            # New Advanced Data Science Fields
+            "prior_probability": round(prior, 4),
+            "posterior_probability": round(posterior, 4),
+            "risk_tier": risk_category,
+            "shift_magnitude": round(posterior - prior, 4)
         }
 
 
 if __name__ == "__main__":
-    # Internal execution fallback
     pass
