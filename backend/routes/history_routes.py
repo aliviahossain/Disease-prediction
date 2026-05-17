@@ -1,7 +1,9 @@
-from flask import Blueprint, render_template, abort
+from flask import Blueprint, render_template, abort, Response
 from flask_login import login_required, current_user
 from backend.models.prediction import PredictionHistory
 from backend import db
+import csv
+from io import StringIO
 
 history_bp = Blueprint('history', __name__)
 
@@ -35,3 +37,46 @@ def history_detail(prediction_id):
     )
 
     return render_template('history_detail.html', prediction=prediction)
+
+@history_bp.route('/history/export/csv', methods=['GET'])
+@login_required
+def export_history_csv():
+    """
+    Export prediction history as CSV for the current user.
+    """
+
+    history = (
+        PredictionHistory.query.filter_by(user_id=current_user.id)
+        .order_by(PredictionHistory.created_at.desc())
+        .all()
+    )
+
+    output = StringIO()
+    writer = csv.writer(output)
+
+    # CSV Header
+    writer.writerow([
+        'Prediction ID',
+        'Disease',
+        'Risk Level',
+        'Created At'
+    ])
+
+    # CSV Rows
+    for record in history:
+        writer.writerow([
+            record.id,
+            record.disease,
+            record.risk_level,
+            record.created_at
+        ])
+
+    output.seek(0)
+
+    return Response(
+        output,
+        mimetype='text/csv',
+        headers={
+            'Content-Disposition': 'attachment; filename=prediction_history.csv'
+        }
+    )

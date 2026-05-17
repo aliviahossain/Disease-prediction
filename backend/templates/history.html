@@ -4,15 +4,15 @@
 
 {% block content %}
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0">
-            <i class="fas fa-history me-2 text-primary"></i>Prediction History
-        </h2>
-        <div>
-            <a href="/" class="btn btn-outline-primary">
-                <i class="fas fa-plus me-1"></i> New Prediction
-            </a>
-        </div>
+   <div class="d-flex gap-2">
+    <a href="/history/export/csv" class="btn btn-success">
+        <i class="fas fa-file-csv me-1"></i> Export CSV
+    </a>
+
+    <a href="/" class="btn btn-outline-primary">
+        <i class="fas fa-plus me-1"></i> New Prediction
+    </a>
+</div>
     </div>
 
     <div class="card shadow-sm border-0">
