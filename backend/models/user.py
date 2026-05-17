@@ -1,5 +1,4 @@
 from backend import db
-# from backend import login_manager # moved to init
 from flask_login import UserMixin
 
 class User(db.Model, UserMixin):
