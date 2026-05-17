@@ -15,5 +15,6 @@ streamlit
 plotly
 flask-login
 PyMySQL
-tensorflow
+tensorflow-cpu
 pillow
+psycopg2-binary
