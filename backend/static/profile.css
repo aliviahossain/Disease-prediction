@@ -145,6 +145,29 @@
     box-shadow: 0 0 5px rgba(37,99,235,0.3);
 }
 
+.dob-selects {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.3fr;
+    gap: 10px;
+}
+
+.dob-selects select {
+    background-color: #ffffff;
+    color: #111827;
+    cursor: pointer;
+}
+
+.dob-selects select option {
+    background-color: #ffffff;
+    color: #111827;
+}
+
+.dob-selects select:disabled {
+    background-color: #f3f4f6;
+    color: #6b7280;
+    cursor: not-allowed;
+}
+
 textarea {
     resize: vertical;
     min-height: 80px;
