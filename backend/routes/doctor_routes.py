@@ -261,6 +261,38 @@ def get_patient_data():
         }), 500
 
 
+@doctor_bp.route('/api/patient/temporal-trends', methods=['GET'])
+@login_required
+def get_patient_temporal_trends():
+    """
+    API endpoint to fetch sequential patient prediction history and vitals trends.
+    """
+    try:
+        from backend.utils.temporal_analysis import TemporalAnalysisEngine
+        
+        # Get patient history (sorted chronologically oldest to newest for analysis)
+        user_predictions = PredictionHistory.query.filter_by(
+            user_id=current_user.id
+        ).order_by(PredictionHistory.created_at.asc()).all()
+        
+        history_list = [pred.to_dict() for pred in user_predictions]
+        trends = TemporalAnalysisEngine.analyze_history_trends(history_list)
+        
+        return jsonify({
+            'success': True,
+            'data': trends
+        }), 200
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': 'Failed to process temporal trends analysis'
+        }), 500
+
+
 @doctor_bp.route('/api/doctor/dashboard', methods=['GET'])
 def get_dashboard_data():
     """
