@@ -1,0 +1,12 @@
+
+services:
+  disease-prediction-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: disease_prediction_container
+    ports:
+      - "5001:5001"
+    env_file:
+      - .env
+    restart: unless-stopped
