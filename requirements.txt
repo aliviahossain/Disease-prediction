@@ -3,7 +3,7 @@ pytest
 pytest-flask
 gunicorn
 serverless-wsgi
-google-generativeai
+google-genai
 python-dotenv
 numpy
 pandas
