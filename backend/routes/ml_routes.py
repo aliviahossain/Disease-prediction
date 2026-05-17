@@ -3,6 +3,7 @@ from flask_login import current_user
 from backend.models.ml_model import ml_model
 from backend.preprocessing import PreprocessingError, clean_prediction_payload
 from backend.utils.calculator import BayesCalculator
+from backend.utils.validation import validate_prediction_request
 from backend.models.prediction import PredictionHistory
 from backend import db
 import json
@@ -39,7 +40,10 @@ def predict_disease():
     Expected JSON payload:
     {
         "disease": "diabetes",
-        "symptoms": ["fever", "cough", "fatigue"]
+        "symptoms": ["fever", "cough", "fatigue"],
+        "age": 45,  // optional
+        "height_cm": 170,  // optional
+        "weight_kg": 75  // optional
     }
     """
     try:
@@ -47,6 +51,14 @@ def predict_disease():
         
         if not data:
             return jsonify({'error': 'No data provided'}), 400
+        
+        # Validate input data
+        is_valid, error_message = validate_prediction_request(data)
+        if not is_valid:
+            return jsonify({
+                'error': 'Validation failed',
+                'message': error_message
+            }), 400
         
         cleaned = clean_prediction_payload(
             data,
@@ -136,7 +148,10 @@ def predict_multiple_diseases():
     
     Expected JSON payload:
     {
-        "symptoms": ["fever", "cough", "fatigue"]
+        "symptoms": ["fever", "cough", "fatigue"],
+        "age": 45,  // optional
+        "height_cm": 170,  // optional
+        "weight_kg": 75  // optional
     }
     """
     try:
@@ -144,6 +159,14 @@ def predict_multiple_diseases():
         
         if not data:
             return jsonify({'error': 'No data provided'}), 400
+        
+        # Validate input data (disease not required for multiple prediction)
+        is_valid, error_message = validate_prediction_request(data)
+        if not is_valid:
+            return jsonify({
+                'error': 'Validation failed',
+                'message': error_message
+            }), 400
         
         cleaned = clean_prediction_payload(
             data,
