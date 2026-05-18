@@ -131,6 +131,18 @@
                     <i class="fas fa-chart-line me-2"></i>Prediction Results
                 </h2>
 
+                <!-- Custom Error Container -->
+                <div id="error-container" class="alert alert-danger alert-dismissible fade show shadow-sm mb-4" role="alert" style="display: none;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-circle fs-5 me-2"></i>
+                        <div>
+                            <strong class="me-1">Prediction failed:</strong>
+                            <span id="error-message">Unable to perform prediction.</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" onclick="hideError()" aria-label="Close"></button>
+                </div>
+
                 <div class="text-center py-5" id="loading" style="display: none;">
                     <div class="spinner-border text-primary mb-3" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -373,17 +385,36 @@
         catEl.className = `badge ${badge}`;
     }
 
+    function hideError() {
+        document.getElementById('error-container').style.display = 'none';
+    }
+
+    function showPredictionError(message) {
+        document.getElementById('error-message').textContent = message;
+        document.getElementById('error-container').style.display = 'block';
+        document.getElementById('no-results').style.display = 'block';
+    }
+
     async function predictDisease() {
         if (selectedSymptoms.length === 0) {
             alert('Please select at least one symptom');
             return;
         }
 
-        // Show loading
-        document.getElementById('loading').style.display = 'block';
+        // Hide previous errors & results
+        hideError();
         document.getElementById('no-results').style.display = 'none';
         const resultsContainer = document.getElementById('differential-diagnosis-container');
-        if (resultsContainer) resultsContainer.style.display = 'none'; // Ensure previous results are hidden
+        if (resultsContainer) resultsContainer.style.display = 'none';
+
+        // Show loading
+        document.getElementById('loading').style.display = 'block';
+
+        // Disable button and show spinner
+        const predictBtn = document.getElementById('predict-btn');
+        const originalBtnHTML = predictBtn.innerHTML;
+        predictBtn.disabled = true;
+        predictBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Predicting...';
 
         const age = document.getElementById('age-input').value;
         const h = document.getElementById('height-input').value;
@@ -395,40 +426,62 @@
         const gluc = document.getElementById('blood-glucose-input').value;
         const temp = document.getElementById('temp-input').value;
 
+        // Validation helper
+        function validateNumber(val, fieldName, isRequired = false) {
+            if (!val || val.trim() === '') {
+                if (isRequired) throw new Error(`${fieldName} is required`);
+                return null;
+            }
+            const num = parseFloat(val);
+            if (isNaN(num)) throw new Error(`Invalid numeric value for ${fieldName}`);
+            return num;
+        }
+
+        let payload;
+        try {
+            payload = {
+                symptoms: selectedSymptoms,
+                age: validateNumber(age, "Patient Age", true),
+                height_cm: validateNumber(h, "Height", true),
+                weight_kg: validateNumber(w, "Weight", true),
+                heart_rate: validateNumber(hr, "Heart Rate", false),
+                blood_pressure_systolic: validateNumber(sbp, "Systolic Blood Pressure", false),
+                blood_pressure_diastolic: validateNumber(dbp, "Diastolic Blood Pressure", false),
+                blood_glucose: validateNumber(gluc, "Blood Glucose", false),
+                temperature: validateNumber(temp, "Temperature", false)
+            };
+        } catch (err) {
+            showPredictionError(err.message);
+            document.getElementById('loading').style.display = 'none';
+            predictBtn.disabled = false;
+            predictBtn.innerHTML = originalBtnHTML;
+            return;
+        }
+
         try {
             const response = await fetch('/api/ml/predict-multiple', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    symptoms: selectedSymptoms,
-                    age: age ? parseInt(age) : null,
-                    height_cm: h ? parseFloat(h) : null,
-                    weight_kg: w ? parseFloat(w) : null,
-                    heart_rate: hr ? parseInt(hr) : null,
-                    blood_pressure_systolic: sbp ? parseInt(sbp) : null,
-                    blood_pressure_diastolic: dbp ? parseInt(dbp) : null,
-                    blood_glucose: gluc ? parseInt(gluc) : null,
-                    temperature: temp ? parseFloat(temp) : null
-                })
+                body: JSON.stringify(payload)
             });
 
             const data = await response.json();
 
             if (response.ok) {
                 displayResults(data);
-                // logic to show results container is inside displayResults or here? 
-                // displayResults handles the DOM update.
             } else {
-                alert(`Prediction Error: ${data.error || 'Unknown error'}`);
+                showPredictionError(data.error || 'Unknown error');
             }
 
         } catch (error) {
             console.error('Prediction error:', error);
-            alert('Failed to connect to the server. Please check your connection.');
+            showPredictionError('Failed to connect to the server. Please check your connection.');
         } finally {
             document.getElementById('loading').style.display = 'none';
+            predictBtn.disabled = false;
+            predictBtn.innerHTML = originalBtnHTML;
         }
     }
 

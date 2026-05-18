@@ -86,6 +86,18 @@
                             <p class="text-muted">Analyzing symptoms...</p>
                         </div>
 
+                        <!-- Custom Error Container -->
+                        <div id="error-container" class="alert alert-danger alert-dismissible fade show shadow-sm w-100 mb-3" role="alert" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-exclamation-circle fs-5 me-2"></i>
+                                <div>
+                                    <strong class="me-1">Prediction failed:</strong>
+                                    <span id="error-message">Unable to perform image-based prediction.</span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close" onclick="hideError()" aria-label="Close"></button>
+                        </div>
+
                         <!-- Result Container -->
                         <div id="results-container" style="display: none;">
                           <div class="card bg-light mb-3 shadow-sm">
@@ -283,6 +295,15 @@
   // Initialize upload once DOM is ready
   initializeImageUpload();
 
+  function hideError() {
+    document.getElementById("error-container").style.display = "none";
+  }
+
+  function showPredictionError(message) {
+    document.getElementById("error-message").textContent = message;
+    document.getElementById("error-container").style.display = "block";
+  }
+
   async function predictDiseaseType() {
     // Block prediction if no image uploaded
     if (!selectedImageFile) {
@@ -290,9 +311,18 @@
       return;
     }
 
+    // Hide previous errors & results
+    hideError();
+    document.getElementById('results-container').style.display = 'none';
+
     // Show loading
     document.getElementById('loading').style.display = 'block';
-    document.getElementById('results-container').style.display = 'none';
+
+    // Disable button and show spinner
+    const predictBtn = document.getElementById('predict-btn');
+    const originalBtnHTML = predictBtn.innerHTML;
+    predictBtn.disabled = true;
+    predictBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Predicting...';
 
     const formData = new FormData();
     formData.append("image", selectedImageFile);
@@ -306,15 +336,21 @@
 
       const data = await response.json();
 
-      // Insert the prediction results in the DOM
-      document.getElementById("ml-prediction-label").innerText = data.prediction;
-      document.getElementById("ml-probability").innerText = data.confidence + "%";
-
-      document.getElementById("loading").style.display = "none";
-      document.getElementById("results-container").style.display = "block";
+      if (response.ok) {
+        // Insert the prediction results in the DOM
+        document.getElementById("ml-prediction-label").innerText = data.prediction;
+        document.getElementById("ml-probability").innerText = data.confidence + "%";
+        document.getElementById("results-container").style.display = "block";
+      } else {
+        showPredictionError(data.error || 'Prediction failed');
+      }
     } catch (error) {
-      alert("Prediction failed");
       console.error(error);
+      showPredictionError('Failed to connect to the server. Please check your connection.');
+    } finally {
+      document.getElementById("loading").style.display = "none";
+      predictBtn.disabled = false;
+      predictBtn.innerHTML = originalBtnHTML;
     }
   }
 

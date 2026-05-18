@@ -109,6 +109,10 @@ def create_app():
 
     app.config["SECRET_KEY"] = secret_key
 
+    # Validate startup configuration (environment variables and model files)
+    from backend.utils.config_validator import validate_startup_config
+    validate_startup_config(app)
+
     # Initialize extensions with app
     db.init_app(app)
     bcrypt.init_app(app)

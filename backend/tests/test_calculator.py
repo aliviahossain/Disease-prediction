@@ -4,7 +4,7 @@ import os
 import csv
 import io
 import sys
-from src.calculator import bayesian_survival, load_data, display_results
+from backend.src.calculator import bayesian_survival, load_data, display_results
 
 class TestBayesianCalculator(unittest.TestCase):
 
