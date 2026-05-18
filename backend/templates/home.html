@@ -426,23 +426,45 @@
         const gluc = document.getElementById('blood-glucose-input').value;
         const temp = document.getElementById('temp-input').value;
 
+        // Validation helper
+        function validateNumber(val, fieldName, isRequired = false) {
+            if (!val || val.trim() === '') {
+                if (isRequired) throw new Error(`${fieldName} is required`);
+                return null;
+            }
+            const num = parseFloat(val);
+            if (isNaN(num)) throw new Error(`Invalid numeric value for ${fieldName}`);
+            return num;
+        }
+
+        let payload;
+        try {
+            payload = {
+                symptoms: selectedSymptoms,
+                age: validateNumber(age, "Patient Age", true),
+                height_cm: validateNumber(h, "Height", true),
+                weight_kg: validateNumber(w, "Weight", true),
+                heart_rate: validateNumber(hr, "Heart Rate", false),
+                blood_pressure_systolic: validateNumber(sbp, "Systolic Blood Pressure", false),
+                blood_pressure_diastolic: validateNumber(dbp, "Diastolic Blood Pressure", false),
+                blood_glucose: validateNumber(gluc, "Blood Glucose", false),
+                temperature: validateNumber(temp, "Temperature", false)
+            };
+        } catch (err) {
+            showPredictionError(err.message);
+            document.getElementById('loading').style.display = 'none';
+            predictBtn.disabled = false;
+            predictBtn.innerHTML = originalBtnHTML;
+            return;
+        }
+
         try {
             const response = await fetch('/api/ml/predict-multiple', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    symptoms: selectedSymptoms,
-                    age: age ? parseInt(age) : null,
-                    height_cm: h ? parseFloat(h) : null,
-                    weight_kg: w ? parseFloat(w) : null,
-                    heart_rate: hr ? parseInt(hr) : null,
-                    blood_pressure_systolic: sbp ? parseInt(sbp) : null,
-                    blood_pressure_diastolic: dbp ? parseInt(dbp) : null,
-                    blood_glucose: gluc ? parseInt(gluc) : null,
-                    temperature: temp ? parseFloat(temp) : null
-                })
+                body: JSON.stringify(payload)
             });
 
             const data = await response.json();
