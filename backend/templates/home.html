@@ -131,6 +131,18 @@
                     <i class="fas fa-chart-line me-2"></i>Prediction Results
                 </h2>
 
+                <!-- Custom Error Container -->
+                <div id="error-container" class="alert alert-danger alert-dismissible fade show shadow-sm mb-4" role="alert" style="display: none;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-circle fs-5 me-2"></i>
+                        <div>
+                            <strong class="me-1">Prediction failed:</strong>
+                            <span id="error-message">Unable to perform prediction.</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" onclick="hideError()" aria-label="Close"></button>
+                </div>
+
                 <div class="text-center py-5" id="loading" style="display: none;">
                     <div class="spinner-border text-primary mb-3" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -373,17 +385,36 @@
         catEl.className = `badge ${badge}`;
     }
 
+    function hideError() {
+        document.getElementById('error-container').style.display = 'none';
+    }
+
+    function showPredictionError(message) {
+        document.getElementById('error-message').textContent = message;
+        document.getElementById('error-container').style.display = 'block';
+        document.getElementById('no-results').style.display = 'block';
+    }
+
     async function predictDisease() {
         if (selectedSymptoms.length === 0) {
             alert('Please select at least one symptom');
             return;
         }
 
-        // Show loading
-        document.getElementById('loading').style.display = 'block';
+        // Hide previous errors & results
+        hideError();
         document.getElementById('no-results').style.display = 'none';
         const resultsContainer = document.getElementById('differential-diagnosis-container');
-        if (resultsContainer) resultsContainer.style.display = 'none'; // Ensure previous results are hidden
+        if (resultsContainer) resultsContainer.style.display = 'none';
+
+        // Show loading
+        document.getElementById('loading').style.display = 'block';
+
+        // Disable button and show spinner
+        const predictBtn = document.getElementById('predict-btn');
+        const originalBtnHTML = predictBtn.innerHTML;
+        predictBtn.disabled = true;
+        predictBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Predicting...';
 
         const age = document.getElementById('age-input').value;
         const h = document.getElementById('height-input').value;
@@ -418,17 +449,17 @@
 
             if (response.ok) {
                 displayResults(data);
-                // logic to show results container is inside displayResults or here? 
-                // displayResults handles the DOM update.
             } else {
-                alert(`Prediction Error: ${data.error || 'Unknown error'}`);
+                showPredictionError(data.error || 'Unknown error');
             }
 
         } catch (error) {
             console.error('Prediction error:', error);
-            alert('Failed to connect to the server. Please check your connection.');
+            showPredictionError('Failed to connect to the server. Please check your connection.');
         } finally {
             document.getElementById('loading').style.display = 'none';
+            predictBtn.disabled = false;
+            predictBtn.innerHTML = originalBtnHTML;
         }
     }
 
