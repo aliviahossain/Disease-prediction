@@ -3,6 +3,15 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
 
 <div class="profile-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} mb-3 py-2" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
 
     <!-- Top Profile Card -->
     <div class="profile-header">
@@ -13,7 +22,7 @@
             <h3>{{ user.username }}</h3>
             <p>{{ user.email }}</p>
         </div>
-        <button class="edit-btn" onclick="toggleEdit()">Edit</button>
+        <button type="button" class="edit-btn" onclick="toggleEdit()">Edit</button>
     </div>
 
     <!-- Tabs -->
@@ -30,21 +39,51 @@
 
                 <div class="card">
                     <h4>Contact Info</h4>
-                    <input class="editable" type="tel" name="phone" placeholder="Phone" value="{{ user.phone }}" disabled>
-                    <input class="editable" name="address" placeholder="Address" value="{{ user.address }}" disabled>
+                    <input class="editable" type="tel" name="phone" placeholder="Phone" value="{{ user.phone or '' }}"
+                        pattern="^\+[1-9][0-9]{7,14}$" minlength="9" maxlength="16"
+                        title="Enter country code plus sign followed by digits only, for example +15551234567." disabled>
+                    <input class="editable" name="address" placeholder="Address" value="{{ user.address or '' }}"
+                        minlength="5" maxlength="160" pattern="^[A-Za-z0-9][A-Za-z0-9\s,.'/#-]{4,159}$"
+                        title="Enter a valid address using letters, numbers, spaces, and common punctuation." disabled>
                 </div>
 
                 <div class="card">
                     <h4>Emergency Contact</h4>
-                    <input class="editable" name="emergency_name" placeholder="Name" value="{{ user.emergency_name }}" disabled>
-                    <input class="editable" name="emergency_relation" placeholder="Relation" value="{{ user.emergency_relation }}" disabled>
-                    <input class="editable" type="tel" name="emergency_phone" placeholder="Phone" value="{{ user.emergency_phone }}" disabled>
+                    <input class="editable" name="emergency_name" placeholder="Name" value="{{ user.emergency_name or '' }}"
+                        minlength="2" maxlength="80" pattern="^[A-Za-z][A-Za-z\s'.-]{1,79}$"
+                        title="Enter a valid name using letters, spaces, apostrophes, periods, or hyphens." disabled>
+                    <input class="editable" name="emergency_relation" placeholder="Relation" value="{{ user.emergency_relation or '' }}"
+                        minlength="2" maxlength="50" pattern="^[A-Za-z][A-Za-z\s'.-]{1,49}$"
+                        title="Enter a valid relation using letters, spaces, apostrophes, periods, or hyphens." disabled>
+                    <input class="editable" type="tel" name="emergency_phone" placeholder="Phone" value="{{ user.emergency_phone or '' }}"
+                        pattern="^\+[1-9][0-9]{7,14}$" minlength="9" maxlength="16"
+                        title="Enter country code plus sign followed by digits only, for example +15551234567." disabled>
                 </div>
 
                 <div class="card">
                     <h4>Demographics</h4>
-                    <input class="editable" type="date" name="dob" value="{{ user.dob }}" disabled>
+                    <div class="dob-selects">
+                        <select class="editable dob-field" name="dob_day" title="Click Edit to change DOB" disabled>
+                            <option value="">DD</option>
+                            {% for day in day_options %}
+                            <option value="{{ day }}" {% if user.dob and user.dob.day == day %}selected{% endif %}>{{ "%02d"|format(day) }}</option>
+                            {% endfor %}
+                        </select>
+                        <select class="editable dob-field" name="dob_month" title="Click Edit to change DOB" disabled>
+                            <option value="">MM</option>
+                            {% for month in month_options %}
+                            <option value="{{ month }}" {% if user.dob and user.dob.month == month %}selected{% endif %}>{{ "%02d"|format(month) }}</option>
+                            {% endfor %}
+                        </select>
+                        <select class="editable dob-field" name="dob_year" title="Click Edit to change DOB" disabled>
+                            <option value="">YYYY</option>
+                            {% for year in year_options %}
+                            <option value="{{ year }}" {% if user.dob and user.dob.year == year %}selected{% endif %}>{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <select class="editable" name="gender" disabled>
+                        <option value="" {% if not user.gender %}selected{% endif %}>Select Gender</option>
                         <option value="Male" {% if user.gender=='Male' %}selected{% endif %}>Male</option>
                         <option value="Female" {% if user.gender=='Female' %}selected{% endif %}>Female</option>
                         <option value="Other" {% if user.gender=='Other' %}selected{% endif %}>Other</option>
@@ -60,15 +99,28 @@
 
                 <div class="card">
                     <h4>Physical Metrics</h4>
-                    <input class="editable" id="height" type="number" name="height" placeholder="Height (cm)" value="{{ user.height }}" disabled oninput="calculateBMI()">
-                    <input class="editable" id="weight" type="number" name="weight" placeholder="Weight (kg)" value="{{ user.weight }}" disabled oninput="calculateBMI()">
-                    <input id="bmi" readonly placeholder="BMI" value="{{ user.bmi }}">
+                    <select class="editable" id="height" name="height" disabled onchange="calculateBMI()">
+                        <option value="">Select Height (cm)</option>
+                        {% for height in height_options %}
+                        <option value="{{ height }}" {% if user.height and user.height|int == height %}selected{% endif %}>{{ height }} cm</option>
+                        {% endfor %}
+                    </select>
+                    <select class="editable" id="weight" name="weight" disabled onchange="calculateBMI()">
+                        <option value="">Select Weight (kg)</option>
+                        {% for weight in weight_options %}
+                        <option value="{{ weight }}" {% if user.weight and user.weight|int == weight %}selected{% endif %}>{{ weight }} kg</option>
+                        {% endfor %}
+                    </select>
+                    <input id="bmi" readonly placeholder="BMI" value="{{ user.bmi or '' }}">
                 </div>
 
                 <div class="card">
                     <h4>Medical Safety</h4>
-                    <input class="editable" name="allergies" placeholder="Allergies" value="{{ user.allergies }}" disabled>
-                    <textarea class="editable" name="medical_notes" placeholder="Medical Notes" disabled>{{ user.medical_notes }}</textarea>
+                    <input class="editable" name="allergies" placeholder="Allergies" value="{{ user.allergies or '' }}" maxlength="200"
+                        pattern="^[A-Za-z][A-Za-z\s,.';:/()&+-]*$" title="Use text only. Numbers are not allowed."
+                        oninput="removeNumbers(this)" disabled>
+                    <textarea class="editable" name="medical_notes" placeholder="Medical Notes" maxlength="1000"
+                        title="Use text only. Numbers are not allowed." oninput="removeNumbers(this)" disabled>{{ user.medical_notes or '' }}</textarea>
                 </div>
 
             </div>
@@ -84,9 +136,18 @@
 
 <script>
 function toggleEdit() {
+    const saveBtn = document.querySelector('.save-btn');
+    const shouldEnable = saveBtn.disabled;
     const editables = document.querySelectorAll('.editable');
-    editables.forEach(el => el.disabled = !el.disabled);
-    document.querySelector('.save-btn').disabled = !document.querySelector('.save-btn').disabled;
+    editables.forEach(el => {
+        if (el !== saveBtn) {
+            el.disabled = !shouldEnable;
+            if (el.classList.contains('dob-field')) {
+                el.title = shouldEnable ? 'Select DOB value' : 'Click Edit to change DOB';
+            }
+        }
+    });
+    saveBtn.disabled = !shouldEnable;
 }
 
 function openTab(event, tabId) {
@@ -103,9 +164,10 @@ function calculateBMI() {
         document.getElementById("bmi").value = (w / (h * h)).toFixed(2);
     }
 }
+
+function removeNumbers(field) {
+    field.value = field.value.replace(/[0-9]/g, '');
+}
 </script>
 
 {% endblock %}
-
-
-

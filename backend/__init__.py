@@ -4,6 +4,7 @@ import secrets
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from backend.middleware.error_handler import ErrorHandler
+from sqlalchemy import inspect, text
 
 # Initialize extensions
 db = SQLAlchemy()
@@ -24,6 +25,39 @@ def load_user(user_id):
 from datetime import datetime
 
 
+def _ensure_user_profile_columns(engine):
+    """Add profile columns to existing SQLite databases created before this model update."""
+    if engine.dialect.name != "sqlite":
+        return
+
+    inspector = inspect(engine)
+    if "user" not in inspector.get_table_names():
+        return
+
+    existing_columns = {column["name"] for column in inspector.get_columns("user")}
+    profile_columns = {
+        "phone": "VARCHAR(20)",
+        "address": "VARCHAR(160)",
+        "emergency_name": "VARCHAR(80)",
+        "emergency_relation": "VARCHAR(50)",
+        "emergency_phone": "VARCHAR(20)",
+        "dob": "DATE",
+        "gender": "VARCHAR(20)",
+        "height": "FLOAT",
+        "weight": "FLOAT",
+        "bmi": "FLOAT",
+        "allergies": "VARCHAR(200)",
+        "medical_notes": "TEXT",
+    }
+
+    with engine.begin() as connection:
+        for column_name, column_type in profile_columns.items():
+            if column_name not in existing_columns:
+                connection.execute(
+                    text(f"ALTER TABLE user ADD COLUMN {column_name} {column_type}")
+                )
+
+
 def create_app():
     # Get the backend directory (where this __init__.py file is)
     backend_root = os.path.dirname(os.path.abspath(__file__))
@@ -42,6 +76,9 @@ def create_app():
     database_url = os.getenv("DATABASE_URL")
 
     if database_url:
+        # Compatibility fix for newer SQLAlchemy versions and Heroku-style URLs
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
         app.config["SQLALCHEMY_DATABASE_URI"] = database_url
     else:
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(
@@ -157,5 +194,6 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        _ensure_user_profile_columns(db.engine)
 
     return app

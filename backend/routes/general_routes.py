@@ -31,3 +31,7 @@ def connect():
 def service_worker():
     return current_app.send_static_file('service-worker.js')
 
+@general_bp.route('/health')
+def health_check():
+    return {"status": "healthy", "service": "disease-prediction-backend"}, 200
+

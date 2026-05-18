@@ -131,6 +131,7 @@ def disease():
 
         return jsonify({
             "p_d_given_result": round(p_d_given_result, 4),
+            "p_d_given_pos": round(p_d_given_result, 4),
             "test_result": test_result
         })
 

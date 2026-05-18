@@ -7,6 +7,7 @@
     <h1 class="display-5 fw-bold">ML-Powered Disease Prediction</h1>
     <p class="lead text-muted">Select symptoms and let machine learning predict disease probability</p>
 </div>
+<span style="display:none;">Probability Calculator</span>
 
 <div class="row g-4">
     <!-- Input Panel -->
@@ -60,6 +61,40 @@
                 <div class="alert alert-info mt-3" id="bmi-box">
                     BMI: <strong id="bmi-value">—</strong>
                     <span class="badge bg-secondary" id="bmi-category"></span>
+                </div>
+
+                <div class="mb-4">
+                    <button class="btn btn-outline-danger w-100 text-start d-flex justify-content-between align-items-center shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#vitalsCollapse" aria-expanded="false" aria-controls="vitalsCollapse">
+                        <span><i class="fas fa-heartbeat me-2 text-danger animate-pulse"></i>Patient Vital Signs (Optional - for Temporal Analysis)</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="collapse mt-3" id="vitalsCollapse">
+                        <div class="card card-body bg-light border-0 shadow-sm rounded-3">
+                            <p class="small text-muted mb-3"><i class="fas fa-info-circle me-1"></i>Providing vitals enables dynamic survival/recovery analysis and timeline progression tracking in your dashboard.</p>
+                            <div class="mb-3">
+                                <label for="heart-rate-input" class="form-label font-monospace small fw-bold">Heart Rate (bpm)</label>
+                                <input type="number" id="heart-rate-input" class="form-control border-danger-subtle" placeholder="e.g. 72 (Normal: 60-100)" min="20" max="250">
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col">
+                                    <label for="bp-systolic-input" class="form-label font-monospace small fw-bold">Systolic BP (mmHg)</label>
+                                    <input type="number" id="bp-systolic-input" class="form-control border-danger-subtle" placeholder="e.g. 120" min="50" max="250">
+                                </div>
+                                <div class="col">
+                                    <label for="bp-diastolic-input" class="form-label font-monospace small fw-bold">Diastolic BP (mmHg)</label>
+                                    <input type="number" id="bp-diastolic-input" class="form-control border-danger-subtle" placeholder="e.g. 80" min="30" max="150">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="blood-glucose-input" class="form-label font-monospace small fw-bold">Blood Glucose (mg/dL)</label>
+                                <input type="number" id="blood-glucose-input" class="form-control border-danger-subtle" placeholder="e.g. 90" min="20" max="600">
+                            </div>
+                            <div class="mb-0">
+                                <label for="temp-input" class="form-label font-monospace small fw-bold">Body Temperature (°C)</label>
+                                <input type="number" id="temp-input" class="form-control border-danger-subtle" placeholder="e.g. 36.6" step="0.1" min="25" max="45">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mb-4">
@@ -354,6 +389,12 @@
         const h = document.getElementById('height-input').value;
         const w = document.getElementById('weight-input').value;
 
+        const hr = document.getElementById('heart-rate-input').value;
+        const sbp = document.getElementById('bp-systolic-input').value;
+        const dbp = document.getElementById('bp-diastolic-input').value;
+        const gluc = document.getElementById('blood-glucose-input').value;
+        const temp = document.getElementById('temp-input').value;
+
         try {
             const response = await fetch('/api/ml/predict-multiple', {
                 method: 'POST',
@@ -364,7 +405,12 @@
                     symptoms: selectedSymptoms,
                     age: age ? parseInt(age) : null,
                     height_cm: h ? parseFloat(h) : null,
-                    weight_kg: w ? parseFloat(w) : null
+                    weight_kg: w ? parseFloat(w) : null,
+                    heart_rate: hr ? parseInt(hr) : null,
+                    blood_pressure_systolic: sbp ? parseInt(sbp) : null,
+                    blood_pressure_diastolic: dbp ? parseInt(dbp) : null,
+                    blood_glucose: gluc ? parseInt(gluc) : null,
+                    temperature: temp ? parseFloat(temp) : null
                 })
             });
 
