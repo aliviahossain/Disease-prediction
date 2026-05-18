@@ -116,7 +116,7 @@ def test_secret_key_not_hardcoded():
         '__init__.py'
     )
     
-    with open(init_file, 'r') as f:
+    with open(init_file, 'r', encoding='utf-8') as f:
         content = f.read()
     
     # Remove comments
@@ -124,8 +124,8 @@ def test_secret_key_not_hardcoded():
     content_no_comments = '\n'.join(lines)
     
     # Assert - ensure SECRET_KEY is loaded from environment, not hardcoded
-    # Should have os.getenv('SECRET_KEY') somewhere
-    assert "os.getenv('SECRET_KEY')" in content_no_comments
+    # Should have os.getenv('SECRET_KEY') or os.getenv("SECRET_KEY") somewhere
+    assert "os.getenv('SECRET_KEY')" in content_no_comments or 'os.getenv("SECRET_KEY")' in content_no_comments
     
     # Verify no literal key assignments (e.g., secret_key = 'hardcoded_value')
     # This pattern checks for literal string assignments without environment loading

@@ -34,12 +34,18 @@ class CleanedPredictionInput:
     age: Optional[int] = None
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
+    heart_rate: Optional[float] = None
+    blood_pressure_systolic: Optional[float] = None
+    blood_pressure_diastolic: Optional[float] = None
+    blood_glucose: Optional[float] = None
+    temperature: Optional[float] = None
     dropped_symptoms: List[str] = field(default_factory=list)
 
     def metadata(self) -> Dict[str, Any]:
         return {
             "dropped_symptoms": self.dropped_symptoms,
             "normalized_symptoms_count": len(self.symptoms),
+            "has_vitals": self.heart_rate is not None or self.blood_pressure_systolic is not None or self.blood_glucose is not None or self.temperature is not None
         }
 
 
@@ -170,5 +176,10 @@ def clean_prediction_payload(
         age=clean_int(payload.get("age"), "Age", 0, 120),
         height_cm=clean_float(payload.get("height_cm"), "Height", 30, 272),
         weight_kg=clean_float(payload.get("weight_kg"), "Weight", 1, 635),
+        heart_rate=clean_float(payload.get("heart_rate"), "Heart Rate", 20, 250),
+        blood_pressure_systolic=clean_float(payload.get("blood_pressure_systolic"), "Systolic Blood Pressure", 50, 250),
+        blood_pressure_diastolic=clean_float(payload.get("blood_pressure_diastolic"), "Diastolic Blood Pressure", 30, 150),
+        blood_glucose=clean_float(payload.get("blood_glucose"), "Blood Glucose", 20, 600),
+        temperature=clean_float(payload.get("temperature"), "Temperature", 25, 45),
         dropped_symptoms=dropped,
     )

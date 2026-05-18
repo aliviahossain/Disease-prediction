@@ -29,6 +29,14 @@ class PredictionHistory(db.Model):
     ml_probability = db.Column(db.Float, nullable=False)
     bayesian_posterior = db.Column(db.Float, nullable=True)
     confidence_score = db.Column(db.Float, nullable=True)
+    survival_probability = db.Column(db.Float, nullable=True) # Dynamically calculated temporal survival probability
+    
+    # Patient Vitals (nullable, optional)
+    heart_rate = db.Column(db.Float, nullable=True)
+    blood_pressure_systolic = db.Column(db.Float, nullable=True)
+    blood_pressure_diastolic = db.Column(db.Float, nullable=True)
+    blood_glucose = db.Column(db.Float, nullable=True)
+    temperature = db.Column(db.Float, nullable=True)
     
     # Risk assessment
     risk_level = db.Column(db.String(20), nullable=False, index=True)  # low, medium, high, critical
@@ -61,6 +69,12 @@ class PredictionHistory(db.Model):
             'symptoms': self.get_symptoms_list(),
             'ml_probability': self.ml_probability,
             'bayesian_posterior': self.bayesian_posterior,
+            'survival_probability': self.survival_probability,
+            'heart_rate': self.heart_rate,
+            'blood_pressure_systolic': self.blood_pressure_systolic,
+            'blood_pressure_diastolic': self.blood_pressure_diastolic,
+            'blood_glucose': self.blood_glucose,
+            'temperature': self.temperature,
             'risk_level': self.risk_level,
             'patient_age': self.patient_age,
             'created_at': self.created_at.isoformat() if self.created_at else None
