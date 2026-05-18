@@ -1,3 +1,4 @@
+import csv
 import math
 
 class BayesianDiagnosticCalculator:
@@ -32,7 +33,7 @@ class BayesianDiagnosticCalculator:
             posterior = 0.0
         else:
             posterior = numerator / denominator
-            
+
         # Assign an educational risk stratification layer
         if posterior < 0.35:
             risk_category = "Low"
@@ -47,3 +48,43 @@ class BayesianDiagnosticCalculator:
             "risk_tier": risk_category,
             "shift_magnitude": round(posterior - prior, 4)
         }
+
+def bayesian_survival(prevalence, sensitivity, false_positive):
+    """Fallback functional wrapper linking legacy code to class logic."""
+    calc = BayesianDiagnosticCalculator()
+    res = calc.calculate_posterior(float(prevalence), float(sensitivity), float(false_positive))
+    return res["posterior_probability"]
+
+def load_data(filepath):
+    """Load hospital data from CSV and calculate posterior probabilities."""
+    results = []
+    with open(filepath, mode="r") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            prevalence = float(row["Prevalence"])
+            sensitivity = float(row["Sensitivity"])
+            false_positive = float(row["FalsePositive"])
+            posterior = bayesian_survival(prevalence, sensitivity, false_positive)
+            row["Posterior"] = round(posterior, 4)
+            results.append(row)
+    return results
+
+def display_results(results):
+    """Display the calculated posterior probabilities."""
+    for result in results:
+        specificity = 1 - float(result["FalsePositive"])
+        print(
+            f"Disease: {result['Disease']}, "
+            f"Prevalence: {result['Prevalence']}, "
+            f"Sensitivity: {result['Sensitivity']}, "
+            f"Specificity: {specificity:.2f}, "
+            f"Posterior: {result['Posterior']:.4f}"
+        )
+
+if __name__ == "__main__":
+    data_file = 'hospital_data.csv'
+    try:
+        results = load_data(data_file)
+        display_results(results)
+    except Exception as e:
+        pass

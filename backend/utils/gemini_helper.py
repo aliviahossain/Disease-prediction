@@ -3,15 +3,21 @@ Gemini API helper for generating recommendations based on disease probability re
 """
 
 import os
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from typing import Optional
+
+# Global client variable to keep configuration simple
+client = None
 
 def configure_gemini():
     """Configure Gemini API with the API key from environment variables."""
+    global client
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise ValueError("GEMINI_API_KEY environment variable is not set")
-    genai.configure(api_key=api_key)
+    # Initialize the new SDK client instance
+    client = genai.Client(api_key=api_key)
 
 
 def generate_recommendations(disease_name: Optional[str], 
@@ -38,17 +44,17 @@ def generate_recommendations(disease_name: Optional[str],
         # Create the model - use the latest available flash model
         # Try newer models first, fall back to older ones if needed
         model_names = [ 'gemini-2.5-flash', 'gemini-2.5-pro']
-        model = None
+        chosen_model = None
         
         for model_name in model_names:
             try:
-                model = genai.GenerativeModel(model_name)
+                chosen_model = model_name
                 break
             except:
                 continue
         
-        if model is None:
-            model = genai.GenerativeModel('gemini-2.5-flash')
+        if chosen_model is None:
+            chosen_model = 'gemini-2.5-flash'
         
         # Construct the prompt
         disease_context = f"the disease '{disease_name}'" if disease_name else "a disease"
@@ -89,8 +95,11 @@ Structure your response in the following format:
 Keep your response concise (under 200 words), professional, educational, and emphasize that this is a probabilistic tool, not a definitive diagnosis. The recommendations should be general guidance that would apply to most cases.
 """
         
-        # Generate response
-        response = model.generate_content(prompt)
+        # Generate response using the new client format
+        response = client.models.generate_content(
+            model=chosen_model,
+            contents=prompt
+        )
         
         return {
             "success": True,
@@ -127,9 +136,6 @@ def generate_chat_response(message: str, history: list = None) -> dict:
     try:
         configure_gemini()
         
-        # Create the model
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        
         # System instruction to restrict domain
         system_instruction = """
         You are a helpful AI assistant for a Disease Prediction Application.
@@ -141,19 +147,20 @@ def generate_chat_response(message: str, history: list = None) -> dict:
         
         STRICT RULES:
         1. ONLY answer questions related to health, medicine, diseases, symptoms, treatments, and this application.
-        2. If a user asks a non-medical question (e.g., "Who won the World Cup?", "Write python code for..."), politey REFUSE.
+        2. If a user asks a non-medical question (e.g., "Who won the World Cup?", "Write python code for..."), politely REFUSE.
            - Example refusal: "I apologize, but I am specialized in health and disease prediction. I cannot answer general queries outside this domain."
         3. ALWAYS include a disclaimer for specific medical advice: "I am an AI, not a doctor. Please consult a healthcare professional for diagnosis and treatment."
         4. Keep answers concise (under 150 words) unless detailed explanation is requested.
         5. Be empathetic and professional.
         """
         
-        # Construct chat history if provided (not implemented fully in this simple version, 
-        # but ready for expansion where we'd convert history list to Gemini format)
-        chat = model.start_chat(history=[
-            {"role": "user", "parts": [system_instruction]},
-            {"role": "model", "parts": ["Understood. I am ready to assist with health and application-related queries only."]}
-        ])
+        # Use the modern chats utility instance configuration passing system instruction
+        chat = client.chats.create(
+            model='gemini-2.5-flash',
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction
+            )
+        )
         
         response = chat.send_message(message)
         
@@ -174,4 +181,3 @@ def generate_chat_response(message: str, history: list = None) -> dict:
             "error": str(e),
             "response": "I'm having trouble connecting right now. Please try again later."
         }
-

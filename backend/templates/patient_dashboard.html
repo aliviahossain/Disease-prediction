@@ -146,160 +146,289 @@
             </div>
         </div>
 
-        <!-- Risk Distribution and Summary Row -->
-        <div class="row g-4 mb-4">
-            <!-- Risk Distribution Chart -->
-            <div class="col-lg-8">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                        <h5 class="mb-0">
-                            <i class="fas fa-chart-pie me-2"></i>Your Risk Distribution
-                        </h5>
+        <!-- Tabs Nav to switch between Overview and Temporal Progression -->
+        <ul class="nav nav-pills nav-fill mb-4 shadow-sm p-1 bg-white rounded border" id="dashboard-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold py-2" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary-panel" type="button" role="tab" aria-controls="summary-panel" aria-selected="true">
+                    <i class="fas fa-chart-pie me-2"></i>Overview & Risk Distribution
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold py-2 text-danger" id="temporal-tab" data-bs-toggle="tab" data-bs-target="#temporal-panel" type="button" role="tab" aria-controls="temporal-panel" aria-selected="false" onclick="loadTemporalTrends()">
+                    <i class="fas fa-chart-line me-2"></i>Temporal Progression & Vitals Trends <span class="badge bg-danger ms-1 small">New</span>
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Contents -->
+        <div class="tab-content shadow-none" id="dashboard-tabs-content">
+            <!-- Overview & Summary Tab -->
+            <div class="tab-pane fade show active" id="summary-panel" role="tabpanel" aria-labelledby="summary-tab">
+                <!-- Risk Distribution and Summary Row -->
+                <div class="row g-4 mb-4">
+                    <!-- Risk Distribution Chart -->
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-chart-pie me-2"></i>Your Risk Distribution
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="chart-empty-state" class="text-center py-5 d-none">
+                                    <i class="fas fa-chart-pie fa-3x text-muted opacity-50 mb-3"></i>
+                                    <p class="text-muted">No predictions yet. Make your first prediction to see your risk distribution.</p>
+                                </div>
+                                <canvas id="risk-chart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risk Summary -->
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-list-alt me-2"></i>Risk Summary
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="risk-summary-item d-flex align-items-center justify-content-between p-3 mb-2 rounded" style="background-color: rgba(40, 167, 69, 0.1);">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-success me-2">&nbsp;</span>
+                                        <span>Low Risk</span>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="fw-bold" id="low-risk-count">--</span>
+                                        <small class="text-muted ms-1">(<span id="low-risk-pct">--</span>%)</small>
+                                    </div>
+                                </div>
+
+                                <div class="risk-summary-item d-flex align-items-center justify-content-between p-3 mb-2 rounded" style="background-color: rgba(255, 193, 7, 0.1);">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-warning me-2">&nbsp;</span>
+                                        <span>Medium Risk</span>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="fw-bold" id="medium-risk-count">--</span>
+                                        <small class="text-muted ms-1">(<span id="medium-risk-pct">--</span>%)</small>
+                                    </div>
+                                </div>
+
+                                <div class="risk-summary-item d-flex align-items-center justify-content-between p-3 mb-2 rounded" style="background-color: rgba(255, 152, 0, 0.1);">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge me-2" style="background-color: #ff9800 !important;">&nbsp;</span>
+                                        <span>High Risk</span>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="fw-bold" id="high-risk-summary">--</span>
+                                        <small class="text-muted ms-1">(<span id="high-risk-pct">--</span>%)</small>
+                                    </div>
+                                </div>
+
+                                <div class="risk-summary-item d-flex align-items-center justify-content-between p-3 rounded" style="background-color: rgba(220, 53, 69, 0.1);">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-danger me-2">&nbsp;</span>
+                                        <span>Critical Risk</span>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="fw-bold" id="critical-risk-summary">--</span>
+                                        <small class="text-muted ms-1">(<span id="critical-risk-pct">--</span>%)</small>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 pt-3 border-top">
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Last updated: <span id="last-updated">--</span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prediction History Table -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-history me-2"></i>Prediction History
+                                </h5>
+                            </div>
+                            <div class="col-auto">
+                                <div class="input-group input-group-sm" style="width: 250px;">
+                                    <span class="input-group-text bg-transparent border-end-0">
+                                        <i class="fas fa-search text-muted"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-start-0" id="search-predictions" placeholder="Search predictions...">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div id="chart-empty-state" class="text-center py-5 d-none">
-                            <i class="fas fa-chart-pie fa-3x text-muted opacity-50 mb-3"></i>
-                            <p class="text-muted">No predictions yet. Make your first prediction to see your risk distribution.</p>
+                        <!-- Empty State -->
+                        <div id="history-empty-state" class="text-center py-5 d-none">
+                            <i class="fas fa-clipboard-list fa-3x text-muted opacity-50 mb-3"></i>
+                            <h5 class="text-muted">No Predictions Yet</h5>
+                            <p class="text-muted mb-4">Start by making your first disease prediction to track your health journey.</p>
+                            <a href="/" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Make Your First Prediction
+                            </a>
                         </div>
-                        <canvas id="risk-chart" height="300"></canvas>
+
+                        <!-- Table -->
+                        <div id="history-table-container">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle" id="predictions-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col" class="sortable" data-sort="created_at">
+                                                Date/Time <i class="fas fa-sort ms-1"></i>
+                                            </th>
+                                            <th scope="col" class="sortable" data-sort="disease">
+                                                Disease <i class="fas fa-sort ms-1"></i>
+                                            </th>
+                                            <th scope="col">Symptoms</th>
+                                            <th scope="col" class="sortable" data-sort="ml_probability">
+                                                ML Probability <i class="fas fa-sort ms-1"></i>
+                                            </th>
+                                            <th scope="col" class="sortable" data-sort="bayesian_posterior">
+                                                Bayesian Score <i class="fas fa-sort ms-1"></i>
+                                            </th>
+                                            <th scope="col" class="sortable" data-sort="risk_level">
+                                                Risk Level <i class="fas fa-sort ms-1"></i>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="predictions-tbody">
+                                        <!-- Rows will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination -->
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div class="text-muted small">
+                                    Showing <span id="showing-start">0</span>-<span id="showing-end">0</span> of <span id="total-items">0</span> predictions
+                                </div>
+                                <nav aria-label="Prediction history pagination">
+                                    <ul class="pagination pagination-sm mb-0" id="pagination">
+                                        <!-- Pagination will be populated by JavaScript -->
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Risk Summary -->
-            <div class="col-lg-4">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-transparent border-0 pt-4 pb-0">
-                        <h5 class="mb-0">
-                            <i class="fas fa-list-alt me-2"></i>Risk Summary
-                        </h5>
+            <!-- Temporal Progression Tab -->
+            <div class="tab-pane fade" id="temporal-panel" role="tabpanel" aria-labelledby="temporal-tab">
+                <div id="temporal-loading" class="text-center py-5">
+                    <div class="spinner-border text-danger mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
-                    <div class="card-body">
-                        <div class="risk-summary-item d-flex align-items-center justify-content-between p-3 mb-2 rounded" style="background-color: rgba(40, 167, 69, 0.1);">
-                            <div class="d-flex align-items-center">
-                                <span class="badge bg-success me-2">&nbsp;</span>
-                                <span>Low Risk</span>
-                            </div>
-                            <div class="text-end">
-                                <span class="fw-bold" id="low-risk-count">--</span>
-                                <small class="text-muted ms-1">(<span id="low-risk-pct">--</span>%)</small>
-                            </div>
-                        </div>
-
-                        <div class="risk-summary-item d-flex align-items-center justify-content-between p-3 mb-2 rounded" style="background-color: rgba(255, 193, 7, 0.1);">
-                            <div class="d-flex align-items-center">
-                                <span class="badge bg-warning me-2">&nbsp;</span>
-                                <span>Medium Risk</span>
-                            </div>
-                            <div class="text-end">
-                                <span class="fw-bold" id="medium-risk-count">--</span>
-                                <small class="text-muted ms-1">(<span id="medium-risk-pct">--</span>%)</small>
-                            </div>
-                        </div>
-
-                        <div class="risk-summary-item d-flex align-items-center justify-content-between p-3 mb-2 rounded" style="background-color: rgba(255, 152, 0, 0.1);">
-                            <div class="d-flex align-items-center">
-                                <span class="badge me-2" style="background-color: #ff9800 !important;">&nbsp;</span>
-                                <span>High Risk</span>
-                            </div>
-                            <div class="text-end">
-                                <span class="fw-bold" id="high-risk-summary">--</span>
-                                <small class="text-muted ms-1">(<span id="high-risk-pct">--</span>%)</small>
-                            </div>
-                        </div>
-
-                        <div class="risk-summary-item d-flex align-items-center justify-content-between p-3 rounded" style="background-color: rgba(220, 53, 69, 0.1);">
-                            <div class="d-flex align-items-center">
-                                <span class="badge bg-danger me-2">&nbsp;</span>
-                                <span>Critical Risk</span>
-                            </div>
-                            <div class="text-end">
-                                <span class="fw-bold" id="critical-risk-summary">--</span>
-                                <small class="text-muted ms-1">(<span id="critical-risk-pct">--</span>%)</small>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 pt-3 border-top">
-                            <small class="text-muted">
-                                <i class="fas fa-clock me-1"></i>
-                                Last updated: <span id="last-updated">--</span>
-                            </small>
-                        </div>
-                    </div>
+                    <p class="text-muted">Analyzing clinical timeline and trends...</p>
                 </div>
-            </div>
-        </div>
-
-        <!-- Prediction History Table -->
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-transparent border-0 pt-4">
-                <div class="row align-items-center">
-                    <div class="col">
-                        <h5 class="mb-0">
-                            <i class="fas fa-history me-2"></i>Prediction History
-                        </h5>
-                    </div>
-                    <div class="col-auto">
-                        <div class="input-group input-group-sm" style="width: 250px;">
-                            <span class="input-group-text bg-transparent border-end-0">
-                                <i class="fas fa-search text-muted"></i>
-                            </span>
-                            <input type="text" class="form-control border-start-0" id="search-predictions" placeholder="Search predictions...">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body">
-                <!-- Empty State -->
-                <div id="history-empty-state" class="text-center py-5 d-none">
-                    <i class="fas fa-clipboard-list fa-3x text-muted opacity-50 mb-3"></i>
-                    <h5 class="text-muted">No Predictions Yet</h5>
-                    <p class="text-muted mb-4">Start by making your first disease prediction to track your health journey.</p>
-                    <a href="/" class="btn btn-primary">
-                        <i class="fas fa-plus me-1"></i>Make Your First Prediction
+                <div id="temporal-empty-state" class="text-center py-5 d-none">
+                    <i class="fas fa-chart-line fa-3x text-muted opacity-50 mb-3"></i>
+                    <h5 class="text-muted">Temporal Progression Data Required</h5>
+                    <p class="text-muted">You need at least 2 predictions in your history to trace progression trends over time.</p>
+                    <a href="/" class="btn btn-primary btn-sm mt-2">
+                        <i class="fas fa-plus me-1"></i>Make Predictions with Vitals
                     </a>
                 </div>
-
-                <!-- Table -->
-                <div id="history-table-container">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle" id="predictions-table">
-                            <thead class="table-light">
-                                <tr>
-                                    <th scope="col" class="sortable" data-sort="created_at">
-                                        Date/Time <i class="fas fa-sort ms-1"></i>
-                                    </th>
-                                    <th scope="col" class="sortable" data-sort="disease">
-                                        Disease <i class="fas fa-sort ms-1"></i>
-                                    </th>
-                                    <th scope="col">Symptoms</th>
-                                    <th scope="col" class="sortable" data-sort="ml_probability">
-                                        ML Probability <i class="fas fa-sort ms-1"></i>
-                                    </th>
-                                    <th scope="col" class="sortable" data-sort="bayesian_posterior">
-                                        Bayesian Score <i class="fas fa-sort ms-1"></i>
-                                    </th>
-                                    <th scope="col" class="sortable" data-sort="risk_level">
-                                        Risk Level <i class="fas fa-sort ms-1"></i>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="predictions-tbody">
-                                <!-- Rows will be populated by JavaScript -->
-                            </tbody>
-                        </table>
+                <div id="temporal-content-area" class="d-none">
+                    <!-- Charts Row -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                                    <h5 class="mb-0 text-primary">
+                                        <i class="fas fa-heartbeat me-2 text-danger"></i>Vitals Progression & Trends
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div style="height: 320px; position: relative;">
+                                        <canvas id="vitals-trend-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                                    <h5 class="mb-0 text-success">
+                                        <i class="fas fa-shield-alt me-2 text-success"></i>Dynamic Survival / Recovery Curve
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div style="height: 320px; position: relative;">
+                                        <canvas id="survival-trend-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Pagination -->
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div class="text-muted small">
-                            Showing <span id="showing-start">0</span>-<span id="showing-end">0</span> of <span id="total-items">0</span> predictions
+                    <!-- Vitals Health Index & Decay Card -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow-sm h-100 text-center bg-gradient-light">
+                                <div class="card-body py-4">
+                                    <h5 class="text-muted mb-3">Vitals Health Index</h5>
+                                    <div class="d-inline-flex align-items-center justify-content-center bg-white shadow-sm rounded-circle p-4 mb-3" style="width: 120px; height: 120px; border: 5px solid #28a745;" id="vitals-score-ring">
+                                        <h3 class="mb-0 fw-bold text-success" id="current-vitals-score">--</h3>
+                                    </div>
+                                    <p class="mb-0 text-muted small" id="vitals-score-desc">Calculated from recent vital sign readings vs. medical benchmarks.</p>
+                                </div>
+                            </div>
                         </div>
-                        <nav aria-label="Prediction history pagination">
-                            <ul class="pagination pagination-sm mb-0" id="pagination">
-                                <!-- Pagination will be populated by JavaScript -->
-                            </ul>
-                        </nav>
+                        
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                                    <h5 class="mb-0"><i class="fas fa-weight-hanging me-2 text-secondary"></i>Temporal Time Decay Weight</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="small text-muted mb-3">Clinical assessments weigh recent checkups heavier using a time-decay algorithm. Here is how your recent checkups weight in your profile:</p>
+                                    <div id="decay-weights-list">
+                                        <!-- Dynamically generated weights -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                                    <h5 class="mb-0"><i class="fas fa-stethoscope me-2 text-info"></i>Overall Clinical Trend</h5>
+                                </div>
+                                <div class="card-body d-flex flex-column justify-content-center align-items-center py-4">
+                                    <div class="dashboard-icon bg-opacity-10 rounded-circle p-3 mb-3 text-info" id="trend-icon-bg" style="width: 70px; height: 70px;">
+                                        <i class="fas fa-wave-square fa-2x" id="trend-icon-element"></i>
+                                    </div>
+                                    <h4 class="fw-bold mb-1" id="overall-trend-status">--</h4>
+                                    <p class="small text-muted text-center mb-0" id="overall-trend-desc">Tracing medical history direction...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vertical Timeline -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-transparent border-0 pt-4">
+                            <h5 class="mb-0"><i class="fas fa-route me-2 text-warning"></i>Chronological Health Timeline</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="timeline-container px-3">
+                                <div class="timeline" id="progression-timeline">
+                                    <!-- Chronological cards -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -702,6 +831,315 @@ async function refreshDashboard() {
     }
 }
 
+let vitalsTrendChart = null;
+let survivalTrendChart = null;
+
+async function loadTemporalTrends() {
+    const loadingEl = document.getElementById('temporal-loading');
+    const emptyEl = document.getElementById('temporal-empty-state');
+    const contentEl = document.getElementById('temporal-content-area');
+    
+    loadingEl.classList.remove('d-none');
+    emptyEl.classList.add('d-none');
+    contentEl.classList.add('d-none');
+    
+    try {
+        const response = await fetch('/api/patient/temporal-trends');
+        const result = await response.json();
+        
+        if (!result.success || !result.data || !result.data.dates || result.data.dates.length < 2) {
+            loadingEl.classList.add('d-none');
+            emptyEl.classList.remove('d-none');
+            return;
+        }
+        
+        const trends = result.data;
+        
+        // Render Current Vitals Health Index
+        const scorePct = Math.round(trends.vitals_health_score * 100);
+        document.getElementById('current-vitals-score').textContent = scorePct + '%';
+        
+        // Update color border of vitals ring based on score
+        const ringEl = document.getElementById('vitals-score-ring');
+        const scoreEl = document.getElementById('current-vitals-score');
+        if (scorePct >= 80) {
+            ringEl.style.borderColor = '#28a745';
+            scoreEl.className = 'mb-0 fw-bold text-success';
+        } else if (scorePct >= 60) {
+            ringEl.style.borderColor = '#ffc107';
+            scoreEl.className = 'mb-0 fw-bold text-warning';
+        } else {
+            ringEl.style.borderColor = '#dc3545';
+            scoreEl.className = 'mb-0 fw-bold text-danger';
+        }
+        
+        // Render Clinical Direction and warnings
+        const direction = trends.clinical_direction; // "improving", "worsening", "stable"
+        const statusEl = document.getElementById('overall-trend-status');
+        const statusDescEl = document.getElementById('overall-trend-desc');
+        const iconBgEl = document.getElementById('trend-icon-bg');
+        const iconEl = document.getElementById('trend-icon-element');
+        
+        statusEl.textContent = direction.toUpperCase();
+        if (direction === 'improving') {
+            statusEl.className = 'fw-bold mb-1 text-success';
+            statusDescEl.textContent = 'Your health markers are progressing positively over time.';
+            iconBgEl.className = 'dashboard-icon bg-success bg-opacity-10 rounded-circle p-3 mb-3 text-success animate-pulse';
+            iconEl.className = 'fas fa-arrow-trend-up fa-2x';
+        } else if (direction === 'worsening') {
+            statusEl.className = 'fw-bold mb-1 text-danger';
+            statusDescEl.textContent = 'Clinical vitals trend is deteriorating. We advise consulting a healthcare professional.';
+            iconBgEl.className = 'dashboard-icon bg-danger bg-opacity-10 rounded-circle p-3 mb-3 text-danger animate-pulse';
+            iconEl.className = 'fas fa-arrow-trend-down fa-2x';
+        } else {
+            statusEl.className = 'fw-bold mb-1 text-info';
+            statusDescEl.textContent = 'Your vitals and survival metrics remain steady and stable.';
+            iconBgEl.className = 'dashboard-icon bg-info bg-opacity-10 rounded-circle p-3 mb-3 text-info';
+            iconEl.className = 'fas fa-wave-square fa-2x';
+        }
+        
+        // Render time-decay weights
+        const weightsListEl = document.getElementById('decay-weights-list');
+        let weightsHtml = '';
+        trends.time_decay_weights.forEach((item, index) => {
+            const date = new Date(item.date).toLocaleDateString();
+            const weightPct = Math.round(item.weight * 100);
+            weightsHtml += `
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between mb-1 small">
+                        <span class="text-capitalize">${escapeHtml(item.disease.replace(/_/g, ' '))} (${date})</span>
+                        <span class="fw-bold text-secondary">${weightPct}% weight</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-secondary" role="progressbar" style="width: ${weightPct}%"></div>
+                    </div>
+                </div>
+            `;
+        });
+        weightsListEl.innerHTML = weightsHtml;
+        
+        // Render Vitals Chart
+        renderVitalsTrendChart(trends);
+        
+        // Render Survival Chart
+        renderSurvivalTrendChart(trends);
+        
+        // Render Timeline
+        renderVerticalTimeline(trends);
+        
+        loadingEl.classList.add('d-none');
+        contentEl.classList.remove('d-none');
+        
+    } catch (error) {
+        console.error('Error loading temporal trends:', error);
+        loadingEl.classList.add('d-none');
+        emptyEl.classList.remove('d-none');
+    }
+}
+
+function renderVitalsTrendChart(trends) {
+    const ctx = document.getElementById('vitals-trend-chart').getContext('2d');
+    
+    if (vitalsTrendChart) {
+        vitalsTrendChart.destroy();
+    }
+    
+    const labels = trends.dates.map(d => new Date(d).toLocaleDateString());
+    
+    // Check which datasets actually have non-null entries
+    const heartRatesExist = trends.heart_rates.some(x => x !== null);
+    const glucoseExist = trends.blood_glucose.some(x => x !== null);
+    const tempExist = trends.temperatures.some(x => x !== null);
+    
+    const datasets = [];
+    if (heartRatesExist) {
+        datasets.push({
+            label: 'Heart Rate (bpm)',
+            data: trends.heart_rates,
+            borderColor: '#dc3545',
+            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+            tension: 0.3,
+            borderWidth: 2,
+            yAxisID: 'y'
+        });
+    }
+    if (glucoseExist) {
+        datasets.push({
+            label: 'Blood Glucose (mg/dL)',
+            data: trends.blood_glucose,
+            borderColor: '#ffc107',
+            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+            tension: 0.3,
+            borderWidth: 2,
+            yAxisID: 'y1'
+        });
+    }
+    if (tempExist) {
+        datasets.push({
+            label: 'Temperature (°C)',
+            data: trends.temperatures,
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+            tension: 0.3,
+            borderWidth: 2,
+            yAxisID: 'y2'
+        });
+    }
+    
+    // Fallback if no vitals are populated yet but trends exist
+    if (datasets.length === 0) {
+        datasets.push({
+            label: 'Vitals Health Trend Placeholder',
+            data: trends.dates.map(() => 0),
+            borderColor: '#6c757d',
+            tension: 0.3,
+            borderWidth: 2,
+            yAxisID: 'y'
+        });
+    }
+
+    vitalsTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { boxWidth: 12, font: { size: 10 } }
+                }
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: heartRatesExist,
+                    position: 'left',
+                    title: { display: true, text: 'Heart Rate' },
+                    grid: { drawOnChartArea: true }
+                },
+                y1: {
+                    type: 'linear',
+                    display: glucoseExist,
+                    position: 'right',
+                    title: { display: true, text: 'Glucose' },
+                    grid: { drawOnChartArea: false }
+                },
+                y2: {
+                    type: 'linear',
+                    display: tempExist,
+                    position: 'right',
+                    title: { display: true, text: 'Temperature' },
+                    grid: { drawOnChartArea: false },
+                    min: 30,
+                    max: 42
+                }
+            }
+        }
+    });
+}
+
+function renderSurvivalTrendChart(trends) {
+    const ctx = document.getElementById('survival-trend-chart').getContext('2d');
+    
+    if (survivalTrendChart) {
+        survivalTrendChart.destroy();
+    }
+    
+    const labels = trends.dates.map(d => new Date(d).toLocaleDateString());
+    const survivalPercentages = trends.survival_probability.map(v => Math.round(v * 100));
+    
+    survivalTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Dynamic Survival Probability',
+                data: survivalPercentages,
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                fill: true,
+                tension: 0.3,
+                borderWidth: 3,
+                pointRadius: 6,
+                pointBackgroundColor: '#28a745'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    min: 0,
+                    max: 100,
+                    title: { display: true, text: 'Survival Probability (%)' }
+                }
+            }
+        }
+    });
+}
+
+function renderVerticalTimeline(trends) {
+    const timelineEl = document.getElementById('progression-timeline');
+    
+    let html = '';
+    // Loop backwards (newest first for progression timelines)
+    for (let i = trends.dates.length - 1; i >= 0; i--) {
+        const date = new Date(trends.dates[i]);
+        const disease = trends.disease_history[i];
+        const survival = Math.round(trends.survival_probability[i] * 100);
+        
+        const hr = trends.heart_rates[i];
+        const sbp = trends.systolic_bp[i];
+        const dbp = trends.diastolic_bp[i];
+        const glucose = trends.blood_glucose[i];
+        const temp = trends.temperatures[i];
+        
+        // Build vitals pill representations
+        let vitalsHtml = '';
+        if (hr) vitalsHtml += `<span class="badge bg-danger bg-opacity-10 text-danger me-1">HR: ${hr} bpm</span>`;
+        if (sbp && dbp) vitalsHtml += `<span class="badge bg-primary bg-opacity-10 text-primary me-1">BP: ${sbp}/${dbp}</span>`;
+        if (glucose) vitalsHtml += `<span class="badge bg-warning bg-opacity-10 text-warning me-1">Glucose: ${glucose} mg/dL</span>`;
+        if (temp) vitalsHtml += `<span class="badge bg-info bg-opacity-10 text-info me-1">Temp: ${temp}°C</span>`;
+        
+        // Simple mapping of survival to severity
+        let severity = 'low';
+        if (survival < 50) severity = 'critical';
+        else if (survival < 75) severity = 'high';
+        else if (survival < 90) severity = 'medium';
+        
+        html += `
+            <div class="timeline-item ${severity}">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap mb-2">
+                        <div>
+                            <h5 class="mb-1 text-capitalize fw-bold">${escapeHtml(disease.replace(/_/g, ' '))}</h5>
+                            <span class="text-muted small">${date.toLocaleDateString()} ${date.toLocaleTimeString()}</span>
+                        </div>
+                        <span class="fs-5 fw-bold text-success">${survival}% Survival</span>
+                    </div>
+                    <div class="mb-2">
+                        ${vitalsHtml || '<span class="text-muted small text-secondary">No vitals signs recorded</span>'}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    timelineEl.innerHTML = html;
+}
+
 // Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function() {
     refreshDashboard();
@@ -770,6 +1208,93 @@ document.addEventListener('DOMContentLoaded', function() {
     white-space: nowrap;
 }
 
+/* Timeline Progression Styles */
+.timeline {
+    position: relative;
+    padding-left: 3rem;
+    margin-top: 1rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #e9ecef;
+    border-radius: 3px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 2.5rem;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -43px;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #fff;
+    border: 4px solid #0d6efd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.timeline-item.critical .timeline-marker { border-color: #dc3545; }
+.timeline-item.high .timeline-marker { border-color: #ff9800; }
+.timeline-item.medium .timeline-marker { border-color: #ffc107; }
+.timeline-item.low .timeline-marker { border-color: #28a745; }
+
+.timeline-content {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+    border-left: 5px solid #0d6efd;
+    transition: transform 0.2s ease;
+}
+
+.timeline-content:hover {
+    transform: translateX(5px);
+}
+
+.timeline-item.critical .timeline-content { border-left-color: #dc3545; }
+.timeline-item.high .timeline-content { border-left-color: #ff9800; }
+.timeline-item.medium .timeline-content { border-left-color: #ffc107; }
+.timeline-item.low .timeline-content { border-left-color: #28a745; }
+
+.animate-pulse {
+    animation: pulse-animation 2s infinite;
+}
+
+@keyframes pulse-animation {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Nav pills styles */
+#dashboard-tabs .nav-link {
+    color: #495057;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+#dashboard-tabs .nav-link.active {
+    background-color: #f8f9fa;
+    color: #0d6efd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+#dashboard-tabs .nav-link#temporal-tab.active {
+    color: #dc3545;
+    border-bottom: 2px solid #dc3545;
+}
+
 /* Dark mode adjustments */
 body.dark-mode .dashboard-card {
     background-color: var(--card-bg);
@@ -785,6 +1310,31 @@ body.dark-mode .table-light {
 
 body.dark-mode .sortable:hover {
     background-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode #dashboard-tabs {
+    background-color: #1e1e1e !important;
+    border-color: #333 !important;
+}
+
+body.dark-mode #dashboard-tabs .nav-link {
+    color: #aaa;
+}
+
+body.dark-mode #dashboard-tabs .nav-link.active {
+    background-color: rgba(255,255,255,0.05);
+}
+
+body.dark-mode .timeline-content {
+    background: rgba(255,255,255,0.03);
+}
+
+body.dark-mode .timeline::before {
+    background: #444;
+}
+
+body.dark-mode .timeline-marker {
+    background: #1e1e1e;
 }
 </style>
 {% endblock %}
