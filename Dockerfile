@@ -28,4 +28,4 @@ EXPOSE 5001
 
 # Command to run the application
 # We use only 1 worker to save memory on Render Free Tier
-CMD ["gunicorn", "--bind", "0.0.0.0:5001", "--workers", "1", "--timeout", "120", "run:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5001", "run:app"]

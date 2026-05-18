@@ -40,6 +40,12 @@ Always consult a qualified healthcare professional for medical advice.
 ---
 
 ## 🚀 Quick Start (30 seconds)
+
+### 🌐 View Online (Instant)
+Open in your browser:
+👉 **[https://disease-prediction-nwnu.onrender.com]**
+
+### 💻 Run Locally
 ```bash
 git clone https://github.com/aliviahossain/Disease-prediction.git
 cd Disease-prediction
