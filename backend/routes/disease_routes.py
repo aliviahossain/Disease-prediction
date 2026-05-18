@@ -442,20 +442,3 @@ def text_to_speech():
 
 from backend.middleware.error_handler import NotFoundError
 
-@disease_bp.route("/text-to-speech", methods=["POST"])
-def text_to_speech():
-    """
-    Convert AI recommendation text to speech audio (MP3).
-    Accepts JSON with text and language fields.
-    Returns an MP3 audio stream.
-    """
-    data = request.json
-    if not data or not data.get("text"):
-        return jsonify({"error": "No text provided for TTS."}), 400
-    text = data.get("text", "")
-    language = data.get("language", "english")
-    try:
-        audio_buffer = generate_tts_audio(text, language)
-        return send_file(audio_buffer, mimetype="audio/mpeg", as_attachment=False, download_name="recommendation.mp3")
-    except Exception as e:
-        return jsonify({"error": "TTS generation failed: " + str(e)}), 500
