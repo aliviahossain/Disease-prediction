@@ -193,6 +193,26 @@
                             </div>
                         </div>
 
+                        <!-- SHAP Feature Importance Chart -->
+                        <div class="card bg-light mb-3 shadow-sm border-0" id="shap-chart-card" style="display: none;">
+                            <div class="card-body">
+                                <h3 class="h6 mb-3">
+                                    <i class="fas fa-chart-bar me-2"></i>SHAP Feature Importance
+                                </h3>
+                                <p class="small text-muted mb-3">Visual breakdown of symptom contributions:</p>
+                                <div style="height: 250px;">
+                                    <canvas id="shapBarChart"></canvas>
+                                </div>
+                                <div class="alert alert-info mt-3 mb-0 py-2">
+                                    <small>
+                                        <strong>How to read:</strong>
+                                        Red = high impact, Orange = medium impact, Blue = lower impact.
+                                        Longer bars = stronger influence on prediction.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Risk Assessment -->
                         <div class="card bg-light mb-3 shadow-sm border-0">
                             <div class="card-body text-center">
@@ -226,10 +246,13 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 
 
     let selectedSymptoms = [];
+    
+    let shapBarChart = null;
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function () {
@@ -251,7 +274,7 @@
                 return;
             }
 
-            const symptoms = data.symptoms; // Expecting list of {key: 'fever', name: 'Fever'}
+            const symptoms = data.symptoms;
             let html = '';
 
             if (symptoms.length === 0) {
@@ -294,12 +317,12 @@
         const count = selectedSymptoms.length;
         document.getElementById('symptom-count').textContent = `${count} selected`;
     }
-
+ // height updation
     function updateHeight(val) {
         document.getElementById("height-value").innerText = val;
         calculateBMI();
     }
-
+// Weight updation
     function updateWeight(val) {
         document.getElementById("weight-value").innerText = val;
         calculateBMI();
@@ -341,12 +364,10 @@
             alert('Please select at least one symptom');
             return;
         }
-
-        // Show loading
+//show loading
         document.getElementById('loading').style.display = 'block';
         document.getElementById('no-results').style.display = 'none';
-        const resultsContainer = document.getElementById('differential-diagnosis-container');
-        if (resultsContainer) resultsContainer.style.display = 'none'; // Ensure previous results are hidden
+        const resultsContainer = document.getElementById('differential-diagnosis-container');        if (resultsContainer) resultsContainer.style.display = 'none';
 
         const age = document.getElementById('age-input').value;
         const h = document.getElementById('height-input').value;
@@ -386,7 +407,7 @@
 
     function displayResults(data) {
         const predictions = data.predictions;
-        window.allPredictions = predictions; // Store for detailed view
+        window.allPredictions = predictions;
         const listContainer = document.getElementById('prediction-list');
         let html = '';
 
@@ -479,6 +500,7 @@
         const explanations = pred.explanations || {};
         const contributionsList = document.getElementById('symptom-contributions-list');
         const contributions = explanations.symptom_contributions || {};
+
         if (Object.keys(contributions).length > 0) {
             let html = '';
             Object.entries(contributions).forEach(([symptom, weight]) => {
@@ -498,10 +520,77 @@
         document.getElementById('bias-value').textContent = explanations.bias ? explanations.bias.toFixed(2) : '--';
         document.getElementById('bmi-effect-value').textContent = explanations.bmi_effect ? explanations.bmi_effect.toFixed(2) : '--';
 
+        // ── Render SHAP chart ──────────────────────────────────────────
+        renderShapChart(contributions);
+
         document.getElementById('detailed-analysis').style.display = 'block';
 
         // Store selected index for download
         window.selectedPredictionIndex = index;
+    }
+
+    function renderShapChart(contributions) {
+        const card = document.getElementById('shap-chart-card');
+
+        if (!contributions || Object.keys(contributions).length === 0) {
+            card.style.display = 'none';
+            return;
+        }
+
+        card.style.display = 'block';
+
+        // destroy old chart
+        if (shapBarChart) {
+            shapBarChart.destroy();
+            shapBarChart = null;
+        }
+
+        const labels = Object.keys(contributions).map(s =>
+            s.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+        );
+        const values = Object.values(contributions);
+        const colors = values.map(v =>
+            v >= 0.7 ? 'rgba(255, 99, 132, 0.7)' :
+            v >= 0.5 ? 'rgba(255, 159, 64, 0.7)' :
+            'rgba(54, 162, 235, 0.7)'
+        );
+
+        const ctx = document.getElementById('shapBarChart').getContext('2d');
+        shapBarChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Symptom Contribution',
+                    data: values,
+                    backgroundColor: colors,
+                    borderColor: colors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    title: {
+                        display: true,
+                        text: 'Symptom Impact on Prediction'
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 1,
+                        title: {
+                            display: true,
+                            text: 'Contribution Weight'
+                        }
+                    }
+                }
+            }
+        });
     }
 
     async function downloadMLResults() {

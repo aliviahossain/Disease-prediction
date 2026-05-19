@@ -102,6 +102,7 @@ def create_app():
         print("'doctor_routes' blueprint registered successfully")
     except ImportError as e:
         print(f"Warning: Could not import 'doctor_routes'. Error: {e}")
+    
 
     try:
         from backend.routes.history_routes import history_bp
@@ -118,6 +119,12 @@ def create_app():
         print(
             f"Warning: Could not import 'predict_disease_type_bp_routes'. Error: {e}"
         )
+    try:
+        from backend.routes.shap_routes import shap_bp
+        app.register_blueprint(shap_bp)
+        print("'shap_routes' blueprint registered successfully")
+    except ImportError as e:
+     print(f"Warning: Could not import 'shap_routes'. Error: {e}")
 
     try:
         from backend.routes.general_routes import general_bp

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify
+from flak import Blueprint, render_template, request, jsonify
 from flask_login import current_user
 from backend.models.ml_model import ml_model
 from backend.preprocessing import PreprocessingError, clean_prediction_payload

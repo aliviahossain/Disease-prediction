@@ -179,37 +179,26 @@ class DiseaseMLModel:
         raise ValueError(f"Disease '{disease_name}' (key: {disease_key}) not found in model")
 
     def compute_shap_values(self, disease_key: str, symptoms: List[str]) -> Dict:
-        """
-        Compute exact SHAP values for linear model.
+        """Compute symptom contribution scores for the prediction."""
 
-        For a linear model: f(x) = bias + sum(w_i * x_i)
-        The exact SHAP value for feature i is:
-            SHAP(i) = w_i * (x_i - E[x_i])
+        symptom_weights = self.disease_weights[disease_key]["symptoms"]
 
-        where:
-            w_i    = learned weight for symptom i
-            x_i    = 1 if symptom present, 0 if absent
-            E[x_i] = background expectation = 0.5
-                     (uniform prior: each symptom equally
-                      likely to be present or absent)
-
-        Positive SHAP = symptom presence increases prediction
-        Negative SHAP = symptom absence decreases prediction
-
-        Only returns SHAP values for symptoms that were selected.
-        """
-        symptom_weights = self.disease_weights[disease_key]['symptoms']
-
-        # Background expectation — uniform prior over symptom presence
-        E_x = 0.5
+        # Simple baseline assumption:
+        # symptom has 50% chance of appearing
+        baseline = 0.5
 
         shap_values = {}
+
         for symptom in symptoms:
-            if symptom in symptom_weights:
-                w_i = symptom_weights[symptom]
-                x_i = 1.0  # symptom is present
-                shap_val = w_i * (x_i - E_x)
-                shap_values[symptom] = round(float(shap_val), 4)
+            weight = symptom_weights.get(symptom)
+
+            if weight is None:
+                continue
+
+            # symptom is selected => x = 1
+            contribution = weight * (1 - baseline)
+
+            shap_values[symptom] = round(contribution, 4)
 
         return shap_values
 
