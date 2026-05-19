@@ -11,7 +11,9 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 
 from backend.utils.calculator import bayesian_survival
+from backend.utils.tts_helper import generate_tts_audio
 from backend.utils.gemini_helper import generate_recommendations
+from backend.utils.tts_helper import generate_tts_audio
 from backend.models.ml_model import ml_model
 
 disease_bp = Blueprint("disease", __name__)
@@ -412,4 +414,31 @@ def disease_detection_dashboard():
     types = ["Eyes", "Skin"]
     return render_template('disease_detection_dashboard.html', types=types)
 
+@disease_bp.route("/text-to-speech", methods=["POST"])
+def text_to_speech():
+    """
+    Convert AI recommendation text to speech audio (MP3).
+    Accepts JSON with 'text' and 'language' fields.
+    Returns an MP3 audio file stream.
+    """
+    data = request.json
+    if not data or not data.get("text"):
+        return jsonify({"error": "No text provided for TTS."}), 400
+
+    text = data.get("text", "")
+    language = data.get("language", "english")
+
+    try:
+        audio_buffer = generate_tts_audio(text, language)
+        return send_file(
+            audio_buffer,
+            mimetype="audio/mpeg",
+            as_attachment=False,
+            download_name="recommendation.mp3"
+        )
+    except Exception as e:
+        return jsonify({"error": f"TTS generation failed: {str(e)}"}), 500
+
+
 from backend.middleware.error_handler import NotFoundError
+
