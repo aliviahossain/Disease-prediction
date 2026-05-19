@@ -167,7 +167,6 @@ def predict_disease():
                 ml_probability=ml_prediction['raw_probability'],
                 bayesian_posterior=bayesian_result['posterior'],
                 confidence_score=confidence_score,
-                confidence_score=ml_prediction['confidence_score'],
                 survival_probability=survival_prob,
                 heart_rate=cleaned.heart_rate,
                 blood_pressure_systolic=cleaned.blood_pressure_systolic,
