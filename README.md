@@ -21,6 +21,9 @@ Always consult a qualified healthcare professional for medical advice.
 - 🌐 Multi-language support (English, Hindi, Gujarati, Tamil)
 - 🌙 Dark mode for better accessibility
 - 📘 Beginner-friendly educational explanations
+- 📜 Prediction History Timeline with stored analytics
+- 📈 Comparative probability trend visualization
+- ⚠️ Risk distribution insights dashboard
 ---
 
 ## 📑 Table of Contents
@@ -68,6 +71,9 @@ That’s it 🎉
 - Disease selection with predefined symptom sets
 - ML-generated probability scores
 - Risk categorization (Low / Medium / High)
+- Prediction history storage & tracking
+- Comparative analytics dashboard
+- Disease probability timeline visualization
 ## 🧠 AI Features
 - AI-powered interpretation of probability results
 - Suggested next steps (consultation, testing, lifestyle review)
@@ -231,3 +237,21 @@ Created and maintained by Alivia Hossain.
 Contributions are welcome, feel free to open issues or pull requests.
 
 **⭐ If you find this project useful, consider giving it a star!**
+
+## 📜 Prediction History & Analytics
+
+The dashboard now includes a Prediction History Timeline system that allows users to monitor and analyze previous disease predictions interactively.
+
+### ✨ Features Included
+- 📌 Automatic prediction history storage
+- 📈 Comparative probability trend analytics
+- ⚠️ Risk distribution visualization
+- 🧠 Historical disease tracking
+
+### 📊 Visualization Support
+- Interactive line charts
+- Risk distribution graphs
+- Historical prediction tables
+
+### 🔒 Privacy
+All prediction history is stored locally on the user's machine using JSON-based storage.
