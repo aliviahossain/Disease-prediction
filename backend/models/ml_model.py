@@ -137,10 +137,7 @@ class DiseaseMLModel:
     # Temperature scaling is applied to improve calibration and interpretability.
 
     def calibrated_sigmoid(self, z: float, temperature: float = 1.8) -> float:
-        """
-        Temperature-scaled sigmoid for probability calibration.
-        Higher temperature -> less overconfident probabilities.
-        """
+        """Temperature-scaled sigmoid for probability calibration."""
         return 1 / (1 + np.exp(-(z / temperature)))
 
     def _calculate_bmi(self, height_cm: float, weight_kg: float) -> float:
@@ -150,27 +147,22 @@ class DiseaseMLModel:
         return weight_kg / (height_m ** 2)
     
     def _global_bmi_effect(self, bmi: float) -> float:
-        """
-        Global BMI impact on disease risk (applies to all diseases).
-        Small values so symptoms remain dominant.
-        """
+        """Global BMI impact on disease risk."""
         if bmi is None:
             return 0.0
 
         if bmi < 18.5:
-            return 0.25   # underweight risk
+            return 0.25
         elif bmi < 25:
-            return 0.0    # normal
+            return 0.0
         elif bmi < 30:
-            return 0.35   # overweight
+            return 0.35
         else:
-            return 0.6    # obese
+            return 0.6
 
     # Normalize disease key
     def _get_disease_key(self, disease_name: str) -> str:
-        """
-        Normalize and fuzzy match disease name to internal key.
-        """
+        """Normalize and fuzzy match disease name to internal key."""
         disease_key = disease_name.lower().replace(' ', '_').replace('-', '_')
         
         # Exact match check
@@ -186,11 +178,43 @@ class DiseaseMLModel:
         # If no match found, raise ValueError
         raise ValueError(f"Disease '{disease_name}' (key: {disease_key}) not found in model")
 
+    def compute_shap_values(self, disease_key: str, symptoms: List[str]) -> Dict:
+        """
+        Compute exact SHAP values for linear model.
+
+        For a linear model: f(x) = bias + sum(w_i * x_i)
+        The exact SHAP value for feature i is:
+            SHAP(i) = w_i * (x_i - E[x_i])
+
+        where:
+            w_i    = learned weight for symptom i
+            x_i    = 1 if symptom present, 0 if absent
+            E[x_i] = background expectation = 0.5
+                     (uniform prior: each symptom equally
+                      likely to be present or absent)
+
+        Positive SHAP = symptom presence increases prediction
+        Negative SHAP = symptom absence decreases prediction
+
+        Only returns SHAP values for symptoms that were selected.
+        """
+        symptom_weights = self.disease_weights[disease_key]['symptoms']
+
+        # Background expectation — uniform prior over symptom presence
+        E_x = 0.5
+
+        shap_values = {}
+        for symptom in symptoms:
+            if symptom in symptom_weights:
+                w_i = symptom_weights[symptom]
+                x_i = 1.0  # symptom is present
+                shap_val = w_i * (x_i - E_x)
+                shap_values[symptom] = round(float(shap_val), 4)
+
+        return shap_values
+
     def predict_disease_probability(self, disease: str, symptoms: List[str], age: int = None, height_cm: float = None, weight_kg: float = None) -> Dict:
-        """
-        Predict disease probability based on selected symptoms and optional age.
-        """
-        # Use helper for robust lookup
+        """Predict disease probability based on selected symptoms."""
         disease_key = self._get_disease_key(disease)
         
         weights = self.disease_weights[disease_key]
@@ -200,10 +224,10 @@ class DiseaseMLModel:
         # Adjust bias based on age
         if age is not None:
             if age > 50:
-                bias += 0.5  # Higher risk for older age
+                bias += 0.5
             elif age < 20:
-                bias -= 0.5  # Lower risk for younger age
-        z  = bias 
+                bias -= 0.5
+        z = bias
 
         # BMI contribution
         bmi = self._calculate_bmi(height_cm, weight_kg)
@@ -233,9 +257,9 @@ class DiseaseMLModel:
         
         prior = min(0.95, max(0.05, raw_probability))
         likelihood = 0.75 + (raw_probability * 0.20)
-        
-        # Explainable AI: symptom contributions
-        symptom_contributions = {symptom: symptom_weights[symptom] for symptom in matched_symptoms}
+
+        # Compute real SHAP values using exact formula for linear model
+        symptom_contributions = self.compute_shap_values(disease_key, matched_symptoms)
         
         return {
             'disease': disease,
@@ -253,7 +277,7 @@ class DiseaseMLModel:
             'bias': bias
         }
     
-    def _calculate_confidence(self, num_symptoms: int, probability: float, bmi : float = None) -> float:
+    def _calculate_confidence(self, num_symptoms: int, probability: float, bmi: float = None) -> float:
         symptom_factor = min(1.0, num_symptoms / 5)
         bmi_factor = 0.1 if bmi and (bmi < 18.5 or bmi > 30) else 0.0
         confidence = (symptom_factor * 0.5) + (probability * 0.4) + bmi_factor
@@ -278,16 +302,10 @@ class DiseaseMLModel:
                 prediction = self.predict_disease_probability(disease, symptoms, age=age, height_cm=height_cm, weight_kg=weight_kg)
                 predictions.append(prediction)
             except Exception:
-                logger.error(
-                    f"Prediction failed for disease '{disease}'",
-                    exc_info=True
-                )
-
-        # Sort by raw probability (highest first)
+                logger.error(f"Prediction failed for disease '{disease}'", exc_info=True)
         predictions.sort(key=lambda x: x['calibrated_probability'], reverse=True)
         return predictions
 
-    
     def get_symptom_importance(self, disease: str) -> Dict[str, float]:
         disease_key = self._get_disease_key(disease)
         
@@ -299,16 +317,7 @@ class DiseaseMLModel:
         return dict(sorted(importance.items(), key=lambda x: x[1], reverse=True))
 
     def analyze_missing_symptoms(self, disease: str, present_symptoms: List[str]) -> List[Dict[str, float]]:
-        """
-        Identify high-importance symptoms for a disease that are missing from the present symptoms.
-        
-        Args:
-            disease: The name of the disease to analyze.
-            present_symptoms: List of symptom keys provided by the user.
-            
-        Returns:
-            List of missing symptoms with their weights, sorted by importance.
-        """
+        """Identify high-importance symptoms missing from present symptoms."""
         try:
             disease_key = self._get_disease_key(disease)
         except ValueError:
