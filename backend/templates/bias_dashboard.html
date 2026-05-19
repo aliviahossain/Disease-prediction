@@ -5,8 +5,8 @@
 <style>
     /* ─── CSS Custom Properties ─────────────────────────────────────────── */
     :root {
-        --bias-primary: #6366f1;
-        --bias-primary-light: #818cf8;
+        --bias-primary: #00A19B; /* Mint */
+        --bias-primary-light: #33bcb7; /* Lighter Mint */
         --bias-secondary: #06b6d4;
         --bias-accent: #f59e0b;
         --bias-success: #10b981;
@@ -17,7 +17,7 @@
         --bias-border: #e2e8f0;
         --bias-text: #1e293b;
         --bias-text-muted: #64748b;
-        --bias-gradient-1: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        --bias-gradient-1: linear-gradient(135deg, #00A19B 0%, #33bcb7 100%); /* Mint gradient */
         --bias-gradient-2: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);
         --bias-gradient-3: linear-gradient(135deg, #10b981 0%, #34d399 100%);
         --bias-gradient-4: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
@@ -49,7 +49,7 @@
         font-family: 'Poppins', sans-serif;
         font-weight: 700;
         font-size: 2.2rem;
-        background: var(--bias-gradient-1);
+        background: linear-gradient(135deg, #00A19B 0%, #008B85 100%); /* Mint gradient */
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -280,12 +280,13 @@
         display: flex;
         align-items: center;
         gap: 0.75rem;
+        margin-bottom: 0.75rem; /* Added spacing to make them less cramped */
         animation: fadeInRight 0.4s ease-out both;
     }
 
     .bar-label {
-        font-size: 0.78rem;
-        color: var(--bias-text-muted);
+        font-size: 0.85rem; /* Increased for readability */
+        color: var(--bias-text);
         min-width: 140px;
         max-width: 140px;
         text-align: right;
@@ -297,27 +298,27 @@
 
     .bar-track {
         flex: 1;
-        height: 22px;
+        height: 26px; /* Taller, more comfortable */
         background: var(--bias-surface-alt);
-        border-radius: 6px;
-        overflow: hidden;
+        border-radius: 8px; /* Softer radius */
         position: relative;
     }
 
     .bar-fill {
         height: 100%;
-        border-radius: 6px;
+        border-radius: 8px;
         transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
-        position: relative;
-        display: flex;
-        align-items: center;
-        padding-left: 8px;
+        background-color: #00A19B !important; /* Force Mint color */
     }
 
-    .bar-fill span {
-        font-size: 0.72rem;
+    .bar-value {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.78rem;
         font-weight: 600;
-        color: #fff;
+        color: var(--bias-text); /* Ensure contrast */
+        padding-left: 8px;
         white-space: nowrap;
     }
 
@@ -1022,18 +1023,16 @@
         </div>
 
         <div style="margin-top: 1.25rem;">
-            <h6 style="font-size: 0.85rem; font-weight: 600; color: var(--bias-text); margin-bottom: 0.75rem;">Top Shared Symptoms</h6>
-            <div class="bar-chart" style="max-height: 300px;">
+            <h6 style="font-size: 0.85rem; font-weight: 600; color: var(--bias-text); margin-bottom: 1.25rem;">Top Shared Symptoms</h6>
+            <div class="bar-chart" style="max-height: 400px;">
                 ${Object.entries(sc.symptoms).slice(0, 15).map(([symptom, info], i) => {
             const pct = (info.disease_count / sc.most_shared_count) * 100;
-            const hue = 220 + (i * 8);
             return `
                         <div class="bar-row" style="animation-delay: ${i * 0.03}s">
                             <div class="bar-label" title="${symptom.replace(/_/g, ' ')}">${symptom.replace(/_/g, ' ')}</div>
                             <div class="bar-track">
-                                <div class="bar-fill" style="width: ${pct}%; background: hsl(${hue}, 65%, 55%);">
-                                    <span>${info.disease_count} diseases</span>
-                                </div>
+                                <div class="bar-fill" style="width: ${pct}%;"></div>
+                                <span class="bar-value" style="left: ${pct}%;">${info.disease_count} diseases</span>
                             </div>
                         </div>`;
         }).join('')}
@@ -1132,14 +1131,12 @@
 
         chart.innerHTML = entries.map(([disease, info], i) => {
             const pct = (info.symptom_count / maxCount) * 100;
-            const hue = (i * 4) % 360;
             return `
             <div class="bar-row" style="animation-delay: ${Math.min(i * 0.02, 0.5)}s;">
                 <div class="bar-label" title="${disease.replace(/_/g, ' ')}">${disease.replace(/_/g, ' ')}</div>
                 <div class="bar-track">
-                    <div class="bar-fill" style="width: ${pct}%; background: hsl(${hue}, 60%, 52%);">
-                        <span>${info.symptom_count} sym · wt ${info.avg_weight}</span>
-                    </div>
+                    <div class="bar-fill" style="width: ${pct}%;"></div>
+                    <span class="bar-value" style="left: ${pct}%;">${info.symptom_count} sym · wt ${info.avg_weight}</span>
                 </div>
             </div>`;
         }).join('');

@@ -12,7 +12,7 @@
 <div class="row g-4">
     <!-- Input Panel -->
     <div class="col-lg-6">
-        <div class="card h-100 shadow-sm">
+        <div class="card h-100 shadow-sm animate-fade-in-up">
             <div class="card-body p-4">
                 <h2 class="h4 mb-4">
                     <i class="fas fa-stethoscope me-2"></i>Symptom Input
@@ -35,10 +35,22 @@
                 </div>
 
                 <div class="mb-4">
+                    <label for="gender-input" class="form-label">
+                        <i class="fas fa-venus-mars me-1"></i> Biological Sex
+                        <small class="text-muted fw-normal">(improves accuracy)</small>
+                    </label>
+                    <select id="gender-input" class="form-select form-select-lg">
+                        <option value="">Prefer not to say</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
                     <label for="height-input" class="form-label">
                         <i class="fas fa-ruler-vertical me-1"></i> Height (in cm)
                     </label>
-                    <input type="range" id="height-input" class="form-range form-range-lg"
+                    <input type="range" id="height-input" class="form-range interactive-slider"
                         placeholder="Enter height (e.g. 154)" value="170" min="50" max="280" step="1"
                         oninput="updateHeight(this.value)">
                     <div class="text-muted">
@@ -50,7 +62,7 @@
                     <label for="weight-input" class="form-label">
                         <i class="fas fa-ruler-vertical me-1"></i> Weight (in kg)
                     </label>
-                    <input type="range" id="weight-input" class="form-range form-range-lg"
+                    <input type="range" id="weight-input" class="form-range interactive-slider"
                         placeholder="Enter weight (e.g. 67 kg)" value="60" min="2" max="170" step="1"
                         oninput="updateWeight(this.value)">
                     <div class="text-muted">
@@ -102,14 +114,21 @@
                         <i class="fas fa-list-check me-1"></i> Select Symptoms
                         <span id="symptom-count" class="badge bg-primary ms-2">0 selected</span>
                     </label>
-                    <div class="symptoms-grid border rounded p-3" id="symptoms-container">
+                    
+                    <!-- Search Bar for Symptoms -->
+                    <div class="input-group mb-3 shadow-sm">
+                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0 ps-0" id="symptom-search" placeholder="Search for symptoms (e.g. fever, headache)..." onkeyup="filterSymptoms()">
+                    </div>
+
+                    <div class="symptoms-grid border rounded p-3 bg-white" id="symptoms-container">
                         <!-- Symptoms will be loaded here dynamically -->
                         <p class="text-muted text-center">Loading available symptoms...</p>
                     </div>
                 </div>
 
                 <div class="d-grid">
-                    <button class="btn btn-primary btn-lg" id="predict-btn" onclick="predictDisease()">
+                    <button class="btn btn-primary btn-lg btn-shimmer" id="predict-btn" onclick="predictDisease()">
                         <i class="fas fa-calculator me-2"></i>Predict Disease Probability
                     </button>
                 </div>
@@ -125,7 +144,7 @@
 
     <!-- Results Panel -->
     <div class="col-lg-6">
-        <div class="card h-100 shadow-sm prediction-results-card">
+        <div class="card h-100 shadow-sm prediction-results-card animate-fade-in-up" style="animation-delay: 0.2s;">
             <div class="card-body p-4">
                 <h2 class="h4 mb-4">
                     <i class="fas fa-chart-line me-2"></i>Prediction Results
@@ -152,6 +171,12 @@
 
                 <!-- Differential Diagnosis Results -->
                 <div id="differential-diagnosis-container" style="display: none;">
+                    <!-- Medical Disclaimer Top -->
+                    <div class="alert alert-warning shadow-sm mb-4 border-start border-warning border-4">
+                        <h4 class="alert-heading h6 fw-bold text-dark"><i class="fas fa-exclamation-triangle text-warning me-2"></i>⚠️ EDUCATIONAL USE ONLY</h4>
+                        <p class="mb-0 small text-dark">This prediction is for educational purposes and <strong>NOT</strong> a substitute for professional medical advice. Always consult a qualified healthcare professional for medical concerns. Results represent probability estimates, not confirmed diagnoses.</p>
+                    </div>
+
                     <h3 class="h6 mb-3">
                         <i class="fas fa-list-ol me-2"></i>Top Potential Conditions
                     </h3>
@@ -164,39 +189,44 @@
                         <hr>
                         <h3 class="h5 mb-3 text-primary" id="detail-title">Detailed Analysis</h3>
 
-                        <!-- Bayesian Analysis -->
+                        <!-- Bayesian Analysis (Technical Details) -->
                         <div class="card bg-light mb-3 shadow-sm border-0">
-                            <div class="card-body">
-                                <h3 class="h6 mb-3">
-                                    <i class="fas fa-calculator me-2"></i>Bayesian Details
-                                </h3>
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small>Prior Probability</small>
-                                        <small class="fw-bold" id="prior-value">--</small>
-                                    </div>
-                                    <div class="progress" style="height: 10px;">
-                                        <div class="progress-bar bg-info" id="prior-bar" style="width: 0%"></div>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small>Likelihood</small>
-                                        <small class="fw-bold" id="likelihood-value">--</small>
-                                    </div>
-                                    <div class="progress" style="height: 10px;">
-                                        <div class="progress-bar bg-warning" id="likelihood-bar" style="width: 0%">
+                            <div class="card-header bg-transparent border-0 pb-0">
+                                <button class="btn btn-link text-decoration-none p-0 fw-bold d-flex align-items-center w-100" type="button" data-bs-toggle="collapse" data-bs-target="#bayesianCollapse" aria-expanded="false" aria-controls="bayesianCollapse">
+                                    <i class="fas fa-cogs me-2"></i>Technical Details (Bayesian Analysis)
+                                    <i class="fas fa-chevron-down ms-auto small"></i>
+                                </button>
+                            </div>
+                            <div class="collapse" id="bayesianCollapse">
+                                <div class="card-body pt-2">
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small>Prior Probability</small>
+                                            <small class="fw-bold" id="prior-value">--</small>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-info" id="prior-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="mb-0">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <small class="fw-bold">Posterior Probability</small>
-                                        <small class="fw-bold text-primary" id="posterior-value">--</small>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small>Likelihood</small>
+                                            <small class="fw-bold" id="likelihood-value">--</small>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-warning" id="likelihood-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="progress" style="height: 15px;">
-                                        <div class="progress-bar" id="posterior-bar"
-                                            style="width: 0%; background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);">
+                                    <div class="mb-0">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small class="fw-bold">Posterior Probability</small>
+                                            <small class="fw-bold text-primary" id="posterior-value">--</small>
+                                        </div>
+                                        <div class="progress" style="height: 15px;">
+                                            <div class="progress-bar" id="posterior-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+                                                style="width: 0%; background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -249,6 +279,39 @@
                                 <span class="badge fs-6 py-2 px-3 mb-2" id="risk-badge">--</span>
                                 <p class="mt-2 mb-0 text-muted small" id="risk-description">--</p>
                             </div>
+                        </div>
+
+                        <!-- Next Steps: Specialist Recommendation -->
+                        <div class="card mb-3 shadow-sm border-0" id="next-steps-card" style="display:none; background: linear-gradient(135deg, #e8f8f7 0%, #f0fdfb 100%); border-left: 4px solid #00A19B !important;">
+                            <div class="card-body">
+                                <h3 class="h6 mb-3" style="color: #00A19B;">
+                                    <i class="fas fa-hospital-user me-2"></i>Recommended Next Step
+                                </h3>
+                                <div class="d-flex align-items-center mb-2">
+                                    <i id="specialist-icon" class="fas fa-user-md fa-2x me-3" style="color: #00A19B;"></i>
+                                    <div>
+                                        <strong id="specialist-type">General Practitioner</strong>
+                                        <p class="mb-0 text-muted small" id="specialist-reason">Schedule a consultation.</p>
+                                    </div>
+                                </div>
+                                <span class="badge" id="specialist-urgency" style="background-color: #00A19B;">Schedule soon</span>
+                            </div>
+                        </div>
+
+                        <!-- Radar Chart -->
+                        <div class="card bg-light mb-3 shadow-sm border-0" id="radar-chart-card" style="display:none;">
+                            <div class="card-body">
+                                <h3 class="h6 mb-3">
+                                    <i class="fas fa-spider me-2"></i>Symptom Match Radar
+                                </h3>
+                                <p class="small text-muted mb-2">How your symptoms match each predicted condition:</p>
+                                <canvas id="radar-chart" style="max-height: 280px;"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Medical Disclaimer Bottom -->
+                        <div class="alert alert-warning shadow-sm mt-4 border-start border-warning border-4 text-center">
+                            <p class="mb-0 small text-dark"><i class="fas fa-info-circle text-warning me-2"></i><strong>EDUCATIONAL USE ONLY</strong> - Not a substitute for professional medical advice. Always consult a healthcare professional. Results are probability estimates.</p>
                         </div>
 
                         <!-- Download Results Section -->
@@ -307,11 +370,18 @@
                 html = '<div class="row g-2">';
                 symptoms.forEach((symptom) => {
                     html += `
-                    <div class="col-md-6">
+                    <div class="col-md-6 symptom-item" data-symptom-name="${symptom.name.toLowerCase()}">
                         <div class="symptom-checkbox">
                             <input type="checkbox" id="symptom-${symptom.key}" value="${symptom.key}" 
                                    onchange="toggleSymptom('${symptom.key}')">
                             <label for="symptom-${symptom.key}">${symptom.name}</label>
+                        </div>
+                        <div class="severity-pills" id="severity-${symptom.key}" style="display:none; margin-left: 1.8rem; margin-top: 4px;">
+                            <small class="text-muted me-1">Severity:</small>
+                            ${[1,2,3,4,5].map(n => `<button type="button" class="severity-pill${n===3?' active':''}" 
+                                data-symptom="${symptom.key}" data-level="${n}" 
+                                onclick="setSeverity('${symptom.key}', ${n}, this)" 
+                                title="${['Mild','Moderate','Noticeable','Severe','Critical'][n-1]}">${n}</button>`).join('')}
                         </div>
                     </div>
                     `;
@@ -329,12 +399,32 @@
 
     function toggleSymptom(symptomKey) {
         const index = selectedSymptoms.indexOf(symptomKey);
+        const pillsEl = document.getElementById(`severity-${symptomKey}`);
         if (index > -1) {
             selectedSymptoms.splice(index, 1);
+            if (pillsEl) pillsEl.style.display = 'none';
         } else {
             selectedSymptoms.push(symptomKey);
+            if (pillsEl) pillsEl.style.display = 'block';
         }
         updateSymptomCount();
+    }
+
+    function setSeverity(symptomKey, level, btn) {
+        // Deactivate siblings, activate this pill
+        const pills = document.querySelectorAll(`.severity-pill[data-symptom="${symptomKey}"]`);
+        pills.forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        window.symptomSeverities = window.symptomSeverities || {};
+        window.symptomSeverities[symptomKey] = level;
+    }
+
+    function getSeverityWeights() {
+        const weights = {};
+        selectedSymptoms.forEach(s => {
+            weights[s] = (window.symptomSeverities && window.symptomSeverities[s]) || 3;
+        });
+        return weights;
     }
 
     function updateSymptomCount() {
@@ -444,6 +534,8 @@
                 age: validateNumber(age, "Patient Age", true),
                 height_cm: validateNumber(h, "Height", true),
                 weight_kg: validateNumber(w, "Weight", true),
+                gender: document.getElementById('gender-input').value || null,
+                severity_weights: getSeverityWeights(),
                 heart_rate: validateNumber(hr, "Heart Rate", false),
                 blood_pressure_systolic: validateNumber(sbp, "Systolic Blood Pressure", false),
                 blood_pressure_diastolic: validateNumber(dbp, "Diastolic Blood Pressure", false),
@@ -486,8 +578,7 @@
     }
 
     function displayResults(data) {
-        const predictions = data.predictions;
-        window.allPredictions = predictions; // Store for detailed view
+        let predictions = data.predictions;
         const listContainer = document.getElementById('prediction-list');
         let html = '';
 
@@ -496,26 +587,43 @@
             return;
         }
 
+        // Only show top 3 predictions
+        predictions = predictions.slice(0, 3);
+
         predictions.forEach((pred, index) => {
             const probability = pred.posterior;
             const diseaseName = pred.disease;
-            const riskLevel = pred.risk_level.level;
-            const riskColor = pred.risk_level.color;
+            
+            let confidenceLevel = 'Low Likelihood';
+            let confColor = 'success';
+            let confText = 'Low certainty of this condition. Symptoms may indicate other issues.';
+            
+            if (probability >= 70) {
+                confidenceLevel = 'High Likelihood';
+                confColor = 'danger';
+                confText = 'Strong prediction based on symptom match. Immediate professional consultation advised.';
+            } else if (probability >= 40) {
+                confidenceLevel = 'Medium Likelihood';
+                confColor = 'warning';
+                confText = 'Moderate probability. Multiple conditions possible. Medical evaluation recommended.';
+            }
+
             const isActive = index === 0 ? 'border-primary' : '';
 
             html += `
-            <div class="list-group-item list-group-item-action p-3 mb-2 border rounded shadow-sm prediction-item ${isActive}" 
+            <div class="list-group-item list-group-item-action p-3 mb-2 border rounded shadow-sm prediction-item animate-stagger-item ${isActive}" 
+                 style="animation-delay: ${index * 0.15}s"
                  onclick="showDetail(${index})" id="pred-item-${index}">
                 <div class="d-flex w-100 justify-content-between align-items-center mb-2">
                     <h5 class="mb-1 text-capitalize fw-bold text-primary">${diseaseName}</h5>
-                    <span class="badge bg-${riskColor}">${riskLevel} Risk</span>
+                    <span class="badge bg-${confColor}">${confidenceLevel}</span>
                 </div>
-                <div class="progress" style="height: 12px;">
-                    <div class="progress-bar bg-${riskColor}" role="progressbar" 
-                         style="width: ${probability}%">
+                <div class="progress mb-2" style="height: 12px;">
+                    <div class="progress-bar bg-${confColor}" role="progressbar" aria-valuenow="${probability}" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
                         ${probability}%
                     </div>
                 </div>
+                <p class="mb-0 small text-muted"><i class="fas fa-info-circle me-1"></i>${confText}</p>
             </div>
             `;
         });
@@ -523,8 +631,18 @@
         listContainer.innerHTML = html;
         document.getElementById('differential-diagnosis-container').style.display = 'block';
 
+        // Animate the progress bars filling up smoothly
+        setTimeout(() => {
+            document.querySelectorAll('#prediction-list .progress-bar').forEach(bar => {
+                bar.style.width = bar.getAttribute('aria-valuenow') + '%';
+            });
+        }, 100);
+
         // Store data
         window.allPredictions = predictions;
+
+        // Render radar chart
+        renderRadarChart(predictions);
 
         // Show details for the first one by default
         showDetail(0);
@@ -541,13 +659,22 @@
         // Update title
         document.getElementById('detail-title').textContent = `Analysis for ${pred.disease}`;
 
-        // Update Bayesian Bars
+        // Update Bayesian Bars with animation
         document.getElementById('prior-value').textContent = pred.prior + '%';
-        document.getElementById('prior-bar').style.width = pred.prior + '%';
+        document.getElementById('prior-bar').style.width = '0%';
+        
         document.getElementById('likelihood-value').textContent = pred.likelihood + '%';
-        document.getElementById('likelihood-bar').style.width = pred.likelihood + '%';
+        document.getElementById('likelihood-bar').style.width = '0%';
+        
         document.getElementById('posterior-value').textContent = pred.posterior + '%';
-        document.getElementById('posterior-bar').style.width = pred.posterior + '%';
+        document.getElementById('posterior-bar').style.width = '0%';
+
+        // Trigger reflow and then apply actual widths for smooth animation
+        setTimeout(() => {
+            document.getElementById('prior-bar').style.width = pred.prior + '%';
+            document.getElementById('likelihood-bar').style.width = pred.likelihood + '%';
+            document.getElementById('posterior-bar').style.width = pred.posterior + '%';
+        }, 50);
 
         // Update Risk
         const riskBadge = document.getElementById('risk-badge');
@@ -565,8 +692,8 @@
             missing.forEach(item => {
                 html += `
                     <div class="list-group-item d-flex justify-content-between align-items-center small py-2">
-                        <span>${item.name}</span>
-                        <span class="badge bg-secondary rounded-pill">Impact: ${(item.weight * 100).toFixed(0)}%</span>
+                        <span><i class="fas fa-times text-danger me-2"></i>${item.name}</span>
+                        <span class="badge bg-danger rounded-pill">missing risk ❌</span>
                     </div>
                 `;
             });
@@ -586,8 +713,8 @@
                 const symptomName = symptom.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                 html += `
                     <div class="list-group-item d-flex justify-content-between align-items-center small py-2 px-0">
-                        <span>${symptomName}</span>
-                        <span class="badge bg-success rounded-pill">+${weight.toFixed(2)}</span>
+                        <span><i class="fas fa-check text-success me-2"></i>${symptomName}</span>
+                        <span class="badge bg-success rounded-pill">detected ✓</span>
                     </div>
                 `;
             });
@@ -600,6 +727,17 @@
         document.getElementById('bmi-effect-value').textContent = explanations.bmi_effect ? explanations.bmi_effect.toFixed(2) : '--';
 
         document.getElementById('detailed-analysis').style.display = 'block';
+
+        // Next Steps: specialist recommendation
+        const rec = SPECIALIST_MAP[pred.disease] || DEFAULT_SPECIALIST;
+        document.getElementById('specialist-icon').className = `fas ${rec.icon} fa-2x me-3`;
+        document.getElementById('specialist-icon').style.color = '#00A19B';
+        document.getElementById('specialist-type').textContent = rec.specialist;
+        document.getElementById('specialist-reason').textContent = rec.reason;
+        const urgBadge = document.getElementById('specialist-urgency');
+        urgBadge.textContent = rec.urgency;
+        urgBadge.style.backgroundColor = rec.urgencyColor;
+        document.getElementById('next-steps-card').style.display = 'block';
 
         // Store selected index for download
         window.selectedPredictionIndex = index;
@@ -652,5 +790,112 @@
         document.getElementById('differential-diagnosis-container').style.display = 'none';
         document.getElementById('no-results').style.display = 'block';
     }
+
+    function filterSymptoms() {
+        const input = document.getElementById('symptom-search');
+        const filter = input.value.toLowerCase();
+        const items = document.querySelectorAll('.symptom-item');
+
+        items.forEach(item => {
+            const name = item.getAttribute('data-symptom-name');
+            if (name.indexOf(filter) > -1) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    // ─── SPECIALIST MAP ────────────────────────────────────────────────────────
+    const SPECIALIST_MAP = {
+        'Diabetes': { specialist: 'Endocrinologist', icon: 'fa-syringe', reason: 'Manage blood sugar levels and metabolic health.', urgency: 'Schedule within 1 week', urgencyColor: '#e67e22' },
+        'Diabetes Type 2': { specialist: 'Endocrinologist', icon: 'fa-syringe', reason: 'Lifestyle + medication management for type 2 diabetes.', urgency: 'Schedule within 1 week', urgencyColor: '#e67e22' },
+        'Hypertension': { specialist: 'Cardiologist', icon: 'fa-heartbeat', reason: 'Monitor blood pressure and cardiovascular risk.', urgency: 'Schedule within 2 weeks', urgencyColor: '#e67e22' },
+        'Covid19': { specialist: 'General Practitioner', icon: 'fa-user-md', reason: 'Immediate isolation and PCR test recommended.', urgency: 'See a doctor TODAY', urgencyColor: '#e74c3c' },
+        'Heart Disease': { specialist: 'Cardiologist', icon: 'fa-heart', reason: 'Comprehensive cardiac workup required.', urgency: 'Schedule urgently', urgencyColor: '#e74c3c' },
+        'Myocardial Infarction': { specialist: 'Cardiologist', icon: 'fa-heart', reason: 'Emergency cardiac evaluation required.', urgency: '⚠️ Go to ER NOW', urgencyColor: '#e74c3c' },
+        'Influenza': { specialist: 'General Practitioner', icon: 'fa-user-md', reason: 'Rest, hydration and antiviral assessment.', urgency: 'Visit within 48 hours', urgencyColor: '#2ecc71' },
+        'Malaria': { specialist: 'Infectious Disease Specialist', icon: 'fa-biohazard', reason: 'Blood smear test and antimalarial treatment.', urgency: 'See a doctor TODAY', urgencyColor: '#e74c3c' },
+        'Pneumonia': { specialist: 'Pulmonologist', icon: 'fa-lungs', reason: 'Chest X-ray and antibiotic course required.', urgency: 'Schedule urgently', urgencyColor: '#e74c3c' },
+        'Asthma': { specialist: 'Pulmonologist', icon: 'fa-lungs', reason: 'Inhaler management and spirometry testing.', urgency: 'Schedule within 2 weeks', urgencyColor: '#e67e22' },
+        'Copd': { specialist: 'Pulmonologist', icon: 'fa-lungs', reason: 'Breathing management and oxygen therapy evaluation.', urgency: 'Schedule urgently', urgencyColor: '#e74c3c' },
+        'Tuberculosis': { specialist: 'Pulmonologist', icon: 'fa-lungs', reason: 'Sputum culture and 6-month treatment plan required.', urgency: 'See a doctor TODAY', urgencyColor: '#e74c3c' },
+        'Stroke': { specialist: 'Neurologist', icon: 'fa-brain', reason: 'Immediate MRI and stroke protocol required.', urgency: '⚠️ Go to ER NOW', urgencyColor: '#e74c3c' },
+        'Epilepsy': { specialist: 'Neurologist', icon: 'fa-brain', reason: 'EEG evaluation and anti-epileptic medication review.', urgency: 'Schedule within 1 week', urgencyColor: '#e67e22' },
+        'Alzheimers Disease': { specialist: 'Neurologist', icon: 'fa-brain', reason: 'Cognitive assessment and memory care planning.', urgency: 'Schedule within 2 weeks', urgencyColor: '#e67e22' },
+        'Depression': { specialist: 'Psychiatrist', icon: 'fa-head-side-virus', reason: 'Talk therapy and/or medication management.', urgency: 'Schedule within 1 week', urgencyColor: '#e67e22' },
+        'Anxiety Disorder': { specialist: 'Psychiatrist', icon: 'fa-head-side-virus', reason: 'CBT therapy and/or medication evaluation.', urgency: 'Schedule within 2 weeks', urgencyColor: '#e67e22' },
+        'Kidney Disease': { specialist: 'Nephrologist', icon: 'fa-filter', reason: 'Kidney function tests (GFR, creatinine) required.', urgency: 'Schedule within 1 week', urgencyColor: '#e67e22' },
+        'Liver Disease': { specialist: 'Hepatologist', icon: 'fa-procedures', reason: 'Liver function tests and imaging required.', urgency: 'Schedule urgently', urgencyColor: '#e74c3c' },
+        'Breast Cancer': { specialist: 'Oncologist', icon: 'fa-ribbon', reason: 'Mammogram and biopsy evaluation.', urgency: 'Schedule urgently', urgencyColor: '#e74c3c' },
+        'Lung Cancer': { specialist: 'Oncologist', icon: 'fa-ribbon', reason: 'CT scan and pulmonary biopsy evaluation.', urgency: 'Schedule urgently', urgencyColor: '#e74c3c' },
+        'Osteoarthritis': { specialist: 'Rheumatologist', icon: 'fa-bone', reason: 'Joint imaging and physiotherapy planning.', urgency: 'Schedule within 2 weeks', urgencyColor: '#2ecc71' },
+        'Rheumatoid Arthritis': { specialist: 'Rheumatologist', icon: 'fa-bone', reason: 'Autoimmune panel and DMARD therapy.', urgency: 'Schedule within 1 week', urgencyColor: '#e67e22' },
+        'Hypothyroidism': { specialist: 'Endocrinologist', icon: 'fa-syringe', reason: 'TSH blood test and thyroid hormone therapy.', urgency: 'Schedule within 2 weeks', urgencyColor: '#2ecc71' },
+        'Hyperthyroidism': { specialist: 'Endocrinologist', icon: 'fa-syringe', reason: 'Thyroid function tests and medication review.', urgency: 'Schedule within 1 week', urgencyColor: '#e67e22' },
+        'Migraine': { specialist: 'Neurologist', icon: 'fa-brain', reason: 'Preventive medication and trigger management.', urgency: 'Schedule within 2 weeks', urgencyColor: '#2ecc71' },
+        'Sepsis': { specialist: 'Emergency Medicine', icon: 'fa-ambulance', reason: 'IV antibiotics and ICU monitoring required.', urgency: '⚠️ Go to ER NOW', urgencyColor: '#e74c3c' },
+        'Meningitis': { specialist: 'Emergency Medicine', icon: 'fa-ambulance', reason: 'Lumbar puncture and IV antibiotics required.', urgency: '⚠️ Go to ER NOW', urgencyColor: '#e74c3c' },
+    };
+    const DEFAULT_SPECIALIST = { specialist: 'General Practitioner', icon: 'fa-user-md', reason: 'A GP can evaluate your symptoms and refer you to the right specialist.', urgency: 'Schedule within 2 weeks', urgencyColor: '#00A19B' };
+
+    // ─── RADAR CHART ───────────────────────────────────────────────────────────
+    let radarChartInstance = null;
+
+    function renderRadarChart(predictions) {
+        const card = document.getElementById('radar-chart-card');
+        if (!predictions || predictions.length === 0) { card.style.display = 'none'; return; }
+
+        // Build label set from top-5 symptom contributions of top prediction
+        const topPred = predictions[0];
+        const contributions = topPred.explanations && topPred.explanations.symptom_contributions;
+        if (!contributions || Object.keys(contributions).length === 0) { card.style.display = 'none'; return; }
+
+        const symptomCount = Object.keys(contributions).length;
+        const isBarChart = symptomCount < 3;
+
+        let labels = Object.keys(contributions).slice(0, 7).map(k => k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
+        let labelKeys = Object.keys(contributions).slice(0, 7);
+
+        const colors = ['rgba(0,161,155,0.3)', 'rgba(52,152,219,0.3)', 'rgba(231,76,60,0.3)'];
+        const borderColors = ['#00A19B', '#3498db', '#e74c3c'];
+
+        const datasets = predictions.slice(0, 3).map((pred, i) => {
+            const contribs = pred.explanations && pred.explanations.symptom_contributions || {};
+            const dataPoints = labelKeys.map(k => {
+                return contribs[k] ? Math.round(contribs[k] * 100) : 0;
+            });
+            return {
+                label: pred.disease,
+                data: dataPoints,
+                backgroundColor: isBarChart ? borderColors[i] : colors[i], // solid color for bars
+                borderColor: borderColors[i],
+                borderWidth: 2,
+                pointBackgroundColor: borderColors[i]
+            };
+        });
+
+        if (radarChartInstance) radarChartInstance.destroy();
+        const ctx = document.getElementById('radar-chart').getContext('2d');
+
+        let scales = isBarChart ? {
+            y: { beginAtZero: true, max: 100 },
+            x: { ticks: { font: { size: 11 } } }
+        } : {
+            r: { beginAtZero: true, max: 100, ticks: { stepSize: 25, font: { size: 9 } } }
+        };
+
+        radarChartInstance = new Chart(ctx, {
+            type: isBarChart ? 'bar' : 'radar',
+            data: { labels, datasets },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+                scales: scales
+            }
+        });
+        card.style.display = 'block';
+    }
+
 </script>
 {% endblock %}

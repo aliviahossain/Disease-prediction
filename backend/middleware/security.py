@@ -31,7 +31,7 @@ class RateLimiter:
             'report': {'requests': 10, 'window': 60},  # 10 req/min
         }
         
-        print("✅ RateLimiter initialized")
+        print("[OK] RateLimiter initialized")
     
     def _get_identifier(self, request_obj):
         """
@@ -152,7 +152,7 @@ class SecurityValidator:
     
     def __init__(self):
         """Initialize security validator."""
-        print("✅ SecurityValidator initialized")
+        print("[OK] SecurityValidator initialized")
     
     def validate_input(self, data, field_name='input'):
         """

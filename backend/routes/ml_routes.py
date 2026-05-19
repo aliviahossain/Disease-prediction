@@ -167,7 +167,6 @@ def predict_disease():
                 ml_probability=ml_prediction['raw_probability'],
                 bayesian_posterior=bayesian_result['posterior'],
                 confidence_score=confidence_score,
-                confidence_score=ml_prediction['confidence_score'],
                 survival_probability=survival_prob,
                 heart_rate=cleaned.heart_rate,
                 blood_pressure_systolic=cleaned.blood_pressure_systolic,
@@ -248,9 +247,12 @@ def predict_multiple_diseases():
         age = data.get('age')
         height = data.get('height_cm')
         weight = data.get('weight_kg')
- 
+        gender = data.get('gender', '').strip().lower() or None
+        severity_weights = data.get('severity_weights', {})  # NEW
+
         predictions = ml_model.predict_multiple_diseases(
-            symptoms, age=age, height_cm=height, weight_kg=weight
+            symptoms, age=age, height_cm=height, weight_kg=weight,
+            severity_weights=severity_weights, gender=gender
         )
  
         
@@ -264,7 +266,10 @@ def predict_multiple_diseases():
         height = cleaned.height_cm
         weight = cleaned.weight_kg
         
-        predictions = ml_model.predict_multiple_diseases(symptoms, age=age, height_cm=height, weight_kg=weight)
+        predictions = ml_model.predict_multiple_diseases(
+            symptoms, age=age, height_cm=height, weight_kg=weight,
+            severity_weights=severity_weights, gender=gender
+        )
         
         # Format results
         results = []

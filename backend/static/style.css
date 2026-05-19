@@ -5,13 +5,12 @@
 /* --- CSS Variables for Light/Dark Mode --- */
 :root {
     /* Light mode colors (default) */
-    --bg-primary: #f8f9fa;
+    --bg-primary: #E4DDD3; /* Ice Latte Background */
     --bg-secondary: #ffffff;
     --text-primary: #34495e;
     --text-secondary: #6c757d;
     --text-muted: #6c757d;
-    --card-bg: #fdfefe;
-    ;
+    --card-bg: #ffffff; /* Pure white for contrast against Ice Latte */
     --navbar-bg: #2c3e50;
     --footer-bg: #343a40;
     /* classic charcoal footer */
@@ -26,6 +25,7 @@
 
 /* Dark mode colors */
 body.dark-mode {
+    background-blend-mode: multiply; /* Ensures the bright background image becomes dark and subtle */
     --bg-primary: #1a1a1a;
     --bg-secondary: #2d2d2d;
     --text-primary: #e0e0e0;
@@ -82,10 +82,17 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
 body {
     font-family: 'Poppins', sans-serif;
     background-color: var(--bg-primary);
+    background-image: url('../images/medical_bg_pattern.png');
+    background-size: 50%;
+    background-repeat: repeat;
+    background-attachment: fixed;
+    background-position: center;
+    background-blend-mode: normal;
     color: var(--text-primary);
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    zoom: 1.5; /* Scales the entire website up by 50% */
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -106,12 +113,12 @@ body {
 }
 
 .nav-link:hover {
-    color: #1abc9c !important;
+    color: #00A19B !important;
     /* A bright, hopeful teal for hover */
 }
 
 .nav-link.active {
-    color: #1abc9c !important;
+    color: #00A19B !important;
     font-weight: 600;
 }
 
@@ -171,6 +178,20 @@ body {
     color: var(--text-primary);
 }
 
+/* --- Mint Theme: Global Headings --- */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    color: #00A19B;
+}
+
+/* Keep card title using text color so white cards look right */
+.card-title,
+.card h2,
+.card h3,
+.card h4 {
+    color: #00A19B;
+}
+
 /* --- Custom Button Styles --- */
 .btn {
     font-weight: 600;
@@ -180,39 +201,103 @@ body {
 }
 
 .btn-primary {
-    background-color: #3498db;
-    /* A friendly, trustworthy blue */
-    border-color: #3498db;
+    background-color: #00A19B; /* The Mint */
+    border-color: #00A19B;
+    color: #ffffff;
 }
 
 .btn-primary:hover {
-    background-color: #2980b9;
-    border-color: #2980b9;
+    background-color: #008B85; /* Darker Mint */
+    border-color: #008B85;
+    color: #ffffff;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 161, 155, 0.2);
 }
 
 .btn-success {
-    background-color: #1abc9c;
-    /* Teal for success */
-    border-color: #1abc9c;
+    background-color: #00A19B; /* The Mint */
+    border-color: #00A19B;
+    color: #ffffff;
 }
 
 .btn-success:hover {
-    background-color: #16a085;
-    border-color: #16a085;
+    background-color: #008B85; /* Darker Mint */
+    border-color: #008B85;
+    color: #ffffff;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 161, 155, 0.2);
+}
+
+/* Secondary buttons → Mint outline */
+.btn-secondary {
+    background-color: transparent;
+    border-color: #00A19B;
+    color: #00A19B;
+}
+
+.btn-secondary:hover {
+    background-color: #00A19B;
+    border-color: #00A19B;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 161, 155, 0.2);
+}
+
+/* Outline primary → Mint */
+.btn-outline-primary {
+    border-color: #00A19B !important;
+    color: #00A19B !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:active,
+.btn-outline-primary.active {
+    background-color: #00A19B !important;
+    color: #ffffff !important;
+    border-color: #00A19B !important;
+    transform: translateY(-2px);
+}
+
+/* Outline secondary → Mint */
+.btn-outline-secondary {
+    border-color: #00A19B;
+    color: #00A19B;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #00A19B;
+    border-color: #00A19B;
+    color: #ffffff;
+}
+
+/* Outline danger (used in vitals collapse) → Mint */
+.btn-outline-danger {
+    border-color: #00A19B !important;
+    color: #00A19B !important;
+}
+
+.btn-outline-danger:hover {
+    background-color: #00A19B !important;
+    border-color: #00A19B !important;
+    color: #ffffff !important;
+}
+
+/* Focus ring → Mint for all inputs */
+.form-control:focus,
+.form-select:focus,
+.input-group .form-control:focus {
+    border-color: #00A19B;
+    box-shadow: 0 0 0 0.25rem rgba(0, 161, 155, 0.2);
 }
 
 /* --- Button Group Toggle Styles --- */
 .btn-group .btn-outline-primary {
-    border-color: #3498db;
-    color: #3498db;
+    border-color: #00A19B;
+    color: #00A19B;
 }
 
 .btn-group .btn-outline-primary:hover {
-    background-color: #3498db;
+    background-color: #00A19B;
     color: white;
     transform: translateY(-2px);
 }
@@ -308,23 +393,23 @@ body.dark-mode .btn-outline-primary:hover {
 /* Pulse Highlight for Button Guidance */
 .pulse-highlight {
     animation: buttonPulse 1.5s ease;
-    box-shadow: 0 0 0 0 rgba(26, 188, 156, 0.7);
+    box-shadow: 0 0 0 0 rgba(0, 161, 155, 0.7);
 }
 
 @keyframes buttonPulse {
     0% {
         transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(26, 188, 156, 0.7);
+        box-shadow: 0 0 0 0 rgba(0, 161, 155, 0.7);
     }
 
     50% {
         transform: scale(1.05);
-        box-shadow: 0 0 0 10px rgba(26, 188, 156, 0);
+        box-shadow: 0 0 0 10px rgba(0, 161, 155, 0);
     }
 
     100% {
         transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(26, 188, 156, 0);
+        box-shadow: 0 0 0 0 rgba(0, 161, 155, 0);
     }
 }
 
@@ -350,8 +435,8 @@ body.dark-mode .btn-outline-primary:hover {
 }
 
 .alert-success {
-    background-color: rgba(26, 188, 156, 0.1);
-    border-color: #1abc9c;
+    background-color: rgba(0, 161, 155, 0.1);
+    border-color: #00A19B;
     color: var(--text-primary);
 }
 
@@ -439,8 +524,7 @@ footer a:hover {
 /* Style for when the accordion item is OPEN */
 .accordion-button:not(.collapsed) {
     color: #ffffff;
-    background: linear-gradient(135deg, #1abc9c, #16a085);
-    /* Main theme teal gradient */
+    background: linear-gradient(135deg, #00A19B, #008B85); /* The Mint */
 }
 
 /* Style for the accordion content area */
@@ -462,8 +546,7 @@ footer a:hover {
     margin-right: 1rem;
     width: 22px;
     height: 22px;
-    color: #3498db;
-    /* Primary theme blue for icons */
+    color: #00A19B; /* The Mint */
     flex-shrink: 0;
     /* Prevents icon from shrinking */
 }
@@ -479,7 +562,7 @@ footer a:hover {
     width: 1.5rem;
     height: 1.5rem;
     margin-left: auto;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%233498db'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%2300A19B'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
     background-repeat: no-repeat;
     background-size: 1.5rem;
     transition: transform 0.2s ease-in-out;
@@ -542,8 +625,8 @@ footer a:hover {
 
 /* Hover effect */
 .select2-container--default .select2-selection--single:hover {
-    border-color: #007bff;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+    border-color: #00A19B;
+    box-shadow: 0 0 5px rgba(0, 161, 155, 0.3);
 }
 
 /* Dark mode for Select2 dropdown */
@@ -676,13 +759,13 @@ body.dark-mode #chartContainer .card-title {
     background-color: var(--accordion-body-bg);
     padding: 1.5rem;
     border-radius: 0.5rem;
-    border-left: 4px solid #1abc9c;
+    border-left: 4px solid #00A19B;
     transition: background-color 0.3s ease;
 }
 
 .recommendations-text h4,
 .recommendations-text strong {
-    color: #1abc9c;
+    color: #00A19B;
     margin-top: 1rem;
     margin-bottom: 0.5rem;
 }
@@ -728,7 +811,7 @@ body.dark-mode #chartContainer .card-title {
 }
 
 .recommendations-text blockquote {
-    border-left: 4px solid #1abc9c;
+    border-left: 4px solid #00A19B;
     padding-left: 1rem;
     margin: 1rem 0;
     color: var(--text-secondary);
@@ -758,9 +841,9 @@ body.dark-mode #chartContainer .card-title {
 }
 
 .symptom-checkbox:hover {
-    background: #e3f2fd;
+    background: #EAF7F7; /* light mint */
     transform: translateX(5px);
-    border-color: #3498db;
+    border-color: #00A19B;
 }
 
 .symptom-checkbox input[type="checkbox"] {
@@ -832,9 +915,14 @@ body.dark-mode .result-card {
     background: linear-gradient(135deg, var(--card-bg) 0%, var(--accordion-bg) 100%);
 }
 
+body.dashboard-dropdown-item:hover {
+    background: rgba(0, 161, 155, 0.1);
+    color: #00A19B;
+}
+
 body.dark-mode .info-text {
-    background: rgba(26, 188, 156, 0.1);
-    color: #1abc9c;
+    background: rgba(0, 161, 155, 0.1);
+    color: #00A19B;
 }
 
 /* Responsive adjustments */
@@ -868,36 +956,36 @@ body.dark-mode .info-text {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #1abc9c, #16a085);
+    background: linear-gradient(135deg, #00A19B, #008B85);
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(26, 188, 156, 0.4);
+    box-shadow: 0 2px 6px rgba(0, 161, 155, 0.4);
     transition: all 0.3s ease;
 }
 
 .interactive-slider::-webkit-slider-thumb:hover {
     transform: scale(1.2);
-    box-shadow: 0 4px 12px rgba(26, 188, 156, 0.6);
+    box-shadow: 0 4px 12px rgba(0, 161, 155, 0.6);
 }
 
 .interactive-slider::-moz-range-thumb {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #1abc9c, #16a085);
+    background: linear-gradient(135deg, #00A19B, #008B85);
     cursor: pointer;
     border: none;
-    box-shadow: 0 2px 6px rgba(26, 188, 156, 0.4);
+    box-shadow: 0 2px 6px rgba(0, 161, 155, 0.4);
     transition: all 0.3s ease;
     appearance: none;
 }
 
 .interactive-slider::-moz-range-thumb:hover {
     transform: scale(1.2);
-    box-shadow: 0 4px 12px rgba(26, 188, 156, 0.6);
+    box-shadow: 0 4px 12px rgba(0, 161, 155, 0.6);
 }
 
 .interactive-slider:focus {
-    box-shadow: 0 0 0 0.25rem rgba(26, 188, 156, 0.25);
+    box-shadow: 0 0 0 0.25rem rgba(0, 161, 155, 0.25);
 }
 
 /* Risk Level Badge Styles */
@@ -998,11 +1086,11 @@ body.dark-mode .form-range {
 }
 
 body.dark-mode .form-range::-webkit-slider-thumb {
-    background: linear-gradient(135deg, #1abc9c, #16a085);
+    background: linear-gradient(135deg, #00A19B, #008B85);
 }
 
 body.dark-mode .form-range::-moz-range-thumb {
-    background: linear-gradient(135deg, #1abc9c, #16a085);
+    background: linear-gradient(135deg, #00A19B, #008B85);
 }
 
 .preloaded-info {
@@ -1096,3 +1184,109 @@ body.dark-mode .prediction-results-card .progress {
 body.dark-mode .prediction-results-card .border-primary {
     border-color: #0d6efd;
 }
+
+/* --- UI Animations --- */
+
+/* 1. Entrance Fade In Up */
+.animate-fade-in-up {
+    animation: fadeInUp 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 2. Staggered List Items */
+.animate-stagger-item {
+    opacity: 0;
+    transform: translateX(20px);
+    animation: slideInItem 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+@keyframes slideInItem {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* 3. Button Shimmer */
+.btn-shimmer {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-shimmer::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        to right, 
+        rgba(255, 255, 255, 0) 0%, 
+        rgba(255, 255, 255, 0.3) 50%, 
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(30deg);
+    animation: shimmer 3s infinite linear;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%) rotate(30deg); }
+    100% { transform: translateX(100%) rotate(30deg); }
+}
+
+/* --- Severity Pills --- */
+.severity-pills {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.severity-pill {
+    display: inline-block;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid #ced4da;
+    background: #f8f9fa;
+    color: #6c757d;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    line-height: 22px;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.severity-pill:hover {
+    border-color: #00A19B;
+    color: #00A19B;
+    transform: scale(1.15);
+}
+
+.severity-pill.active {
+    background: #00A19B;
+    border-color: #00A19B;
+    color: #ffffff;
+    transform: scale(1.1);
+}
+
+/* Severity 4 = orange, 5 = red */
+.severity-pill[data-level="4"].active { background: #e67e22; border-color: #e67e22; }
+.severity-pill[data-level="5"].active { background: #e74c3c; border-color: #e74c3c; }
+
+/* --- Next Steps Card --- */
+#next-steps-card {
+    border-left: 4px solid #00A19B !important;
+    transition: all 0.3s ease;
+}

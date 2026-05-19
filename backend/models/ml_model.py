@@ -186,9 +186,10 @@ class DiseaseMLModel:
         # If no match found, raise ValueError
         raise ValueError(f"Disease '{disease_name}' (key: {disease_key}) not found in model")
 
-    def predict_disease_probability(self, disease: str, symptoms: List[str], age: int = None, height_cm: float = None, weight_kg: float = None) -> Dict:
+    def predict_disease_probability(self, disease: str, symptoms: List[str], age: int = None, height_cm: float = None, weight_kg: float = None, severity_weights: Dict = None) -> Dict:
         """
         Predict disease probability based on selected symptoms and optional age.
+        severity_weights: optional dict of {symptom_key: severity (1-5)} to weight contributions.
         """
         # Use helper for robust lookup
         disease_key = self._get_disease_key(disease)
@@ -222,10 +223,15 @@ class DiseaseMLModel:
                 bmi_category = "Obese"
         
         matched_symptoms = []
+        severity_weights = severity_weights or {}
         
         for symptom in symptoms:
             if symptom in symptom_weights:
-                z += symptom_weights[symptom]
+                base_weight = symptom_weights[symptom]
+                # Severity multiplier: 1=0.33x, 3=1.0x (neutral), 5=1.67x
+                severity = severity_weights.get(symptom, 3)  # default to 3 (neutral)
+                severity_multiplier = severity / 3.0
+                z += base_weight * severity_multiplier
                 matched_symptoms.append(symptom)
         
         raw_probability = self.sigmoid(z)
@@ -271,11 +277,51 @@ class DiseaseMLModel:
             for key in symptom_keys
         }
     
-    def predict_multiple_diseases(self, symptoms: List[str], age: int = None, height_cm: float = None, weight_kg: float = None) -> List[Dict]:
+    def predict_multiple_diseases(self, symptoms: List[str], age: int = None, height_cm: float = None, weight_kg: float = None, severity_weights: Dict = None, gender: str = None) -> List[Dict]:
+        """
+        Predict probabilities for all diseases.
+        Applies age and gender adjustments to priors after scoring.
+        """
+        # Gender-boosted diseases (biological risk factors)
+        FEMALE_BOOSTED = {'breast_cancer', 'endometriosis', 'pcos', 'preeclampsia', 'gestational_diabetes', 'osteoporosis'}
+        MALE_BOOSTED   = {'prostate_cancer', 'benign_prostatic_hyperplasia', 'gout', 'heart_disease', 'myocardial_infarction'}
+        # Age-boosted chronic diseases
+        ELDERLY_BOOSTED = {'diabetes', 'hypertension', 'heart_disease', 'alzheimers_disease', 'parkinsons_disease',
+                           'osteoarthritis', 'osteoporosis', 'cataracts', 'macular_degeneration', 'copd',
+                           'kidney_disease', 'atrial_fibrillation', 'heart_failure', 'stroke', 'glaucoma'}
+        YOUTH_REDUCED   = {'alzheimers_disease', 'parkinsons_disease', 'heart_disease', 'osteoporosis',
+                           'macular_degeneration', 'prostate_cancer', 'cataracts'}
+
         predictions = []
         for disease in self.disease_weights.keys():
             try:
-                prediction = self.predict_disease_probability(disease, symptoms, age=age, height_cm=height_cm, weight_kg=weight_kg)
+                prediction = self.predict_disease_probability(
+                    disease, symptoms, age=age, height_cm=height_cm,
+                    weight_kg=weight_kg, severity_weights=severity_weights
+                )
+
+                # --- Age-based prior adjustment ---
+                prob = prediction['calibrated_probability']
+                if age is not None:
+                    disease_key = disease  # already normalized
+                    if age >= 60 and disease_key in ELDERLY_BOOSTED:
+                        prob = min(0.95, prob * 1.15)  # +15% for elderly chronic diseases
+                    elif age < 18 and disease_key in YOUTH_REDUCED:
+                        prob = max(0.01, prob * 0.60)  # -40% for youth unlikely diseases
+
+                # --- Gender-based prior adjustment ---
+                if gender:
+                    g = gender.lower()
+                    if g == 'female' and disease in FEMALE_BOOSTED:
+                        prob = min(0.95, prob * 1.20)  # +20% for gender-relevant diseases
+                    elif g == 'female' and disease in MALE_BOOSTED:
+                        prob = max(0.01, prob * 0.50)  # -50% for male-specific diseases
+                    elif g == 'male' and disease in MALE_BOOSTED:
+                        prob = min(0.95, prob * 1.20)
+                    elif g == 'male' and disease in FEMALE_BOOSTED:
+                        prob = max(0.01, prob * 0.30)  # -70% for female-specific diseases
+
+                prediction['calibrated_probability'] = prob
                 predictions.append(prediction)
             except Exception:
                 logger.error(
@@ -283,7 +329,7 @@ class DiseaseMLModel:
                     exc_info=True
                 )
 
-        # Sort by raw probability (highest first)
+        # Sort by calibrated probability (highest first)
         predictions.sort(key=lambda x: x['calibrated_probability'], reverse=True)
         return predictions
 
