@@ -20,6 +20,7 @@ import numpy as np
 import os
 from PIL import Image
 from flask import Blueprint, request, jsonify
+from flask_login import current_user
 import tensorflow as tf
 
 # Suppress TensorFlow logging
@@ -28,6 +29,8 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 # Import TensorFlow models
 from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.resnet50 import preprocess_input
+
+from backend.services.history_service import save_history
 
 predict_disease_type_bp = Blueprint("disease-type", __name__)
 
@@ -191,9 +194,27 @@ def predict():
         # 3. Get predicted class and confidence
         idx = int(np.argmax(preds))
         confidence = float(preds[idx])
+        predicted_class = MODEL_CONFIG[model_type]["class_names"][idx]
+
+        # Issue #230: persist the prediction. model_type ("eyes" / "skin")
+        # becomes the prediction_type so the History page can filter on it.
+        save_history(
+            user_id=current_user.id if current_user.is_authenticated else None,
+            prediction_type=model_type,
+            disease=predicted_class,
+            inputs={
+                "type": model_type,
+                "image_filename": getattr(image_file, "filename", None),
+            },
+            results={
+                "prediction": predicted_class,
+                "confidence_pct": round(confidence * 100, 2),
+            },
+            probability=confidence,
+        )
 
         return jsonify({
-            "prediction": MODEL_CONFIG[model_type]["class_names"][idx],
+            "prediction": predicted_class,
             "confidence": round(confidence * 100, 2),
             "type": model_type
         }), 200

@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, render_template, send_file
 from datetime import datetime
+from flask_login import current_user
 import csv
 import os
 import io
@@ -15,6 +16,7 @@ from backend.utils.tts_helper import generate_tts_audio
 from backend.utils.gemini_helper import generate_recommendations
 from backend.utils.tts_helper import generate_tts_audio
 from backend.models.ml_model import ml_model
+from backend.services.history_service import save_history
 
 disease_bp = Blueprint("disease", __name__)
 
@@ -130,6 +132,25 @@ def disease():
             }), 400
 
         p_d_given_result = numerator / denominator
+
+        # Issue #230: persist the calculation so the History page can
+        # show it. save_history silently no-ops for anonymous users and
+        # never raises, so this can't break the response below. An
+        # optional "disease_name" / "disease" field in the request body
+        # gives history rows a human-readable label.
+        save_history(
+            user_id=current_user.id if current_user.is_authenticated else None,
+            prediction_type="bayes",
+            disease=data.get("disease_name") or data.get("disease"),
+            inputs={
+                "pD": p_d,
+                "sensitivity": sensitivity,
+                "falsePositive": false_pos,
+                "testResult": test_result,
+            },
+            results={"p_d_given_result": p_d_given_result},
+            probability=p_d_given_result,
+        )
 
         return jsonify({
             "p_d_given_result": round(p_d_given_result, 4),
@@ -441,4 +462,3 @@ def text_to_speech():
 
 
 from backend.middleware.error_handler import NotFoundError
-
