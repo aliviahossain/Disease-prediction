@@ -1,25 +1,10 @@
 {% extends "base.html" %}
 
-{# -----------------------------------------------------------------------
-   history.html — Patient History page.
-
-   Empty by default: list is fetched async by /static/js/history.js from
-   the /api/history endpoint. This avoids reloading the whole page when
-   the user deletes an entry and means the same template handles
-   "no entries yet" and "many entries" uniformly.
-
-   If your project does NOT have a base.html, replace the {% extends %}
-   block with a standalone <html>…</html> shell — the inner block
-   (#history-root) is what matters.
-   ----------------------------------------------------------------------- #}
-
 {% block title %}Patient History · Disease Prediction{% endblock %}
 
-{% block head_extra %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/history.css') }}">
-{% endblock %}
-
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/history.css') }}">
+
 <main id="history-root" class="history-container">
 
   <header class="history-header">
@@ -35,7 +20,7 @@
         <option value="">All types</option>
         <option value="bayes">Bayes calculator</option>
         <option value="symptom">Symptom-based</option>
-        <option value="eye">Eye disease (image)</option>
+        <option value="eyes">Eye disease (image)</option>
         <option value="skin">Skin disease (image)</option>
       </select>
       <button id="history-refresh-btn"
@@ -88,8 +73,6 @@
     </section>
   </div>
 </div>
-{% endblock %}
 
-{% block scripts_extra %}
-  <script src="{{ url_for('static', filename='js/history.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/history.js') }}" defer></script>
 {% endblock %}
