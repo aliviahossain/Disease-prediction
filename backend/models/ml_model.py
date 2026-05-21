@@ -237,10 +237,15 @@ class DiseaseMLModel:
         # Explainable AI: symptom contributions
         symptom_contributions = {symptom: symptom_weights[symptom] for symptom in matched_symptoms}
         
+        calibration_gap = abs(raw_probability - calibrated_probability)
+        calibration_score = max(0.0, 1.0 - calibration_gap)
+
         return {
             'disease': disease,
             'raw_probability': float(raw_probability),
             'calibrated_probability': float(calibrated_probability),
+            'calibration_gap': float(calibration_gap),
+            'calibration_score': float(calibration_score),
             'prior_probability': float(prior),
             'likelihood': float(likelihood),
             'symptoms_matched': len(matched_symptoms),

@@ -156,6 +156,9 @@ def predict_disease():
             },
             'ml_prediction': {
                 'raw_probability': round(ml_prediction['raw_probability'] * 100, 2),
+                'calibrated_probability': round(ml_prediction['calibrated_probability'] * 100, 2),
+                'calibration_gap': round(ml_prediction['calibration_gap'] * 100, 2),
+                'calibration_score': round(ml_prediction['calibration_score'] * 100, 2),
                 'confidence_score': round(ml_prediction['confidence_score'] * 100, 2),
                 'symptoms_analyzed': ml_prediction['symptoms_matched'],
                 'missing_symptoms': missing_symptoms
@@ -222,6 +225,9 @@ def predict_multiple_diseases():
             results.append({
                 'disease': pred['disease'].replace('_', ' ').title(),
                 'probability': round(pred['raw_probability'] * 100, 2),
+                'calibrated_probability': round(pred['calibrated_probability'] * 100, 2),
+                'calibration_gap': round(abs(pred['raw_probability'] - pred['calibrated_probability']) * 100, 2),
+                'calibration_score': round(max(0.0, 1.0 - abs(pred['raw_probability'] - pred['calibrated_probability'])) * 100, 2),
                 'prior': round(bayesian['prior'] * 100, 2),
                 'likelihood': round(bayesian['likelihood'] * 100, 2),
                 'posterior': round(bayesian['posterior'] * 100, 2),

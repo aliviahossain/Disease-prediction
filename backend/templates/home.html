@@ -191,6 +191,45 @@
                             </div>
                         </div>
 
+                        <!-- Prediction Reliability / Calibration -->
+                        <div class="card bg-light mb-3 shadow-sm border-0" id="prediction-reliability-card">
+                            <div class="card-body">
+                                <h3 class="h6 mb-3">
+                                    <i class="fas fa-shield-alt me-2"></i>Prediction Reliability
+                                </h3>
+                                <p class="small text-muted mb-3">
+                                    This module helps you interpret how confident the model is versus how reliable the
+                                    calibrated prediction is expected to be.
+                                </p>
+                                <div class="row gx-3 gy-3 mb-3">
+                                    <div class="col-6 col-md-3">
+                                        <div class="text-muted small">Model Confidence</div>
+                                        <div class="fw-bold" id="raw-confidence-value">--</div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="text-muted small">Calibrated Reliability</div>
+                                        <div class="fw-bold" id="calibrated-confidence-value">--</div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="text-muted small">Calibration Gap</div>
+                                        <div class="fw-bold" id="calibration-gap-value">--</div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="text-muted small">Reliability Score</div>
+                                        <div class="fw-bold" id="calibration-score-value">--</div>
+                                    </div>
+                                </div>
+                                <div class="chart-wrapper" style="height: 220px;">
+                                    <canvas id="calibration-chart"></canvas>
+                                </div>
+                                <p class="text-muted small mt-3 mb-0">
+                                    Raw confidence is the model's direct prediction output.
+                                    Calibrated reliability shows temperature-scaled probability adjusted for
+                                    overconfidence.
+                                </p>
+                            </div>
+                        </div>
+
                         <!-- Missing Symptom Analysis -->
                         <div class="card bg-light mb-3 shadow-sm border-0" id="missing-symptoms-card"
                             style="display: none;">
@@ -261,6 +300,7 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 
 
@@ -372,6 +412,8 @@
         catEl.innerText = category;
         catEl.className = `badge ${badge}`;
     }
+
+    let calibrationChart = null;
 
     async function predictDisease() {
         if (selectedSymptoms.length === 0) {
@@ -546,10 +588,66 @@
         document.getElementById('bias-value').textContent = explanations.bias ? explanations.bias.toFixed(2) : '--';
         document.getElementById('bmi-effect-value').textContent = explanations.bmi_effect ? explanations.bmi_effect.toFixed(2) : '--';
 
+        document.getElementById('raw-confidence-value').textContent = pred.probability + '%';
+        document.getElementById('calibrated-confidence-value').textContent = pred.calibrated_probability + '%';
+        document.getElementById('calibration-gap-value').textContent = pred.calibration_gap + '%';
+        document.getElementById('calibration-score-value').textContent = pred.calibration_score + '%';
+
+        renderCalibrationChart(pred);
+
         document.getElementById('detailed-analysis').style.display = 'block';
 
         // Store selected index for download
         window.selectedPredictionIndex = index;
+    }
+
+    function renderCalibrationChart(pred) {
+        const ctx = document.getElementById('calibration-chart').getContext('2d');
+        const labels = ['Model Confidence', 'Calibrated Reliability'];
+        const values = [pred.probability, pred.calibrated_probability];
+        const barColors = ['#4f46e5', '#10b981'];
+
+        if (calibrationChart) {
+            calibrationChart.data.labels = labels;
+            calibrationChart.data.datasets[0].data = values;
+            calibrationChart.update();
+            return;
+        }
+
+        calibrationChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Probability (%)',
+                    data: values,
+                    backgroundColor: barColors,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: value => value + '%'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: context => `${context.parsed.y}%`
+                        }
+                    }
+                }
+            }
+        });
     }
 
     async function downloadMLResults() {
