@@ -1,4 +1,4 @@
-const CACHE_NAME = 'disease-app-v1';
+const CACHE_NAME = 'disease-app-v3';
 const ASSETS_TO_CACHE = [
     '/',
     '/static/style.css',

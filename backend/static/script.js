@@ -14,6 +14,9 @@ const STORAGE_KEY = "calculator_last_state";
 // Tracks whether AI-generated recommendations have already been created
 let contentGenerated = false;
 
+// Version counter to prevent race conditions during recommendations/TTS loading
+let currentRecommendationsVersion = 0;
+
 // ============================================
 // Dark Mode Toggle Functionality
 // ============================================
@@ -133,7 +136,13 @@ function attachResetOnInput() {
   const inputs = document.querySelectorAll("input, select");
 
   inputs.forEach(input => {
-    input.addEventListener("input", () => {
+    // Do not reset results when only changing the recommendations language
+    if (input.id === 'languageSelect') return;
+
+    input.addEventListener("input", (e) => {
+      // Defensive check: ignore events coming from languageSelect
+      if (e.target && e.target.id === 'languageSelect') return;
+
       resultDiv.style.display = "none";
       resultDiv.textContent = "";
       document.getElementById('chartContainer').style.display = "none";
@@ -411,6 +420,10 @@ function getAIRecommendations() {
   const btn = document.getElementById('getRecommendationsBtn');
   const languageSelect = document.getElementById('languageSelect');
 
+  // Increment and capture version to prevent race conditions on slow requests
+  currentRecommendationsVersion++;
+  const thisVersion = currentRecommendationsVersion;
+
   // Show loading state
   btn.style.display = 'none';
   loadingDiv.style.display = 'block';
@@ -434,6 +447,12 @@ function getAIRecommendations() {
   })
     .then(response => response.json())
     .then(data => {
+      // If a newer request has been started, discard this stale response
+      if (thisVersion !== currentRecommendationsVersion) {
+        console.log('Discarded stale recommendations response.');
+        return;
+      }
+
       loadingDiv.style.display = 'none';
 
       if (data.success) {
@@ -456,6 +475,12 @@ function getAIRecommendations() {
         })
           .then(function(res) { return res.blob(); })
           .then(function(blob) {
+            // Re-verify that this is still the active request version before rendering audio
+            if (thisVersion !== currentRecommendationsVersion) {
+              console.log('Discarded stale TTS audio response.');
+              return;
+            }
+
             const audioUrl = URL.createObjectURL(blob);
             const audioEl = document.createElement('audio');
             audioEl.id = 'ttsAudioPlayer';
@@ -487,6 +512,7 @@ function getAIRecommendations() {
       contentDiv.scrollIntoView({ behavior: "smooth", block: "nearest" });
     })
     .catch(error => {
+      if (thisVersion !== currentRecommendationsVersion) return;
       loadingDiv.style.display = 'none';
       contentDiv.innerHTML = `
       <div class="alert alert-danger">
