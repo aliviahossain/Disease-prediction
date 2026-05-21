@@ -3,8 +3,9 @@ import os
 import json
 import numpy as np
 from tensorflow.keras.preprocessing import image
-from datetime import datetime
 from backend import db
+import json
+from datetime import datetime
 
 # Configurable confidence threshold
 CONFIDENCE_THRESHOLD = float(
@@ -61,6 +62,7 @@ def predict_disease(model, img_path, target_size=(224, 224)):
             "confidence": round(confidence, 4),
             "message": "Prediction generated successfully."
         }
+        
     except Exception as e:
         return {
             "status": "error",
@@ -69,8 +71,15 @@ def predict_disease(model, img_path, target_size=(224, 224)):
             "message": f"Prediction failed: {str(e)}"
         }
 
-
 class PredictionHistory(db.Model):
+# Example disease classes
+    CLASS_NAMES = [
+        "Cataract",
+        "Diabetic Retinopathy",
+        "Glaucoma",
+        "Normal"
+]
+
     __tablename__ = 'prediction_history'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -134,3 +143,4 @@ class PredictionHistory(db.Model):
             'patient_age': self.patient_age,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
+

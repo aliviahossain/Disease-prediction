@@ -526,6 +526,70 @@ def get_uncertainty_config():
     return jsonify(uncertainty_handler.get_config()), 200
  
  
+
+@ml_bp.route('/api/ml/explain', methods=['POST'])
+def explain_prediction():
+    """SHAP-based prediction explainability endpoint."""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        disease = data.get('disease', '').lower().replace(' ', '_')
+        symptoms = data.get('symptoms', [])
+
+        if not disease:
+            return jsonify({'error': 'Disease not specified'}), 400
+        if not symptoms:
+            return jsonify({'error': 'No symptoms provided'}), 400
+
+        disease_key = ml_model._get_disease_key(disease)
+        prediction = ml_model.predict_disease_probability(disease, symptoms)
+        shap_values = ml_model.compute_shap_values(disease_key, symptoms)
+
+        positive = {k: v for k, v in shap_values.items() if v["direction"] == "positive"}
+        negative = {k: v for k, v in shap_values.items() if v["direction"] == "negative"}
+
+        top_positive = sorted(
+            positive.items(),
+            key=lambda x: x[1]["contribution"],
+            reverse=True
+        )[:3]
+
+        summary_parts = [
+            f"{v['display_name']} (+{v['contribution']:.2f})"
+            for _, v in top_positive
+        ]
+        summary = (
+            f"Top contributing symptoms: {', '.join(summary_parts)}"
+            if summary_parts
+            else "No strong symptom contributions found."
+        )
+
+        return jsonify({
+            'success': True,
+            'disease': disease.replace('_', ' ').title(),
+            'calibrated_probability': round(
+                prediction['calibrated_probability'] * 100, 2
+            ),
+            'explanation': {
+                'shap_values': shap_values,
+                'positive_contributions': positive,
+                'negative_contributions': negative,
+                'summary': summary,
+                'baseline_info': (
+                    'Positive values increase disease probability. '
+                    'Negative values indicate important absent symptoms.'
+                )
+            }
+        }), 200
+
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Explanation failed: {str(e)}'}), 500
+
+
 def get_risk_level(probability):
     """
     Determine risk level based on probability percentage.

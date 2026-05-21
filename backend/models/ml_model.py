@@ -179,28 +179,58 @@ class DiseaseMLModel:
         raise ValueError(f"Disease '{disease_name}' (key: {disease_key}) not found in model")
 
     def compute_shap_values(self, disease_key: str, symptoms: List[str]) -> Dict:
-        """Compute symptom contribution scores for the prediction."""
-
+        """
+        Compute SHAP-style symptom contribution scores for explainability.
+        Uses a linear approximation:
+        - Baseline = expected value with no symptoms (bias only)
+        - Each symptom contribution = weight * (1 - baseline_probability)
+        - Negative contributions shown for high-weight missing symptoms
+        """
         symptom_weights = self.disease_weights[disease_key]["symptoms"]
+        bias = self.disease_weights[disease_key]["bias"]
 
-        # Simple baseline assumption:
-        # symptom has 50% chance of appearing
-        baseline = 0.5
+        # Baseline probability with no symptoms
+        baseline_prob = self.calibrated_sigmoid(bias)
 
         shap_values = {}
 
+        # Positive contributions from present symptoms
         for symptom in symptoms:
             weight = symptom_weights.get(symptom)
-
             if weight is None:
                 continue
+            contribution = round(weight * (1 - baseline_prob), 4)
+            shap_values[symptom] = {
+                "contribution": contribution,
+                "weight": weight,
+                "direction": "positive",
+                "display_name": self.symptom_display_names.get(
+                    symptom, symptom.replace('_', ' ').title()
+                )
+            }
 
-            # symptom is selected => x = 1
-            contribution = weight * (1 - baseline)
+        # Negative contributions from important absent symptoms
+        for symptom_key, weight in symptom_weights.items():
+            if symptom_key not in symptoms and weight >= 0.80:
+                contribution = round(-weight * baseline_prob * 0.5, 4)
+                shap_values[symptom_key] = {
+                    "contribution": contribution,
+                    "weight": weight,
+                    "direction": "negative",
+                    "display_name": self.symptom_display_names.get(
+                        symptom_key, symptom_key.replace('_', ' ').title()
+                    )
+                }
 
-            shap_values[symptom] = round(contribution, 4)
+        # Sort by absolute contribution descending
+        sorted_shap = dict(
+            sorted(shap_values.items(),
+                   key=lambda x: abs(x[1]["contribution"]),
+                   reverse=True)
+        )
 
-        return shap_values
+        # Return top 10 contributions
+        return dict(list(sorted_shap.items())[:10])
 
     def predict_disease_probability(self, disease: str, symptoms: List[str], age: int = None, height_cm: float = None, weight_kg: float = None) -> Dict:
         """Predict disease probability based on selected symptoms."""
