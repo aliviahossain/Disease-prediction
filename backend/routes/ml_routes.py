@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import current_user
+from jinja2 import TemplateNotFound
 from backend.models.ml_model import ml_model
 from backend.preprocessing import PreprocessingError, clean_prediction_payload
 from backend.utils.calculator import BayesCalculator
@@ -29,6 +30,8 @@ def ml_prediction_page():
         return render_template('ml_prediction.html',
                                diseases=disease_data,
                                active_page='ml_prediction')
+    except TemplateNotFound as e:
+        return render_template('error.html', error=f"Missing template: {e.name}"), 500
     except Exception as e:
         return render_template('error.html', error=str(e)), 500
  
@@ -103,6 +106,8 @@ def predict_disease():
                 'disease': disease.replace('_', ' ').title(),
                 'confidence': round(confidence_score * 100, 2),
                 'reason': uncertainty_check['reason'],
+                'feature_impacts': ml_prediction.get('feature_impacts', []),
+                'explanation_summary': ml_prediction.get('explanation_summary', ''),
             }), 200
         # ─────────────────────────────────────────────────────────────────
  
@@ -202,7 +207,14 @@ def predict_disease():
                 'raw_probability': round(ml_prediction['raw_probability'] * 100, 2),
                 'confidence_score': round(confidence_score * 100, 2),
                 'symptoms_analyzed': ml_prediction['symptoms_matched'],
-                'missing_symptoms': missing_symptoms
+                'missing_symptoms': missing_symptoms,
+                'explanations': {
+                    'feature_impacts': ml_prediction.get('feature_impacts', []),
+                    'symptom_contributions': ml_prediction.get('symptom_contributions', {}),
+                    'summary': ml_prediction.get('explanation_summary', ''),
+                    'bias': ml_prediction.get('bias'),
+                    'bmi_effect': ml_prediction.get('bmi_effect')
+                }
             },
             'bayesian_analysis': {
                 'prior': round(bayesian_result['prior'] * 100, 2),
@@ -272,11 +284,6 @@ def predict_multiple_diseases():
         height = data.get('height_cm')
         weight = data.get('weight_kg')
  
-        predictions = ml_model.predict_multiple_diseases(
-            symptoms, age=age, height_cm=height, weight_kg=weight
-        )
- 
-        
         cleaned = clean_prediction_payload(
             data,
             valid_symptoms=(item["key"] for item in ml_model.get_all_unique_symptoms()),
@@ -318,7 +325,7 @@ def predict_multiple_diseases():
             )
             # ─────────────────────────────────────────────────────────────
  
-            results.append({
+            top_prediction = {
                 'disease': pred['disease'].replace('_', ' ').title(),
                 'probability': round(pred['raw_probability'] * 100, 2),
                 'prior': round(bayesian['prior'] * 100, 2),
@@ -327,15 +334,23 @@ def predict_multiple_diseases():
                 'confidence': round(confidence_score * 100, 2),
                 'risk_level': get_risk_level(bayesian['posterior'] * 100),
                 'missing_symptoms': missing,
+                'feature_impacts': pred.get('feature_impacts', []),
+                'explanation_summary': pred.get('explanation_summary', ''),
+                'symptom_contributions': pred.get('symptom_contributions', {}),
+                'bias': pred.get('bias', 0),
+                'bmi_effect': pred.get('bmi_effect', 0),
                 'explanations': {
-                    'symptom_contributions': pred.get('symptom_contributions', {'test_symptom': 0.1}),
+                    'feature_impacts': pred.get('feature_impacts', []),
+                    'symptom_contributions': pred.get('symptom_contributions', {}),
+                    'summary': pred.get('explanation_summary', ''),
                     'bias': pred.get('bias', 0),
                     'bmi_effect': pred.get('bmi_effect', 0)
                 },
                 # NEW — uncertainty fields
                 'is_sufficient': uncertainty_check['is_sufficient'],
                 'uncertainty_reason': uncertainty_check['reason'],
-            })
+            }
+            results.append(top_prediction)
  
         # Sort by posterior probability (highest first)
         results.sort(key=lambda x: x['posterior'], reverse=True)

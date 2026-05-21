@@ -178,7 +178,7 @@ class DiseaseMLModel:
         # If no match found, raise ValueError
         raise ValueError(f"Disease '{disease_name}' (key: {disease_key}) not found in model")
 
-    def compute_shap_values(self, disease_key: str, symptoms: List[str]) -> Dict:
+    def compute_shap_values(self, disease_key: str, symptoms: List[str]) -> Dict[str, Dict[str, object]]:
         """
         Compute SHAP-style symptom contribution scores for explainability.
         Uses a linear approximation:
@@ -232,6 +232,52 @@ class DiseaseMLModel:
         # Return top 10 contributions
         return dict(list(sorted_shap.items())[:10])
 
+    def get_top_feature_impacts(self, disease_key: str, symptoms: List[str], top_n: int = 6) -> List[Dict]:
+        """Return the strongest positive and negative feature impacts."""
+        shap_values = self.compute_shap_values(disease_key, symptoms)
+
+        def abs_contribution(value):
+            if isinstance(value, dict):
+                return abs(value.get('contribution', 0))
+            return abs(value)
+
+        top_items = sorted(shap_values.items(), key=lambda item: abs_contribution(item[1]), reverse=True)[:top_n]
+
+        return [
+            {
+                'feature': key,
+                'name': item.get('display_name') if isinstance(item, dict) else self.symptom_display_names.get(key, key.replace('_', ' ').title()),
+                'contribution': float(item.get('contribution', item)) if isinstance(item, dict) else float(item),
+                'direction': item.get('direction', 'positive') if isinstance(item, dict) else ('positive' if item >= 0 else 'negative'),
+                'weight': float(item.get('weight', 0)) if isinstance(item, dict) else 0.0,
+            }
+            for key, item in top_items
+        ]
+
+    def build_explanation_summary(self, disease_key: str, top_impacts: List[Dict], bmi_category: str | None, confidence_score: float) -> str:
+        """Build a concise explanation summary for the diagnosis."""
+        positives = [item for item in top_impacts if item['direction'] == 'positive']
+        negatives = [item for item in top_impacts if item['direction'] == 'negative']
+
+        parts = []
+        if positives:
+            positive_names = ', '.join(item['name'] for item in positives[:3])
+            parts.append(f"Strong positive evidence came from {positive_names}.")
+        if negatives:
+            negative_names = ', '.join(item['name'] for item in negatives[:3])
+            parts.append(f"The absence of {negative_names} reduced confidence.")
+        if bmi_category:
+            parts.append(f"BMI category is {bmi_category}.")
+
+        if confidence_score >= 0.75:
+            parts.append("The model is highly confident in this result.")
+        elif confidence_score >= 0.5:
+            parts.append("The model is moderately confident, with some uncertainty remaining.")
+        else:
+            parts.append("The model is currently less confident in this prediction.")
+
+        return ' '.join(parts)
+
     def predict_disease_probability(self, disease: str, symptoms: List[str], age: int = None, height_cm: float = None, weight_kg: float = None) -> Dict:
         """Predict disease probability based on selected symptoms."""
         disease_key = self._get_disease_key(disease)
@@ -277,8 +323,21 @@ class DiseaseMLModel:
         prior = min(0.95, max(0.05, raw_probability))
         likelihood = 0.75 + (raw_probability * 0.20)
 
-        # Compute real SHAP values using exact formula for linear model
-        symptom_contributions = self.compute_shap_values(disease_key, matched_symptoms)
+        # Compute SHAP-style contributions for every symptom.
+        shap_values = self.compute_shap_values(disease_key, symptoms)
+        symptom_contributions = {
+            symptom: shap_values[symptom]
+            for symptom in matched_symptoms
+            if symptom in shap_values
+        }
+        feature_impacts = self.get_top_feature_impacts(disease_key, symptoms)
+        confidence_score = self._calculate_confidence(len(matched_symptoms), raw_probability, bmi)
+        explanation_summary = self.build_explanation_summary(
+            disease_key,
+            feature_impacts,
+            bmi_category,
+            confidence_score
+        )
         
         return {
             'disease': disease,
@@ -288,11 +347,13 @@ class DiseaseMLModel:
             'likelihood': float(likelihood),
             'symptoms_matched': len(matched_symptoms),
             'total_symptoms': len(symptoms),
-            'confidence_score': self._calculate_confidence(len(matched_symptoms), raw_probability, bmi),
+            'confidence_score': confidence_score,
             'bmi': round(bmi, 2) if bmi else None,
             'bmi_category': bmi_category,
             'bmi_effect': bmi_effect,
             'symptom_contributions': symptom_contributions,
+            'feature_impacts': feature_impacts,
+            'explanation_summary': explanation_summary,
             'bias': bias
         }
     

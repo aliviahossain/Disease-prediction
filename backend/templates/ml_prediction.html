@@ -18,7 +18,6 @@
                     <i class="fas fa-stethoscope me-2"></i>Symptom Input
                 </h2>
 
-                <!-- Disease Selection Removed for Differential Diagnosis -->
                 <div class="mb-4">
                     <p class="text-muted">
                         <i class="fas fa-info-circle me-1"></i>
@@ -97,62 +96,16 @@
                     </div>
                 </div>
 
-                <!-- =====================================================
-                     SYMPTOM SELECTION — Search + Category Filter
-                     ===================================================== -->
                 <div class="mb-4">
                     <label class="form-label">
                         <i class="fas fa-list-check me-1"></i> Select Symptoms
                         <span id="symptom-count" class="badge bg-primary ms-2">0 selected</span>
                     </label>
-
-                    <!-- Search bar -->
-                    <div class="input-group mb-2">
-                        <span class="input-group-text bg-white border-end-0">
-                            <i class="fas fa-search text-muted"></i>
-                        </span>
-                        <input
-                            type="text"
-                            id="symptom-search"
-                            class="form-control border-start-0 ps-0"
-                            placeholder="Search symptoms…"
-                            oninput="filterSymptoms()"
-                            autocomplete="off"
-                        >
-                        <!-- Clear button — visible only when something is typed -->
-                        <button
-                            class="btn btn-outline-secondary"
-                            type="button"
-                            id="search-clear-btn"
-                            onclick="clearSearch()"
-                            style="display:none;"
-                            title="Clear search"
-                        >
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-
-                    <!-- Category filter pills -->
-                    <div class="d-flex flex-wrap gap-1 mb-2" id="category-filters">
-                        <!-- Populated by JS once symptoms have loaded -->
-                    </div>
-
-                    <!-- Counter line -->
-                    <p class="small text-muted mb-1" id="symptom-filter-count"></p>
-
-                    <!-- Symptom grid -->
-                    <div class="symptoms-grid border rounded p-3" id="symptoms-container"
-                         style="max-height: 320px; overflow-y: auto;">
+                    <div class="symptoms-grid border rounded p-3" id="symptoms-container">
+                        <!-- Symptoms will be loaded here dynamically -->
                         <p class="text-muted text-center">Loading available symptoms...</p>
                     </div>
-
-                    <!-- No-results message (hidden by default) -->
-                    <div id="no-symptom-match" class="alert alert-warning py-2 mt-2 mb-0" style="display:none;">
-                        <i class="fas fa-exclamation-circle me-1"></i>
-                        No symptoms match your search. Try different keywords or select <strong>All</strong>.
-                    </div>
                 </div>
-                <!-- ===================================================== -->
 
                 <div class="d-grid">
                     <button class="btn btn-primary btn-lg" id="predict-btn" onclick="predictDisease()">
@@ -308,6 +261,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
 
             <div id="no-results" class="text-center py-5 text-muted">
@@ -319,144 +273,14 @@
 </div>
 
 <script>
+    let selectedSymptoms = [];
 
-    // =========================================================
-    // SYMPTOM CATEGORY MAP
-    // Maps a category label to an array of keyword fragments.
-    // A symptom whose key contains ANY fragment in a category's
-    // list is assigned to that category (first match wins).
-    // =========================================================
-    const SYMPTOM_CATEGORY_MAP = {
-        "Respiratory": [
-            "cough", "wheez", "breath", "chest_tight", "shortness",
-            "congestion", "nasal", "runny_nose", "snoring", "gasping",
-            "stop_breathing", "phlegm", "sputum", "sore_throat",
-            "sensation_lump_throat", "thick_gray_coating"
-        ],
-        "Digestive": [
-            "abdominal", "nausea", "vomit", "bloat", "diarrhea",
-            "constipat", "heartburn", "regurgit", "digest",
-            "bowel", "stool", "gas", "fullness", "feeling_full",
-            "loss_appetite", "poor_appetite", "hunger", "appetite",
-            "burning_stomach", "gnawing_pain", "rectal",
-            "pain_anal", "itching_anal", "swelling_anal",
-            "pain_bowel", "bleeding_bowel", "change_bowel",
-            "upper_abdominal", "pain_lower_right",
-            "severe_pain_upper_right", "sudden_intense_pain_abdomen",
-            "tenderness_abdomen", "bulge_abdomen", "fullness_abdomen"
-        ],
-        "Cardiovascular": [
-            "chest_pain", "palpitat", "heartbeat", "heart_rate",
-            "pulse", "high_blood_pressure", "irregular_heart",
-            "rapid_breath", "swollen_legs", "swollen_ankles",
-            "swelling_leg", "cold_legs", "cold_hands",
-            "red_skin_leg", "warmth_leg", "shiny_skin_legs",
-            "leg_pain_walking", "pounding_sensation"
-        ],
-        "Neurological": [
-            "headache", "dizziness", "numbness", "tingling",
-            "confusion", "memory", "seizure", "faint", "lightheaded",
-            "loss_consciousness", "tremor", "trembl", "hallucin",
-            "delusion", "cognitive", "balance", "staring_spell",
-            "uncontrollable_jerking", "sensitivity_light",
-            "sensitivity_sound", "disorganized_speech",
-            "difficulty_understanding", "difficulty_planning",
-            "misplacing", "loss_interest", "loss_automatic",
-            "slowed_movement", "rigid_muscles", "loss_taste_smell",
-            "meningitis", "stiff_neck", "impaired_posture",
-            "stooped_posture", "panic", "anxiety", "nervousness"
-        ],
-        "Vision & Hearing": [
-            "vision", "blind", "double_vision", "eye_pain",
-            "fading_colors", "clouded_vision", "blurred_vision",
-            "inflamed_eyes", "puffy_eyes", "red_watery_eyes",
-            "partial_vision_loss", "tunnel_vision", "trouble_seeing",
-            "straight_lines_appear_wavy", "difficulty_adapting_low_light",
-            "difficulty_seeing_night", "ringing_ears", "buzzing_ears",
-            "clicking_ears", "roaring_ears", "muffling_speech",
-            "trouble_hearing", "asking_others_speak_slowly"
-        ],
-        "Musculoskeletal": [
-            "joint_pain", "joint_stiff", "joint", "muscle_pain",
-            "muscle_ache", "muscle_weak", "muscle_spasm",
-            "bone_pain", "bone_fracture", "back_pain", "neck_pain",
-            "stiffness", "painful_muscle", "grating_sensation",
-            "limited_range", "loss_flexibility", "deformity",
-            "one_hip_higher", "uneven_shoulder", "uneven_waist",
-            "stabbing_pain_heel", "pain_tendon", "pain_after_exercise",
-            "intense_joint_pain", "tender_joint", "swollen_joint",
-            "widespread_pain", "aching_pain", "arm_leg_pain",
-            "pain_arms_neck", "pain_leg", "pain_lift_heavy",
-            "pain_morning", "pain_radiating_shoulder",
-            "jaw_pain", "jaw_cramping", "leg_pain", "leg_numbness"
-        ],
-        "Skin": [
-            "rash", "itching", "itchy", "skin_rash", "skin_change",
-            "dry_skin", "dry_cracked", "acne", "bruising",
-            "fluid_filled_blisters", "scaling_spots", "red_patches",
-            "darkened_skin", "pale_skin", "butterfly_rash",
-            "pink_rash", "red_rash", "koplik_spots",
-            "slow_healing_sores", "sores", "tingling_itching",
-            "redness", "inflammation"
-        ],
-        "Urinary": [
-            "urine", "urinat", "urinary", "dribbling", "strong_urge",
-            "trouble_starting_urination", "weak_urine",
-            "blood_in_urine", "cloudy_urine", "dark_urine",
-            "burning_sensation_urination", "pain_urination",
-            "frequent_urination", "difficulty_urinating"
-        ],
-        "Reproductive": [
-            "breast", "nipple", "pelvic_pain", "painful_periods",
-            "irregular_periods", "infertility", "polycystic",
-            "excess_androgen", "pain_intercourse", "excessive_bleeding"
-        ],
-        "Mental Health & Sleep": [
-            "sleep", "daytime_sleep", "daytime_tirednes",
-            "waking_up", "difficulty_falling_asleep",
-            "mood_change", "mood_swing", "persistent_sadness",
-            "loss_interest", "anxiety", "panic", "nervousness",
-            "high_energy", "hallucin", "delusion",
-            "disorganized_speech", "abnormal_behavior",
-            "cognitive_difficulties", "difficulty_planning",
-            "misplacing_items", "memory_loss"
-        ]
-        // Anything that matches none of the above falls into "General"
-    };
-
-    const ALL_CATEGORY_NAMES = ["All", ...Object.keys(SYMPTOM_CATEGORY_MAP), "General"];
-
-    // =========================================================
-    // STATE
-    // =========================================================
-    let selectedSymptoms   = [];
-    let allSymptoms        = [];   // full list from the API: [{key, name}]
-    let activeCategory     = "All";
-
-    // =========================================================
-    // BOOTSTRAP
-    // =========================================================
+    // Initialize on page load
     document.addEventListener('DOMContentLoaded', function () {
         loadSymptoms();
     });
 
-    // =========================================================
-    // CATEGORY HELPER
-    // Returns the category label for a given symptom key.
-    // =========================================================
-    function getSymptomCategory(key) {
-        const lower = key.toLowerCase();
-        for (const [category, fragments] of Object.entries(SYMPTOM_CATEGORY_MAP)) {
-            if (fragments.some(frag => lower.includes(frag))) {
-                return category;
-            }
-        }
-        return "General";
-    }
 
-    // =========================================================
-    // LOAD SYMPTOMS FROM API
-    // =========================================================
     async function loadSymptoms() {
         const container = document.getElementById('symptoms-container');
         container.innerHTML = '<p class="text-center text-muted py-3">Loading symptoms...</p>';
@@ -471,10 +295,28 @@
                 return;
             }
 
-            allSymptoms = data.symptoms; // [{key, name}]
+            const symptoms = data.symptoms; // Expecting list of {key: 'fever', name: 'Fever'}
+            let html = '';
 
-            buildCategoryPills();
-            renderSymptoms();
+            if (symptoms.length === 0) {
+                html = '<p class="text-muted text-center">No symptoms found.</p>';
+            } else {
+                html = '<div class="row g-2">';
+                symptoms.forEach((symptom) => {
+                    html += `
+                    <div class="col-md-6">
+                        <div class="symptom-checkbox">
+                            <input type="checkbox" id="symptom-${symptom.key}" value="${symptom.key}" 
+                                   onchange="toggleSymptom('${symptom.key}')">
+                            <label for="symptom-${symptom.key}">${symptom.name}</label>
+                        </div>
+                    </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
 
         } catch (error) {
             console.error('Error loading symptoms:', error);
@@ -482,145 +324,6 @@
         }
     }
 
-    // =========================================================
-    // BUILD CATEGORY FILTER PILLS
-    // =========================================================
-    function buildCategoryPills() {
-        const wrapper = document.getElementById('category-filters');
-        wrapper.innerHTML = '';
-
-        // Count how many symptoms belong to each category
-        const counts = {};
-        allSymptoms.forEach(s => {
-            const cat = getSymptomCategory(s.key);
-            counts[cat] = (counts[cat] || 0) + 1;
-        });
-        counts['All'] = allSymptoms.length;
-
-        ALL_CATEGORY_NAMES.forEach(cat => {
-            // Skip categories with zero symptoms
-            if (cat !== 'All' && !counts[cat]) return;
-
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'btn btn-sm ' + (cat === 'All' ? 'btn-primary' : 'btn-outline-secondary');
-            btn.dataset.category = cat;
-            btn.innerHTML = `${cat} <span class="badge ${cat === 'All' ? 'bg-white text-primary' : 'bg-secondary'} ms-1">${counts[cat] || 0}</span>`;
-            btn.addEventListener('click', () => selectCategory(cat));
-            wrapper.appendChild(btn);
-        });
-    }
-
-    // =========================================================
-    // CATEGORY PILL CLICK
-    // =========================================================
-    function selectCategory(cat) {
-        activeCategory = cat;
-
-        // Update pill styles
-        document.querySelectorAll('#category-filters .btn').forEach(btn => {
-            const isActive = btn.dataset.category === cat;
-            btn.className = 'btn btn-sm ' + (isActive ? 'btn-primary' : 'btn-outline-secondary');
-            const badge = btn.querySelector('.badge');
-            if (badge) {
-                badge.className = 'badge ms-1 ' + (isActive ? 'bg-white text-primary' : 'bg-secondary');
-            }
-        });
-
-        renderSymptoms();
-    }
-
-    // =========================================================
-    // SEARCH INPUT HANDLER
-    // =========================================================
-    function filterSymptoms() {
-        const query = document.getElementById('symptom-search').value;
-        document.getElementById('search-clear-btn').style.display = query.length ? 'block' : 'none';
-        renderSymptoms();
-    }
-
-    function clearSearch() {
-        document.getElementById('symptom-search').value = '';
-        document.getElementById('search-clear-btn').style.display = 'none';
-        renderSymptoms();
-    }
-
-    // =========================================================
-    // RENDER — applies both category filter AND search query
-    // =========================================================
-    function renderSymptoms() {
-        const query      = document.getElementById('symptom-search').value.trim().toLowerCase();
-        const container  = document.getElementById('symptoms-container');
-        const noMatch    = document.getElementById('no-symptom-match');
-        const countLabel = document.getElementById('symptom-filter-count');
-
-        // 1. Filter the master list
-        const visible = allSymptoms.filter(s => {
-            // Category gate
-            if (activeCategory !== 'All') {
-                if (getSymptomCategory(s.key) !== activeCategory) return false;
-            }
-            // Search gate (case-insensitive, matches key OR human name)
-            if (query) {
-                const inKey  = s.key.toLowerCase().includes(query);
-                const inName = s.name.toLowerCase().includes(query);
-                if (!inKey && !inName) return false;
-            }
-            return true;
-        });
-
-        // 2. No-results state
-        if (visible.length === 0) {
-            container.innerHTML = '';
-            noMatch.style.display = 'block';
-            countLabel.textContent = '';
-            return;
-        }
-        noMatch.style.display = 'none';
-
-        // 3. Counter line
-        countLabel.textContent =
-            `Showing ${visible.length} of ${allSymptoms.length} symptoms`;
-
-        // 4. Build grid HTML, highlighting matched query text
-        let html = '<div class="row g-2">';
-        visible.forEach(symptom => {
-            const isChecked = selectedSymptoms.includes(symptom.key);
-            const category  = getSymptomCategory(symptom.key);
-            const label     = query ? highlightMatch(symptom.name, query) : symptom.name;
-
-            html += `
-            <div class="col-md-6">
-                <div class="symptom-checkbox ${isChecked ? 'selected' : ''}">
-                    <input
-                        type="checkbox"
-                        id="symptom-${symptom.key}"
-                        value="${symptom.key}"
-                        ${isChecked ? 'checked' : ''}
-                        onchange="toggleSymptom('${symptom.key}')"
-                    >
-                    <label for="symptom-${symptom.key}" class="d-block">
-                        ${label}
-                        <small class="d-block text-muted fw-normal" style="font-size:0.72rem;">${category}</small>
-                    </label>
-                </div>
-            </div>`;
-        });
-        html += '</div>';
-
-        container.innerHTML = html;
-    }
-
-    // =========================================================
-    // HIGHLIGHT SEARCH MATCH inside symptom label
-    // =========================================================
-    function highlightMatch(text, query) {
-    return text;
-    }
-
-    // =========================================================
-    // TOGGLE SYMPTOM SELECTION
-    // =========================================================
     function toggleSymptom(symptomKey) {
         const index = selectedSymptoms.indexOf(symptomKey);
         if (index > -1) {
@@ -629,28 +332,20 @@
             selectedSymptoms.push(symptomKey);
         }
         updateSymptomCount();
-
-        // Reflect checked state in the currently visible card
-        const checkbox = document.getElementById(`symptom-${symptomKey}`);
-        if (checkbox) {
-            checkbox.closest('.symptom-checkbox').classList.toggle('selected', selectedSymptoms.includes(symptomKey));
-        }
     }
 
     function updateSymptomCount() {
         const count = selectedSymptoms.length;
-        document.getElementById('symptom-count').textContent =
-            count === 0 ? '0 selected' : `${count} selected`;
+        document.getElementById('symptom-count').textContent = `${count} selected`;
     }
 
-    // =========================================================
-    // HEIGHT / WEIGHT / BMI
-    // =========================================================
+    // height updation 
     function updateHeight(val) {
         document.getElementById("height-value").innerText = val;
         calculateBMI();
     }
 
+    // weight updation
     function updateWeight(val) {
         document.getElementById("weight-value").innerText = val;
         calculateBMI();
@@ -659,25 +354,34 @@
     function calculateBMI() {
         const h = document.getElementById("height-input").value / 100;
         const w = document.getElementById("weight-input").value;
+
         if (!h || !w) return;
 
         const bmi = (w / (h * h)).toFixed(1);
         document.getElementById("bmi-value").innerText = bmi;
 
-        let category = "Normal", badge = "bg-success";
-        if      (bmi < 18.5) { category = "Underweight"; badge = "bg-warning"; }
-        else if (bmi < 25)   { category = "Normal";      badge = "bg-success"; }
-        else if (bmi < 30)   { category = "Overweight";  badge = "bg-warning"; }
-        else                  { category = "Obese";       badge = "bg-danger";  }
+        let category = "Normal";
+        let badge = "bg-success";
+
+        if (bmi < 18.5) {
+            category = "Underweight";
+            badge = "bg-warning";
+        } else if (bmi < 25) {
+            category = "Normal";
+            badge = "bg-success";
+        } else if (bmi < 30) {
+            category = "Overweight";
+            badge = "bg-warning";
+        } else {
+            category = "Obese";
+            badge = "bg-danger";
+        }
 
         const catEl = document.getElementById("bmi-category");
         catEl.innerText = category;
         catEl.className = `badge ${badge}`;
     }
 
-    // =========================================================
-    // ERROR HELPERS
-    // =========================================================
     function hideError() {
         document.getElementById('error-container').style.display = 'none';
     }
@@ -688,31 +392,32 @@
         document.getElementById('no-results').style.display = 'block';
     }
 
-    // =========================================================
-    // PREDICT
-    // =========================================================
     async function predictDisease() {
         if (selectedSymptoms.length === 0) {
             alert('Please select at least one symptom');
             return;
         }
 
+        // Hide previous errors & results
         hideError();
         document.getElementById('no-results').style.display = 'none';
         const resultsContainer = document.getElementById('differential-diagnosis-container');
         if (resultsContainer) resultsContainer.style.display = 'none';
 
+        // Show loading
         document.getElementById('loading').style.display = 'block';
 
+        // Disable button and show spinner
         const predictBtn = document.getElementById('predict-btn');
         const originalBtnHTML = predictBtn.innerHTML;
         predictBtn.disabled = true;
         predictBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Predicting...';
 
         const age = document.getElementById('age-input').value;
-        const h   = document.getElementById('height-input').value;
-        const w   = document.getElementById('weight-input').value;
-        const hr  = document.getElementById('heart-rate-input').value;
+        const h = document.getElementById('height-input').value;
+        const w = document.getElementById('weight-input').value;
+
+        const hr = document.getElementById('heart-rate-input').value;
         const sbp = document.getElementById('bp-systolic-input').value;
         const dbp = document.getElementById('bp-diastolic-input').value;
         const gluc = document.getElementById('blood-glucose-input').value;
@@ -752,16 +457,20 @@
         try {
             const response = await fetch('/api/ml/predict-multiple', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(payload)
             });
 
             const data = await response.json();
+
             if (response.ok) {
                 displayResults(data);
             } else {
                 showPredictionError(data.error || 'Unknown error');
             }
+
         } catch (error) {
             console.error('Prediction error:', error);
             showPredictionError('Failed to connect to the server. Please check your connection.');
@@ -772,36 +481,33 @@
         }
     }
 
-    // =========================================================
-    // DISPLAY RESULTS
-    // =========================================================
     function displayResults(data) {
         const predictions = data.predictions;
-        window.allPredictions = predictions;
+        window.allPredictions = predictions; // Store for detailed view
         const listContainer = document.getElementById('prediction-list');
+        let html = '';
 
         if (!predictions || predictions.length === 0) {
             listContainer.innerHTML = '<p class="text-center text-muted">No conditions identified.</p>';
             return;
         }
 
-        let html = '';
         predictions.forEach((pred, index) => {
             const probability = pred.posterior;
             const diseaseName = pred.disease;
-            const riskLevel   = pred.risk_level.level;
-            const riskColor   = pred.risk_level.color;
-            const isActive    = index === 0 ? 'border-primary' : '';
+            const riskLevel = pred.risk_level.level;
+            const riskColor = pred.risk_level.color;
+            const isActive = index === 0 ? 'border-primary' : '';
 
             html += `
-            <div class="list-group-item list-group-item-action p-3 mb-2 border rounded shadow-sm prediction-item ${isActive}"
+            <div class="list-group-item list-group-item-action p-3 mb-2 border rounded shadow-sm prediction-item ${isActive}" 
                  onclick="showDetail(${index})" id="pred-item-${index}">
                 <div class="d-flex w-100 justify-content-between align-items-center mb-2">
                     <h5 class="mb-1 text-capitalize fw-bold text-primary">${diseaseName}</h5>
                     <span class="badge bg-${riskColor}">${riskLevel} Risk</span>
                 </div>
                 <div class="progress" style="height: 12px;">
-                    <div class="progress-bar bg-${riskColor}" role="progressbar"
+                    <div class="progress-bar bg-${riskColor}" role="progressbar" 
                          style="width: ${probability}%">
                         ${probability}%
                     </div>
@@ -811,35 +517,33 @@
 
         listContainer.innerHTML = html;
         document.getElementById('differential-diagnosis-container').style.display = 'block';
+
+        window.allPredictions = predictions;
+
         showDetail(0);
     }
 
-    // =========================================================
-    // SHOW DETAIL
-    // =========================================================
     function showDetail(index) {
         const pred = window.allPredictions[index];
         if (!pred) return;
 
-        document.querySelectorAll('.prediction-item').forEach(el =>
-            el.classList.remove('border-primary', 'bg-light'));
+        document.querySelectorAll('.prediction-item').forEach(el => el.classList.remove('border-primary', 'bg-light'));
         document.getElementById(`pred-item-${index}`).classList.add('border-primary', 'bg-light');
 
         document.getElementById('detail-title').textContent = `Analysis for ${pred.disease}`;
-
-        document.getElementById('prior-value').textContent       = pred.prior + '%';
-        document.getElementById('prior-bar').style.width         = pred.prior + '%';
-        document.getElementById('likelihood-value').textContent  = pred.likelihood + '%';
-        document.getElementById('likelihood-bar').style.width    = pred.likelihood + '%';
-        document.getElementById('posterior-value').textContent   = pred.posterior + '%';
-        document.getElementById('posterior-bar').style.width     = pred.posterior + '%';
+        document.getElementById('prior-value').textContent = pred.prior + '%';
+        document.getElementById('prior-bar').style.width = pred.prior + '%';
+        document.getElementById('likelihood-value').textContent = pred.likelihood + '%';
+        document.getElementById('likelihood-bar').style.width = pred.likelihood + '%';
+        document.getElementById('posterior-value').textContent = pred.posterior + '%';
+        document.getElementById('posterior-bar').style.width = pred.posterior + '%';
 
         const riskBadge = document.getElementById('risk-badge');
         riskBadge.textContent = pred.risk_level.level + ' Risk';
-        riskBadge.className   = `badge fs-6 py-2 px-3 bg-${pred.risk_level.color}`;
-        document.getElementById('risk-description').textContent  = pred.risk_level.description;
+        riskBadge.className = `badge fs-6 py-2 px-3 bg-${pred.risk_level.color}`;
+        document.getElementById('risk-description').textContent = pred.risk_level.description;
 
-        const missing     = pred.missing_symptoms || [];
+        const missing = pred.missing_symptoms || [];
         const missingCard = document.getElementById('missing-symptoms-card');
         const missingList = document.getElementById('missing-symptoms-list');
 
@@ -847,10 +551,11 @@
             let html = '';
             missing.forEach(item => {
                 html += `
-                <div class="list-group-item d-flex justify-content-between align-items-center small py-2">
-                    <span>${item.name}</span>
-                    <span class="badge bg-secondary rounded-pill">Impact: ${(item.weight * 100).toFixed(0)}%</span>
-                </div>`;
+                    <div class="list-group-item d-flex justify-content-between align-items-center small py-2">
+                        <span>${item.name}</span>
+                        <span class="badge bg-secondary rounded-pill">Impact: ${(item.weight * 100).toFixed(0)}%</span>
+                    </div>
+                `;
             });
             missingList.innerHTML = html;
             missingCard.style.display = 'block';
@@ -860,31 +565,25 @@
 
         const explanations = pred.explanations || {
             feature_impacts: pred.feature_impacts || [],
-            symptom_contributions: pred.symptom_contributions || {},
             summary: pred.explanation_summary || '',
             bias: pred.bias,
             bmi_effect: pred.bmi_effect
         };
         const contributionsList = document.getElementById('symptom-contributions-list');
         const explanationSummary = document.getElementById('explanation-summary');
-
-        const rawContributions = explanations.symptom_contributions || explanations.feature_impacts || pred.feature_impacts || {};
-        const contributions = Array.isArray(rawContributions)
-            ? rawContributions
-            : Object.values(rawContributions || {});
+        const contributions = explanations.feature_impacts && explanations.feature_impacts.length > 0
+            ? explanations.feature_impacts
+            : (pred.feature_impacts || []);
 
         if (contributions.length > 0) {
             let html = '';
             contributions.forEach(item => {
-                const symptomName = item.name || item.display_name || item.feature || 'Symptom';
-                const contributionValue = typeof item.contribution === 'number' ? item.contribution : 0;
                 const badgeClass = item.direction === 'positive' ? 'bg-success' : 'bg-danger';
-                const sign = contributionValue > 0 ? '+' : '';
-
+                const sign = item.direction === 'positive' ? '+' : '';
                 html += `
                     <div class="list-group-item d-flex justify-content-between align-items-center small py-2 px-0">
-                        <span>${symptomName}</span>
-                        <span class="badge ${badgeClass} rounded-pill">${sign}${contributionValue.toFixed(2)}</span>
+                        <span>${item.name}</span>
+                        <span class="badge ${badgeClass} rounded-pill">${sign}${item.contribution.toFixed(2)}</span>
                     </div>
                 `;
             });
@@ -895,16 +594,14 @@
 
         const summaryText = explanations.summary || pred.explanation_summary || '';
         explanationSummary.textContent = summaryText || 'No explanation summary available for this result.';
-        document.getElementById('bias-value').textContent = typeof explanations.bias === 'number' ? explanations.bias.toFixed(2) : '--';
-        document.getElementById('bmi-effect-value').textContent = typeof explanations.bmi_effect === 'number' ? explanations.bmi_effect.toFixed(2) : '--';
+        document.getElementById('bias-value').textContent = typeof explanations.bias === 'number' ? explanations.bias.toFixed(2) : (typeof pred.bias === 'number' ? pred.bias.toFixed(2) : '--');
+        document.getElementById('bmi-effect-value').textContent = typeof explanations.bmi_effect === 'number' ? explanations.bmi_effect.toFixed(2) : (typeof pred.bmi_effect === 'number' ? pred.bmi_effect.toFixed(2) : '--');
 
         document.getElementById('detailed-analysis').style.display = 'block';
+
         window.selectedPredictionIndex = index;
     }
 
-    // =========================================================
-    // DOWNLOAD PDF
-    // =========================================================
     async function downloadMLResults() {
         if (!window.allPredictions || window.selectedPredictionIndex === undefined) {
             alert('Please select a prediction to download.');
@@ -913,6 +610,7 @@
 
         try {
             const pred = window.allPredictions[window.selectedPredictionIndex];
+
             const response = await fetch('/download-ml-results', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -933,9 +631,9 @@
             }
 
             const blob = await response.blob();
-            const url  = window.URL.createObjectURL(blob);
-            const a    = document.createElement('a');
-            a.href     = url;
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
             a.download = `detailed_report_${pred.disease.toLowerCase().replace(/ /g, '_')}.pdf`;
             document.body.appendChild(a);
             a.click();
