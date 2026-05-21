@@ -178,36 +178,80 @@ class DiseaseMLModel:
         # If no match found, raise ValueError
         raise ValueError(f"Disease '{disease_name}' (key: {disease_key}) not found in model")
 
-    def compute_shap_values(self, disease_key: str, symptoms: List[str]) -> Dict:
-        """Compute signed SHAP-style feature contributions for a logistic prediction."""
-
+    def compute_shap_values(self, disease_key: str, symptoms: List[str]) -> Dict[str, Dict[str, object]]:
+        """
+        Compute SHAP-style symptom contribution scores for explainability.
+        Uses a linear approximation:
+        - Baseline = expected value with no symptoms (bias only)
+        - Each symptom contribution = weight * (1 - baseline_probability)
+        - Negative contributions shown for high-weight missing symptoms
+        """
         symptom_weights = self.disease_weights[disease_key]["symptoms"]
+        bias = self.disease_weights[disease_key]["bias"]
 
-        # Assume each symptom has a baseline presence probability of 0.5.
-        # For binary inputs, SHAP for presence vs absence is proportional to w * (x - baseline).
-        baseline = 0.5
+        # Baseline probability with no symptoms
+        baseline_prob = self.calibrated_sigmoid(bias)
 
         shap_values = {}
 
-        for symptom, weight in symptom_weights.items():
-            x = 1.0 if symptom in symptoms else 0.0
-            shap_values[symptom] = round((x - baseline) * weight, 4)
+        # Positive contributions from present symptoms
+        for symptom in symptoms:
+            weight = symptom_weights.get(symptom)
+            if weight is None:
+                continue
+            contribution = round(weight * (1 - baseline_prob), 4)
+            shap_values[symptom] = {
+                "contribution": contribution,
+                "weight": weight,
+                "direction": "positive",
+                "display_name": self.symptom_display_names.get(
+                    symptom, symptom.replace('_', ' ').title()
+                )
+            }
 
-        return shap_values
+        # Negative contributions from important absent symptoms
+        for symptom_key, weight in symptom_weights.items():
+            if symptom_key not in symptoms and weight >= 0.80:
+                contribution = round(-weight * baseline_prob * 0.5, 4)
+                shap_values[symptom_key] = {
+                    "contribution": contribution,
+                    "weight": weight,
+                    "direction": "negative",
+                    "display_name": self.symptom_display_names.get(
+                        symptom_key, symptom_key.replace('_', ' ').title()
+                    )
+                }
+
+        # Sort by absolute contribution descending
+        sorted_shap = dict(
+            sorted(shap_values.items(),
+                   key=lambda x: abs(x[1]["contribution"]),
+                   reverse=True)
+        )
+
+        # Return top 10 contributions
+        return dict(list(sorted_shap.items())[:10])
 
     def get_top_feature_impacts(self, disease_key: str, symptoms: List[str], top_n: int = 6) -> List[Dict]:
         """Return the strongest positive and negative feature impacts."""
         shap_values = self.compute_shap_values(disease_key, symptoms)
-        top_items = sorted(shap_values.items(), key=lambda item: abs(item[1]), reverse=True)[:top_n]
+
+        def abs_contribution(value):
+            if isinstance(value, dict):
+                return abs(value.get('contribution', 0))
+            return abs(value)
+
+        top_items = sorted(shap_values.items(), key=lambda item: abs_contribution(item[1]), reverse=True)[:top_n]
 
         return [
             {
                 'feature': key,
-                'name': self.symptom_display_names.get(key, key.replace('_', ' ').title()),
-                'contribution': float(value),
-                'direction': 'positive' if value >= 0 else 'negative',
+                'name': item.get('display_name') if isinstance(item, dict) else self.symptom_display_names.get(key, key.replace('_', ' ').title()),
+                'contribution': float(item.get('contribution', item)) if isinstance(item, dict) else float(item),
+                'direction': item.get('direction', 'positive') if isinstance(item, dict) else ('positive' if item >= 0 else 'negative'),
+                'weight': float(item.get('weight', 0)) if isinstance(item, dict) else 0.0,
             }
-            for key, value in top_items
+            for key, item in top_items
         ]
 
     def build_explanation_summary(self, disease_key: str, top_impacts: List[Dict], bmi_category: str | None, confidence_score: float) -> str:

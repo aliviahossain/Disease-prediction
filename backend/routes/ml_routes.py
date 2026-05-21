@@ -6,6 +6,7 @@ from backend.preprocessing import PreprocessingError, clean_prediction_payload
 from backend.utils.calculator import BayesCalculator
 from backend.utils.uncertainty_handler import uncertainty_handler  # NEW
 from backend.models.prediction import PredictionHistory
+from backend.services.history_service import save_history
 from backend import db
 import json
 import traceback
@@ -224,6 +225,29 @@ def predict_disease():
             'risk_assessment': risk_assessment
         }
  
+        # Issue #230: also persist via the unified history service so the
+        # new History page (PatientHistory) shows this prediction. The
+        # existing PredictionHistory save above is left untouched.
+        save_history(
+            user_id=current_user.id if current_user.is_authenticated else None,
+            prediction_type="symptom",
+            disease=disease.replace('_', ' ').title(),
+            inputs={
+                "symptoms": symptoms,
+                "age": age,
+                "height_cm": height,
+                "weight_kg": weight,
+            },
+            results={
+                "ml_probability": ml_prediction['raw_probability'],
+                "bayesian_posterior": bayesian_result['posterior'],
+                "confidence_score": confidence_score,
+                "survival_probability": survival_prob,
+            },
+            probability=bayesian_result['posterior'],
+            risk_level=risk_level_db,
+        )
+ 
         return jsonify(result), 200
  
     except ValueError as e:
@@ -401,6 +425,37 @@ def predict_multiple_diseases():
                 traceback.print_exc()
                 db.session.rollback()
         
+        # Issue #230: also persist the top prediction via the unified
+        # history service so the PatientHistory-backed History page
+        # reflects this differential diagnosis run.
+        if top_predictions:
+            top_pred = top_predictions[0]
+            top_risk = top_pred.get('risk_level') or {}
+            save_history(
+                user_id=current_user.id if current_user.is_authenticated else None,
+                prediction_type="symptom",
+                disease=top_pred['disease'],
+                inputs={
+                    "symptoms": symptoms,
+                    "age": age,
+                    "height_cm": height,
+                    "weight_kg": weight,
+                    "differential": True,
+                },
+                results={
+                    "top_predictions": [
+                        {
+                            "disease": p['disease'],
+                            "posterior": p['posterior'],
+                            "confidence": p['confidence'],
+                        }
+                        for p in top_predictions
+                    ],
+                },
+                probability=top_pred['posterior'] / 100.0,
+                risk_level=(top_risk.get('level') or '').lower() or None,
+            )
+        
         return jsonify({
             'success': True,
             'predictions': top_predictions,
@@ -486,6 +541,70 @@ def get_uncertainty_config():
     return jsonify(uncertainty_handler.get_config()), 200
  
  
+
+@ml_bp.route('/api/ml/explain', methods=['POST'])
+def explain_prediction():
+    """SHAP-based prediction explainability endpoint."""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        disease = data.get('disease', '').lower().replace(' ', '_')
+        symptoms = data.get('symptoms', [])
+
+        if not disease:
+            return jsonify({'error': 'Disease not specified'}), 400
+        if not symptoms:
+            return jsonify({'error': 'No symptoms provided'}), 400
+
+        disease_key = ml_model._get_disease_key(disease)
+        prediction = ml_model.predict_disease_probability(disease, symptoms)
+        shap_values = ml_model.compute_shap_values(disease_key, symptoms)
+
+        positive = {k: v for k, v in shap_values.items() if v["direction"] == "positive"}
+        negative = {k: v for k, v in shap_values.items() if v["direction"] == "negative"}
+
+        top_positive = sorted(
+            positive.items(),
+            key=lambda x: x[1]["contribution"],
+            reverse=True
+        )[:3]
+
+        summary_parts = [
+            f"{v['display_name']} (+{v['contribution']:.2f})"
+            for _, v in top_positive
+        ]
+        summary = (
+            f"Top contributing symptoms: {', '.join(summary_parts)}"
+            if summary_parts
+            else "No strong symptom contributions found."
+        )
+
+        return jsonify({
+            'success': True,
+            'disease': disease.replace('_', ' ').title(),
+            'calibrated_probability': round(
+                prediction['calibrated_probability'] * 100, 2
+            ),
+            'explanation': {
+                'shap_values': shap_values,
+                'positive_contributions': positive,
+                'negative_contributions': negative,
+                'summary': summary,
+                'baseline_info': (
+                    'Positive values increase disease probability. '
+                    'Negative values indicate important absent symptoms.'
+                )
+            }
+        }), 200
+
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Explanation failed: {str(e)}'}), 500
+
+
 def get_risk_level(probability):
     """
     Determine risk level based on probability percentage.
