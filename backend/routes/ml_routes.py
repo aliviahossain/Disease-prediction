@@ -5,6 +5,7 @@ from backend.preprocessing import PreprocessingError, clean_prediction_payload
 from backend.utils.calculator import BayesCalculator
 from backend.utils.uncertainty_handler import uncertainty_handler  # NEW
 from backend.models.prediction import PredictionHistory
+from backend.services.history_service import save_history
 from backend import db
 import json
 import traceback
@@ -212,6 +213,29 @@ def predict_disease():
             'risk_assessment': risk_assessment
         }
  
+        # Issue #230: also persist via the unified history service so the
+        # new History page (PatientHistory) shows this prediction. The
+        # existing PredictionHistory save above is left untouched.
+        save_history(
+            user_id=current_user.id if current_user.is_authenticated else None,
+            prediction_type="symptom",
+            disease=disease.replace('_', ' ').title(),
+            inputs={
+                "symptoms": symptoms,
+                "age": age,
+                "height_cm": height,
+                "weight_kg": weight,
+            },
+            results={
+                "ml_probability": ml_prediction['raw_probability'],
+                "bayesian_posterior": bayesian_result['posterior'],
+                "confidence_score": confidence_score,
+                "survival_probability": survival_prob,
+            },
+            probability=bayesian_result['posterior'],
+            risk_level=risk_level_db,
+        )
+ 
         return jsonify(result), 200
  
     except ValueError as e:
@@ -385,6 +409,37 @@ def predict_multiple_diseases():
                 print(f"⚠️ Failed to auto-save prediction: {db_err}")
                 traceback.print_exc()
                 db.session.rollback()
+        
+        # Issue #230: also persist the top prediction via the unified
+        # history service so the PatientHistory-backed History page
+        # reflects this differential diagnosis run.
+        if top_predictions:
+            top_pred = top_predictions[0]
+            top_risk = top_pred.get('risk_level') or {}
+            save_history(
+                user_id=current_user.id if current_user.is_authenticated else None,
+                prediction_type="symptom",
+                disease=top_pred['disease'],
+                inputs={
+                    "symptoms": symptoms,
+                    "age": age,
+                    "height_cm": height,
+                    "weight_kg": weight,
+                    "differential": True,
+                },
+                results={
+                    "top_predictions": [
+                        {
+                            "disease": p['disease'],
+                            "posterior": p['posterior'],
+                            "confidence": p['confidence'],
+                        }
+                        for p in top_predictions
+                    ],
+                },
+                probability=top_pred['posterior'] / 100.0,
+                risk_level=(top_risk.get('level') or '').lower() or None,
+            )
         
         return jsonify({
             'success': True,
