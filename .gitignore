@@ -66,6 +66,8 @@ instance/
 .webassets-cache
 *.db
 site.db
+backend/site.db
+*.sqlite
 
 # Scrapy stuff:
 .scrapy

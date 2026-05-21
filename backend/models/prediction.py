@@ -1,8 +1,7 @@
 # backend/models/prediction.py
-
 import os
-import numpy as np
 import json
+import numpy as np
 from datetime import datetime
 from backend import db
 from tensorflow.keras.preprocessing import image
@@ -22,17 +21,6 @@ CLASS_NAMES = [
 
 
 def predict_disease(model, img_path, target_size=(224, 224)):
-    """
-    Predict disease with uncertainty handling.
-    Returns:
-        {
-            "status": "success" | "uncertain",
-            "disease": str | None,
-            "confidence": float,
-            "message": str
-        }
-    """
-
     try:
         # Load image
         img = image.load_img(img_path, target_size=target_size)
@@ -73,7 +61,6 @@ def predict_disease(model, img_path, target_size=(224, 224)):
             "confidence": round(confidence, 4),
             "message": "Prediction generated successfully."
         }
-
     except Exception as e:
         return {
             "status": "error",
@@ -122,18 +109,15 @@ class PredictionHistory(db.Model):
         return f"PredictionHistory('{self.disease}', risk='{self.risk_level}', created='{self.created_at}')"
     
     def get_symptoms_list(self):
-        """Parse symptoms JSON string to list"""
         try:
             return json.loads(self.symptoms)
         except (json.JSONDecodeError, TypeError):
             return []
     
     def set_symptoms_list(self, symptoms_list):
-        """Convert symptoms list to JSON string"""
         self.symptoms = json.dumps(symptoms_list)
     
     def to_dict(self):
-        """Convert to dictionary for API responses"""
         return {
             'id': self.id,
             'disease': self.disease,
