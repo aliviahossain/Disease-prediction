@@ -5,7 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from backend.middleware.error_handler import ErrorHandler
 from sqlalchemy import inspect, text
-
+from dotenv import load_dotenv
+load_dotenv()
 # Initialize extensions
 db = SQLAlchemy()
 bcrypt = Bcrypt()

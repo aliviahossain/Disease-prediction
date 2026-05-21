@@ -5,7 +5,7 @@ import numpy as np
 from tensorflow.keras.preprocessing import image
 from datetime import datetime
 from backend import db
-
+from sqlalchemy import CheckConstraint
 # Configurable confidence threshold
 CONFIDENCE_THRESHOLD = float(
     os.getenv("PREDICTION_CONFIDENCE_THRESHOLD", 0.65)
@@ -78,7 +78,9 @@ class PredictionHistory(db.Model):
     # Patient info (nullable for anonymous predictions)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     patient_age = db.Column(db.Integer, nullable=True)
-    
+    __table_args__ = (
+    CheckConstraint('patient_age >= 0', name='check_patient_age_non_negative'),
+    )
     # Prediction details
     disease = db.Column(db.String(100), nullable=False)
     symptoms = db.Column(db.Text, nullable=False)  # JSON string of symptoms list

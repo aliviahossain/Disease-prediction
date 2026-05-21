@@ -18,7 +18,6 @@
                     <i class="fas fa-stethoscope me-2"></i>Symptom Input
                 </h2>
 
-                <!-- Disease Selection Removed for Differential Diagnosis -->
                 <div class="mb-4">
                     <p class="text-muted">
                         <i class="fas fa-info-circle me-1"></i>
@@ -263,7 +262,6 @@
                     </div>
                 </div>
 
-
             </div>
 
             <div id="no-results" class="text-center py-5 text-muted">
@@ -275,8 +273,6 @@
 </div>
 
 <script>
-
-
     let selectedSymptoms = [];
 
     // Initialize on page load
@@ -427,7 +423,6 @@
         const gluc = document.getElementById('blood-glucose-input').value;
         const temp = document.getElementById('temp-input').value;
 
-        // Validation helper
         function validateNumber(val, fieldName, isRequired = false) {
             if (!val || val.trim() === '') {
                 if (isRequired) throw new Error(`${fieldName} is required`);
@@ -517,17 +512,14 @@
                         ${probability}%
                     </div>
                 </div>
-            </div>
-            `;
+            </div>`;
         });
 
         listContainer.innerHTML = html;
         document.getElementById('differential-diagnosis-container').style.display = 'block';
 
-        // Store data
         window.allPredictions = predictions;
 
-        // Show details for the first one by default
         showDetail(0);
     }
 
@@ -535,14 +527,10 @@
         const pred = window.allPredictions[index];
         if (!pred) return;
 
-        // Highlight selected item
         document.querySelectorAll('.prediction-item').forEach(el => el.classList.remove('border-primary', 'bg-light'));
         document.getElementById(`pred-item-${index}`).classList.add('border-primary', 'bg-light');
 
-        // Update title
         document.getElementById('detail-title').textContent = `Analysis for ${pred.disease}`;
-
-        // Update Bayesian Bars
         document.getElementById('prior-value').textContent = pred.prior + '%';
         document.getElementById('prior-bar').style.width = pred.prior + '%';
         document.getElementById('likelihood-value').textContent = pred.likelihood + '%';
@@ -550,13 +538,11 @@
         document.getElementById('posterior-value').textContent = pred.posterior + '%';
         document.getElementById('posterior-bar').style.width = pred.posterior + '%';
 
-        // Update Risk
         const riskBadge = document.getElementById('risk-badge');
         riskBadge.textContent = pred.risk_level.level + ' Risk';
         riskBadge.className = `badge fs-6 py-2 px-3 bg-${pred.risk_level.color}`;
         document.getElementById('risk-description').textContent = pred.risk_level.description;
 
-        // Missing Symptoms
         const missing = pred.missing_symptoms || [];
         const missingCard = document.getElementById('missing-symptoms-card');
         const missingList = document.getElementById('missing-symptoms-list');
@@ -577,7 +563,6 @@
             missingCard.style.display = 'none';
         }
 
-        // AI Explanation
         const explanations = pred.explanations || {
             feature_impacts: pred.feature_impacts || [],
             summary: pred.explanation_summary || '',
@@ -614,7 +599,6 @@
 
         document.getElementById('detailed-analysis').style.display = 'block';
 
-        // Store selected index for download
         window.selectedPredictionIndex = index;
     }
 

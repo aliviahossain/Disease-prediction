@@ -179,28 +179,60 @@ class DiseaseMLModel:
         raise ValueError(f"Disease '{disease_name}' (key: {disease_key}) not found in model")
 
     def compute_shap_values(self, disease_key: str, symptoms: List[str]) -> Dict:
-        """Compute symptom contribution scores for the prediction."""
+        """Compute signed SHAP-style feature contributions for a logistic prediction."""
 
         symptom_weights = self.disease_weights[disease_key]["symptoms"]
 
-        # Simple baseline assumption:
-        # symptom has 50% chance of appearing
+        # Assume each symptom has a baseline presence probability of 0.5.
+        # For binary inputs, SHAP for presence vs absence is proportional to w * (x - baseline).
         baseline = 0.5
 
         shap_values = {}
 
-        for symptom in symptoms:
-            weight = symptom_weights.get(symptom)
-
-            if weight is None:
-                continue
-
-            # symptom is selected => x = 1
-            contribution = weight * (1 - baseline)
-
-            shap_values[symptom] = round(contribution, 4)
+        for symptom, weight in symptom_weights.items():
+            x = 1.0 if symptom in symptoms else 0.0
+            shap_values[symptom] = round((x - baseline) * weight, 4)
 
         return shap_values
+
+    def get_top_feature_impacts(self, disease_key: str, symptoms: List[str], top_n: int = 6) -> List[Dict]:
+        """Return the strongest positive and negative feature impacts."""
+        shap_values = self.compute_shap_values(disease_key, symptoms)
+        top_items = sorted(shap_values.items(), key=lambda item: abs(item[1]), reverse=True)[:top_n]
+
+        return [
+            {
+                'feature': key,
+                'name': self.symptom_display_names.get(key, key.replace('_', ' ').title()),
+                'contribution': float(value),
+                'direction': 'positive' if value >= 0 else 'negative',
+            }
+            for key, value in top_items
+        ]
+
+    def build_explanation_summary(self, disease_key: str, top_impacts: List[Dict], bmi_category: str | None, confidence_score: float) -> str:
+        """Build a concise explanation summary for the diagnosis."""
+        positives = [item for item in top_impacts if item['direction'] == 'positive']
+        negatives = [item for item in top_impacts if item['direction'] == 'negative']
+
+        parts = []
+        if positives:
+            positive_names = ', '.join(item['name'] for item in positives[:3])
+            parts.append(f"Strong positive evidence came from {positive_names}.")
+        if negatives:
+            negative_names = ', '.join(item['name'] for item in negatives[:3])
+            parts.append(f"The absence of {negative_names} reduced confidence.")
+        if bmi_category:
+            parts.append(f"BMI category is {bmi_category}.")
+
+        if confidence_score >= 0.75:
+            parts.append("The model is highly confident in this result.")
+        elif confidence_score >= 0.5:
+            parts.append("The model is moderately confident, with some uncertainty remaining.")
+        else:
+            parts.append("The model is currently less confident in this prediction.")
+
+        return ' '.join(parts)
 
     def predict_disease_probability(self, disease: str, symptoms: List[str], age: int = None, height_cm: float = None, weight_kg: float = None) -> Dict:
         """Predict disease probability based on selected symptoms."""
@@ -247,8 +279,21 @@ class DiseaseMLModel:
         prior = min(0.95, max(0.05, raw_probability))
         likelihood = 0.75 + (raw_probability * 0.20)
 
-        # Compute real SHAP values using exact formula for linear model
-        symptom_contributions = self.compute_shap_values(disease_key, matched_symptoms)
+        # Compute SHAP-style contributions for every symptom.
+        shap_values = self.compute_shap_values(disease_key, symptoms)
+        symptom_contributions = {
+            symptom: shap_values[symptom]
+            for symptom in matched_symptoms
+            if symptom in shap_values
+        }
+        feature_impacts = self.get_top_feature_impacts(disease_key, symptoms)
+        confidence_score = self._calculate_confidence(len(matched_symptoms), raw_probability, bmi)
+        explanation_summary = self.build_explanation_summary(
+            disease_key,
+            feature_impacts,
+            bmi_category,
+            confidence_score
+        )
         
         return {
             'disease': disease,
@@ -258,11 +303,13 @@ class DiseaseMLModel:
             'likelihood': float(likelihood),
             'symptoms_matched': len(matched_symptoms),
             'total_symptoms': len(symptoms),
-            'confidence_score': self._calculate_confidence(len(matched_symptoms), raw_probability, bmi),
+            'confidence_score': confidence_score,
             'bmi': round(bmi, 2) if bmi else None,
             'bmi_category': bmi_category,
             'bmi_effect': bmi_effect,
             'symptom_contributions': symptom_contributions,
+            'feature_impacts': feature_impacts,
+            'explanation_summary': explanation_summary,
             'bias': bias
         }
     
