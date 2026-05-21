@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}404 - Page Not Found - Disease Prediction System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="col-lg-6 col-md-8 text-center animate-fade-in">
+
+        <!-- Icon -->
+        <div class="mb-4">
+            <i class="fas fa-clipboard-question text-primary" style="font-size: 5rem; opacity: 0.85;"></i>
+        </div>
+
+        <!-- 404 Badge -->
+        <div class="mb-3">
+            <span class="badge bg-danger fs-6 px-3 py-2">Error 404</span>
+        </div>
+
+        <!-- Heading -->
+        <h1 class="display-5 fw-bold mb-3">Page Not Found</h1>
+
+        <p class="lead text-muted mb-2">
+            The page you're looking for doesn't exist or has been moved.
+        </p>
+        <p class="text-muted mb-5">
+            <i class="fas fa-info-circle me-1"></i>
+            Double-check the URL, or head back to the home page to run a new prediction.
+        </p>
+
+        <!-- Card with suggestions -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h2 class="h5 mb-3">
+                    <i class="fas fa-stethoscope me-2 text-primary"></i>What you can do
+                </h2>
+                <div class="row g-3 text-start">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="fas fa-house-medical text-primary mt-1"></i>
+                            <div>
+                                <p class="fw-bold mb-0 small">Go to Homepage</p>
+                                <p class="text-muted small mb-0">Start a new disease prediction session.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="fas fa-rotate-left text-primary mt-1"></i>
+                            <div>
+                                <p class="fw-bold mb-0 small">Go Back</p>
+                                <p class="text-muted small mb-0">Return to the previous page you were on.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="/" class="btn btn-primary btn-lg px-4">
+                <i class="fas fa-home me-2"></i>Back to Homepage
+            </a>
+            <button class="btn btn-outline-secondary btn-lg px-4" onclick="history.back()">
+                <i class="fas fa-arrow-left me-2"></i>Go Back
+            </button>
+        </div>
+
+
+    </div>
+</div>
+{% endblock %}
