@@ -18,6 +18,13 @@ client = None
 def configure_gemini():
     """Configure Gemini API with the API key from environment variables."""
     global client
+    try:
+        from google import genai
+    except ImportError:
+        import warnings
+        warnings.warn("google-genai package not properly installed. Gemini features disabled.")
+        return
+    
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise ValidationError("GEMINI_API_KEY environment variable is not set")

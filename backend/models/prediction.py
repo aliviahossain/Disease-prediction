@@ -4,7 +4,6 @@ import json
 import logging
 import numpy as np
 from tensorflow.keras.preprocessing import image
-from datetime import datetime
 from backend import db
 
 
@@ -78,8 +77,15 @@ def predict_disease(model, img_path, target_size=(224, 224)):
             "message": "Prediction service unavailable"
         }
 
-
 class PredictionHistory(db.Model):
+# Example disease classes
+    CLASS_NAMES = [
+        "Cataract",
+        "Diabetic Retinopathy",
+        "Glaucoma",
+        "Normal"
+]
+
     __tablename__ = 'prediction_history'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -87,7 +93,9 @@ class PredictionHistory(db.Model):
     # Patient info (nullable for anonymous predictions)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     patient_age = db.Column(db.Integer, nullable=True)
-    
+    __table_args__ = (
+    CheckConstraint('patient_age >= 0', name='check_patient_age_non_negative'),
+    )
     # Prediction details
     disease = db.Column(db.String(100), nullable=False)
     symptoms = db.Column(db.Text, nullable=False)  # JSON string of symptoms list
@@ -143,3 +151,4 @@ class PredictionHistory(db.Model):
             'patient_age': self.patient_age,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
+

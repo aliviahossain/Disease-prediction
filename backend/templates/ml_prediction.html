@@ -1,0 +1,688 @@
+{% extends "base.html" %}
+
+{% block title %}ML Disease Prediction - Disease Prediction System{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5 animate-fade-in">
+    <h1 class="display-5 fw-bold">ML-Powered Disease Prediction</h1>
+    <p class="lead text-muted">Select symptoms and let machine learning predict disease probability</p>
+</div>
+<span style="display:none;">Probability Calculator</span>
+
+<div class="row g-4">
+    <!-- Input Panel -->
+    <div class="col-lg-6">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="h4 mb-4">
+                    <i class="fas fa-stethoscope me-2"></i>Symptom Input
+                </h2>
+
+                <div class="mb-4">
+                    <p class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Our AI will analyze your symptoms and suggest possible conditions.
+                    </p>
+                </div>
+
+                <div class="mb-4">
+                    <label for="age-input" class="form-label">
+                        <i class="fas fa-user-clock me-1"></i> Patient Age
+                    </label>
+                    <input type="number" id="age-input" class="form-control form-control-lg"
+                        placeholder="Enter age (e.g. 45)" min="1" max="120">
+                </div>
+
+                <div class="mb-4">
+                    <label for="height-input" class="form-label">
+                        <i class="fas fa-ruler-vertical me-1"></i> Height (in cm)
+                    </label>
+                    <input type="range" id="height-input" class="form-range form-range-lg"
+                        placeholder="Enter height (e.g. 154)" value="170" min="50" max="280" step="1"
+                        oninput="updateHeight(this.value)">
+                    <div class="text-muted">
+                        <span id="height-value">170</span>cm
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="weight-input" class="form-label">
+                        <i class="fas fa-ruler-vertical me-1"></i> Weight (in kg)
+                    </label>
+                    <input type="range" id="weight-input" class="form-range form-range-lg"
+                        placeholder="Enter weight (e.g. 67 kg)" value="60" min="2" max="170" step="1"
+                        oninput="updateWeight(this.value)">
+                    <div class="text-muted">
+                        <span id="weight-value">60</span>kg
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-3" id="bmi-box">
+                    BMI: <strong id="bmi-value">—</strong>
+                    <span class="badge bg-secondary" id="bmi-category"></span>
+                </div>
+
+                <div class="mb-4">
+                    <button class="btn btn-outline-danger w-100 text-start d-flex justify-content-between align-items-center shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#vitalsCollapse" aria-expanded="false" aria-controls="vitalsCollapse">
+                        <span><i class="fas fa-heartbeat me-2 text-danger animate-pulse"></i>Patient Vital Signs (Optional - for Temporal Analysis)</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="collapse mt-3" id="vitalsCollapse">
+                        <div class="card card-body bg-light border-0 shadow-sm rounded-3">
+                            <p class="small text-muted mb-3"><i class="fas fa-info-circle me-1"></i>Providing vitals enables dynamic survival/recovery analysis and timeline progression tracking in your dashboard.</p>
+                            <div class="mb-3">
+                                <label for="heart-rate-input" class="form-label font-monospace small fw-bold">Heart Rate (bpm)</label>
+                                <input type="number" id="heart-rate-input" class="form-control border-danger-subtle" placeholder="e.g. 72 (Normal: 60-100)" min="20" max="250">
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col">
+                                    <label for="bp-systolic-input" class="form-label font-monospace small fw-bold">Systolic BP (mmHg)</label>
+                                    <input type="number" id="bp-systolic-input" class="form-control border-danger-subtle" placeholder="e.g. 120" min="50" max="250">
+                                </div>
+                                <div class="col">
+                                    <label for="bp-diastolic-input" class="form-label font-monospace small fw-bold">Diastolic BP (mmHg)</label>
+                                    <input type="number" id="bp-diastolic-input" class="form-control border-danger-subtle" placeholder="e.g. 80" min="30" max="150">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="blood-glucose-input" class="form-label font-monospace small fw-bold">Blood Glucose (mg/dL)</label>
+                                <input type="number" id="blood-glucose-input" class="form-control border-danger-subtle" placeholder="e.g. 90" min="20" max="600">
+                            </div>
+                            <div class="mb-0">
+                                <label for="temp-input" class="form-label font-monospace small fw-bold">Body Temperature (°C)</label>
+                                <input type="number" id="temp-input" class="form-control border-danger-subtle" placeholder="e.g. 36.6" step="0.1" min="25" max="45">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">
+                        <i class="fas fa-list-check me-1"></i> Select Symptoms
+                        <span id="symptom-count" class="badge bg-primary ms-2">0 selected</span>
+                    </label>
+                    <div class="symptoms-grid border rounded p-3" id="symptoms-container">
+                        <!-- Symptoms will be loaded here dynamically -->
+                        <p class="text-muted text-center">Loading available symptoms...</p>
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button class="btn btn-primary btn-lg" id="predict-btn" onclick="predictDisease()">
+                        <i class="fas fa-calculator me-2"></i>Predict Disease Probability
+                    </button>
+                </div>
+
+                <div class="alert alert-info mt-3 mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <small><strong>Note:</strong> ML prediction feature is under development. Currently showing mock
+                        data for demonstration purposes.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Panel -->
+    <div class="col-lg-6">
+        <div class="card h-100 shadow-sm prediction-results-card">
+            <div class="card-body p-4">
+                <h2 class="h4 mb-4">
+                    <i class="fas fa-chart-line me-2"></i>Prediction Results
+                </h2>
+
+                <!-- Custom Error Container -->
+                <div id="error-container" class="alert alert-danger alert-dismissible fade show shadow-sm mb-4" role="alert" style="display: none;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-circle fs-5 me-2"></i>
+                        <div>
+                            <strong class="me-1">Prediction failed:</strong>
+                            <span id="error-message">Unable to perform prediction.</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" onclick="hideError()" aria-label="Close"></button>
+                </div>
+
+                <div class="text-center py-5" id="loading" style="display: none;">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted">Analyzing symptoms...</p>
+                </div>
+
+                <!-- Differential Diagnosis Results -->
+                <div id="differential-diagnosis-container" style="display: none;">
+                    <h3 class="h6 mb-3">
+                        <i class="fas fa-list-ol me-2"></i>Top Potential Conditions
+                    </h3>
+                    <div id="prediction-list" class="list-group list-group-flush mb-4">
+                        <!-- Dynamically populated -->
+                    </div>
+
+                    <!-- Detailed Analysis for Selected Disease -->
+                    <div id="detailed-analysis" style="display: none;">
+                        <hr>
+                        <h3 class="h5 mb-3 text-primary" id="detail-title">Detailed Analysis</h3>
+
+                        <!-- Bayesian Analysis -->
+                        <div class="card bg-light mb-3 shadow-sm border-0">
+                            <div class="card-body">
+                                <h3 class="h6 mb-3">
+                                    <i class="fas fa-calculator me-2"></i>Bayesian Details
+                                </h3>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small>Prior Probability</small>
+                                        <small class="fw-bold" id="prior-value">--</small>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar bg-info" id="prior-bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small>Likelihood</small>
+                                        <small class="fw-bold" id="likelihood-value">--</small>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar bg-warning" id="likelihood-bar" style="width: 0%">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-0">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="fw-bold">Posterior Probability</small>
+                                        <small class="fw-bold text-primary" id="posterior-value">--</small>
+                                    </div>
+                                    <div class="progress" style="height: 15px;">
+                                        <div class="progress-bar" id="posterior-bar"
+                                            style="width: 0%; background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Missing Symptom Analysis -->
+                        <div class="card bg-light mb-3 shadow-sm border-0" id="missing-symptoms-card"
+                            style="display: none;">
+                            <div class="card-body">
+                                <h3 class="h6 mb-3">
+                                    <i class="fas fa-clipboard-check me-2"></i>Missing Key Symptoms
+                                </h3>
+                                <div id="missing-symptoms-list" class="list-group list-group-flush bg-transparent">
+                                    <!-- Dynamically populated -->
+                                </div>
+                                <p class="text-muted small mt-2 mb-0">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Symptoms associated with this disease you didn't report.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- AI Explanation -->
+                        <div class="card bg-light mb-3 shadow-sm border-0" id="ai-explanation-card">
+                            <div class="card-body">
+                                <h3 class="h6 mb-3">
+                                    <i class="fas fa-brain me-2"></i>AI Explanation
+                                </h3>
+                                <p class="small text-muted mb-3">How each feature influenced the prediction, including both positive and negative impacts.</p>
+                                <div id="explanation-summary" class="text-muted small mb-3">The prediction explanation will appear here.</div>
+                                <div id="symptom-contributions-list" class="list-group list-group-flush bg-transparent">
+                                    <!-- Dynamically populated -->
+                                </div>
+                                <div id="model-contributions" class="mt-3 pt-3 border-top">
+                                    <small class="text-muted">
+                                        <strong>Model Components:</strong><br>
+                                        Bias: <span id="bias-value">--</span> | 
+                                        BMI Effect: <span id="bmi-effect-value">--</span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Risk Assessment -->
+                        
+<div class="card bg-light mb-3 shadow-sm border-0">
+    <div class="card-body text-center">
+        <h3 class="h6 mb-3">
+            <i class="fas fa-exclamation-triangle me-2"></i>Risk Assessment
+        </h3>
+        <span class="badge fs-6 py-2 px-3 mb-2" id="risk-badge">--</span>
+        <p class="mt-2 mb-0 text-muted small" id="risk-description">--</p>
+        <div class="mt-3" id="confidence-meter" style="display:none;">
+    <small class="text-muted d-block mb-1">Model Confidence</small>
+    <div class="progress" style="height: 12px; border-radius: 6px;">
+        <div class="progress-bar" id="confidence-bar" role="progressbar"></div>
+    </div>
+    <div class="d-flex justify-content-between mt-1">
+        <small class="text-muted">0%</small>
+        <small id="confidence-label" class="fw-bold"></small>
+        <small class="text-muted">100%</small>
+    </div>
+</div>
+
+                       
+
+
+                        <!-- Download Results Section -->
+                        <div class="card border-primary mt-3">
+                            <div class="card-body text-center p-3">
+                                <button class="btn btn-danger" onclick="downloadMLResults()">
+                                    <i class="fas fa-file-pdf me-2"></i>Download Detailed PDF Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="no-results" class="text-center py-5 text-muted">
+                <i class="fas fa-clipboard-question fs-1 mb-3 d-block"></i>
+                <p>Select symptoms and click "Predict" to see results</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedSymptoms = [];
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        loadSymptoms();
+    });
+
+
+    async function loadSymptoms() {
+        const container = document.getElementById('symptoms-container');
+        container.innerHTML = '<p class="text-center text-muted py-3">Loading symptoms...</p>';
+        document.getElementById('symptom-count').textContent = '0 selected';
+
+        try {
+            const response = await fetch('/api/ml/symptoms');
+            const data = await response.json();
+
+            if (!data.success) {
+                container.innerHTML = `<p class="text-danger text-center">Error: ${data.error}</p>`;
+                return;
+            }
+
+            const symptoms = data.symptoms; // Expecting list of {key: 'fever', name: 'Fever'}
+            let html = '';
+
+            if (symptoms.length === 0) {
+                html = '<p class="text-muted text-center">No symptoms found.</p>';
+            } else {
+                html = '<div class="row g-2">';
+                symptoms.forEach((symptom) => {
+                    html += `
+                    <div class="col-md-6">
+                        <div class="symptom-checkbox">
+                            <input type="checkbox" id="symptom-${symptom.key}" value="${symptom.key}" 
+                                   onchange="toggleSymptom('${symptom.key}')">
+                            <label for="symptom-${symptom.key}">${symptom.name}</label>
+                        </div>
+                    </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+
+        } catch (error) {
+            console.error('Error loading symptoms:', error);
+            container.innerHTML = '<p class="text-danger text-center">Failed to load symptoms. Please check if backend is running.</p>';
+        }
+    }
+
+    function toggleSymptom(symptomKey) {
+        const index = selectedSymptoms.indexOf(symptomKey);
+        if (index > -1) {
+            selectedSymptoms.splice(index, 1);
+        } else {
+            selectedSymptoms.push(symptomKey);
+        }
+        updateSymptomCount();
+    }
+
+    function updateSymptomCount() {
+        const count = selectedSymptoms.length;
+        document.getElementById('symptom-count').textContent = `${count} selected`;
+    }
+
+    // height updation 
+    function updateHeight(val) {
+        document.getElementById("height-value").innerText = val;
+        calculateBMI();
+    }
+
+    // weight updation
+    function updateWeight(val) {
+        document.getElementById("weight-value").innerText = val;
+        calculateBMI();
+    }
+
+    function calculateBMI() {
+        const h = document.getElementById("height-input").value / 100;
+        const w = document.getElementById("weight-input").value;
+
+        if (!h || !w) return;
+
+        const bmi = (w / (h * h)).toFixed(1);
+        document.getElementById("bmi-value").innerText = bmi;
+
+        let category = "Normal";
+        let badge = "bg-success";
+
+        if (bmi < 18.5) {
+            category = "Underweight";
+            badge = "bg-warning";
+        } else if (bmi < 25) {
+            category = "Normal";
+            badge = "bg-success";
+        } else if (bmi < 30) {
+            category = "Overweight";
+            badge = "bg-warning";
+        } else {
+            category = "Obese";
+            badge = "bg-danger";
+        }
+
+        const catEl = document.getElementById("bmi-category");
+        catEl.innerText = category;
+        catEl.className = `badge ${badge}`;
+    }
+
+    function hideError() {
+        document.getElementById('error-container').style.display = 'none';
+    }
+
+    function showPredictionError(message) {
+        document.getElementById('error-message').textContent = message;
+        document.getElementById('error-container').style.display = 'block';
+        document.getElementById('no-results').style.display = 'block';
+    }
+
+    async function predictDisease() {
+        if (selectedSymptoms.length === 0) {
+            alert('Please select at least one symptom');
+            return;
+        }
+
+        // Hide previous errors & results
+        hideError();
+        document.getElementById('no-results').style.display = 'none';
+        const resultsContainer = document.getElementById('differential-diagnosis-container');
+        if (resultsContainer) resultsContainer.style.display = 'none';
+
+        // Show loading
+        document.getElementById('loading').style.display = 'block';
+
+        // Disable button and show spinner
+        const predictBtn = document.getElementById('predict-btn');
+        const originalBtnHTML = predictBtn.innerHTML;
+        predictBtn.disabled = true;
+        predictBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Predicting...';
+
+        const age = document.getElementById('age-input').value;
+        const h = document.getElementById('height-input').value;
+        const w = document.getElementById('weight-input').value;
+
+        const hr = document.getElementById('heart-rate-input').value;
+        const sbp = document.getElementById('bp-systolic-input').value;
+        const dbp = document.getElementById('bp-diastolic-input').value;
+        const gluc = document.getElementById('blood-glucose-input').value;
+        const temp = document.getElementById('temp-input').value;
+
+        function validateNumber(val, fieldName, isRequired = false) {
+            if (!val || val.trim() === '') {
+                if (isRequired) throw new Error(`${fieldName} is required`);
+                return null;
+            }
+            const num = parseFloat(val);
+            if (isNaN(num)) throw new Error(`Invalid numeric value for ${fieldName}`);
+            return num;
+        }
+
+        let payload;
+        try {
+            payload = {
+                symptoms: selectedSymptoms,
+                age: validateNumber(age, "Patient Age", true),
+                height_cm: validateNumber(h, "Height", true),
+                weight_kg: validateNumber(w, "Weight", true),
+                heart_rate: validateNumber(hr, "Heart Rate", false),
+                blood_pressure_systolic: validateNumber(sbp, "Systolic Blood Pressure", false),
+                blood_pressure_diastolic: validateNumber(dbp, "Diastolic Blood Pressure", false),
+                blood_glucose: validateNumber(gluc, "Blood Glucose", false),
+                temperature: validateNumber(temp, "Temperature", false)
+            };
+        } catch (err) {
+            showPredictionError(err.message);
+            document.getElementById('loading').style.display = 'none';
+            predictBtn.disabled = false;
+            predictBtn.innerHTML = originalBtnHTML;
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/ml/predict-multiple', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                displayResults(data);
+            } else {
+                showPredictionError(data.error || 'Unknown error');
+            }
+
+        } catch (error) {
+            console.error('Prediction error:', error);
+            showPredictionError('Failed to connect to the server. Please check your connection.');
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+            predictBtn.disabled = false;
+            predictBtn.innerHTML = originalBtnHTML;
+        }
+    }
+
+    function displayResults(data) {
+        const predictions = data.predictions;
+        window.allPredictions = predictions; // Store for detailed view
+        const listContainer = document.getElementById('prediction-list');
+        let html = '';
+
+        if (!predictions || predictions.length === 0) {
+            listContainer.innerHTML = '<p class="text-center text-muted">No conditions identified.</p>';
+            return;
+        }
+
+        predictions.forEach((pred, index) => {
+            const probability = pred.posterior;
+            const diseaseName = pred.disease;
+            const riskLevel = pred.risk_level.level;
+            const riskColor = pred.risk_level.color;
+            const isActive = index === 0 ? 'border-primary' : '';
+
+            html += `
+            <div class="list-group-item list-group-item-action p-3 mb-2 border rounded shadow-sm prediction-item ${isActive}" 
+                 onclick="showDetail(${index})" id="pred-item-${index}">
+                <div class="d-flex w-100 justify-content-between align-items-center mb-2">
+                    <h5 class="mb-1 text-capitalize fw-bold text-primary">${diseaseName}</h5>
+                    <span class="badge bg-${riskColor}">${riskLevel} Risk</span>
+                </div>
+                <div class="progress" style="height: 12px;">
+                    <div class="progress-bar bg-${riskColor}" role="progressbar" 
+                         style="width: ${probability}%">
+                        ${probability}%
+                    </div>
+                </div>
+            </div>`;
+        });
+
+        listContainer.innerHTML = html;
+        document.getElementById('differential-diagnosis-container').style.display = 'block';
+
+        window.allPredictions = predictions;
+
+        showDetail(0);
+    }
+
+    function showDetail(index) {
+        const pred = window.allPredictions[index];
+        if (!pred) return;
+
+        document.querySelectorAll('.prediction-item').forEach(el => el.classList.remove('border-primary', 'bg-light'));
+        document.getElementById(`pred-item-${index}`).classList.add('border-primary', 'bg-light');
+
+        document.getElementById('detail-title').textContent = `Analysis for ${pred.disease}`;
+        document.getElementById('prior-value').textContent = pred.prior + '%';
+        document.getElementById('prior-bar').style.width = pred.prior + '%';
+        document.getElementById('likelihood-value').textContent = pred.likelihood + '%';
+        document.getElementById('likelihood-bar').style.width = pred.likelihood + '%';
+        document.getElementById('posterior-value').textContent = pred.posterior + '%';
+        document.getElementById('posterior-bar').style.width = pred.posterior + '%';
+
+        const riskBadge = document.getElementById('risk-badge');
+        riskBadge.textContent = pred.risk_level.level + ' Risk';
+        riskBadge.className = `badge fs-6 py-2 px-3 bg-${pred.risk_level.color}`;
+        document.getElementById('risk-description').textContent = pred.risk_level.description;
+
+        const posterior = pred.posterior; // 0–100
+        const meter = document.getElementById('confidence-meter');
+        const bar = document.getElementById('confidence-bar');
+        const label = document.getElementById('confidence-label');
+
+        meter.style.display = 'block';
+     bar.style.width = posterior + '%';
+
+        if (posterior < 40) {
+            bar.className = 'progress-bar bg-success';
+            label.textContent = `🟢 Low Confidence (${posterior}%)`;
+            label.style.color = '#22c55e';
+        } else if (posterior < 70) {
+            bar.className = 'progress-bar bg-warning';
+            label.textContent = `🟡 Medium Confidence (${posterior}%)`;
+            label.style.color = '#eab308';
+        } else {
+            bar.className = 'progress-bar bg-danger';
+            label.textContent = `🔴 High Confidence (${posterior}%)`;
+            label.style.color = '#ef4444';
+        }
+
+        const missing = pred.missing_symptoms || [];
+        const missingCard = document.getElementById('missing-symptoms-card');
+        const missingList = document.getElementById('missing-symptoms-list');
+
+        if (missing.length > 0) {
+            let html = '';
+            missing.forEach(item => {
+                html += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center small py-2">
+                        <span>${item.name}</span>
+                        <span class="badge bg-secondary rounded-pill">Impact: ${(item.weight * 100).toFixed(0)}%</span>
+                    </div>
+                `;
+            });
+            missingList.innerHTML = html;
+            missingCard.style.display = 'block';
+        } else {
+            missingCard.style.display = 'none';
+        }
+
+        const explanations = pred.explanations || {
+            feature_impacts: pred.feature_impacts || [],
+            summary: pred.explanation_summary || '',
+            bias: pred.bias,
+            bmi_effect: pred.bmi_effect
+        };
+        const contributionsList = document.getElementById('symptom-contributions-list');
+        const explanationSummary = document.getElementById('explanation-summary');
+        const contributions = explanations.feature_impacts && explanations.feature_impacts.length > 0
+            ? explanations.feature_impacts
+            : (pred.feature_impacts || []);
+
+        if (contributions.length > 0) {
+            let html = '';
+            contributions.forEach(item => {
+                const badgeClass = item.direction === 'positive' ? 'bg-success' : 'bg-danger';
+                const sign = item.direction === 'positive' ? '+' : '';
+                html += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center small py-2 px-0">
+                        <span>${item.name}</span>
+                        <span class="badge ${badgeClass} rounded-pill">${sign}${item.contribution.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+            contributionsList.innerHTML = html;
+        } else {
+            contributionsList.innerHTML = '<div class="list-group-item small py-2">No feature contributions available.</div>';
+        }
+
+        const summaryText = explanations.summary || pred.explanation_summary || '';
+        explanationSummary.textContent = summaryText || 'No explanation summary available for this result.';
+        document.getElementById('bias-value').textContent = typeof explanations.bias === 'number' ? explanations.bias.toFixed(2) : (typeof pred.bias === 'number' ? pred.bias.toFixed(2) : '--');
+        document.getElementById('bmi-effect-value').textContent = typeof explanations.bmi_effect === 'number' ? explanations.bmi_effect.toFixed(2) : (typeof pred.bmi_effect === 'number' ? pred.bmi_effect.toFixed(2) : '--');
+
+        document.getElementById('detailed-analysis').style.display = 'block';
+
+        window.selectedPredictionIndex = index;
+    }
+
+    async function downloadMLResults() {
+        if (!window.allPredictions || window.selectedPredictionIndex === undefined) {
+            alert('Please select a prediction to download.');
+            return;
+        }
+
+        try {
+            const pred = window.allPredictions[window.selectedPredictionIndex];
+
+            const response = await fetch('/download-ml-results', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    disease_name: pred.disease,
+                    ml_probability: pred.probability / 100,
+                    prior_probability: pred.prior / 100,
+                    likelihood: pred.likelihood / 100,
+                    posterior_probability: pred.posterior / 100,
+                    risk_level: pred.risk_level.level + ' Risk',
+                    missing_symptoms: pred.missing_symptoms || []
+                })
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error || 'Download failed');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `detailed_report_${pred.disease.toLowerCase().replace(/ /g, '_')}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('Download error:', error);
+            alert('Error downloading PDF: ' + error.message);
+        }
+    }
+
+    function hideResults() {
+        document.getElementById('differential-diagnosis-container').style.display = 'none';
+        document.getElementById('no-results').style.display = 'block';
+    }
+</script>
+{% endblock %}

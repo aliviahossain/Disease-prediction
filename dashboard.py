@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import sys
 import os
+from datetime import datetime
+import plotly.express as px
 
 # Add the current directory to sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -11,6 +13,12 @@ from backend.models.ml_model import ml_model
 
 # Import disease descriptions
 from backend.data.disease_info import DISEASE_INFO
+
+# Import history manager
+from backend.utils.history_manager import (
+    load_history,
+    save_history
+)
 
 # =========================
 # PAGE CONFIG
@@ -24,6 +32,7 @@ st.set_page_config(
 # TITLE
 # =========================
 st.title("🩺 Multi-Disease Prediction System")
+
 st.markdown(
     "### Interactive Dashboard for Disease Prediction & Analysis"
 )
@@ -115,6 +124,36 @@ if app_mode == "Prediction":
                 )
 
                 # =========================
+                # SAVE PREDICTION HISTORY
+                # =========================
+                probability = round(
+                    result['raw_probability'] * 100,
+                    1
+                )
+
+                if probability < 30:
+                    risk_level = "Low"
+
+                elif probability < 60:
+                    risk_level = "Moderate"
+
+                else:
+                    risk_level = "High"
+
+                history_entry = {
+                    "Disease": selected_disease.replace('_', ' ').title(),
+                    "Probability": probability,
+                    "Risk": risk_level,
+                    "Symptoms": ", ".join(selected_symptoms),
+                    "Timestamp": datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    )
+                }
+
+                # Save prediction history
+                save_history(history_entry)
+
+                # =========================
                 # METRICS
                 # =========================
                 col1, col2, col3 = st.columns(3)
@@ -184,7 +223,7 @@ if app_mode == "Prediction":
                 st.divider()
 
                 st.subheader(
-                    " Bayesian Probability Concept"
+                    "Bayesian Probability Concept"
                 )
 
                 st.write("""
@@ -232,6 +271,74 @@ if app_mode == "Prediction":
                     Updated disease
                     probability
                     """)
+
+                # =========================
+                # PREDICTION HISTORY
+                # =========================
+                st.divider()
+
+                st.subheader(
+                    "📜 Prediction History Timeline"
+                )
+
+                # Load prediction history
+                history_data = load_history()
+
+                if history_data:
+
+                    df_history = pd.DataFrame(history_data)
+
+                    # Latest predictions first
+                    df_history = df_history.iloc[::-1]
+
+                    # Display table
+                    st.dataframe(
+                        df_history,
+                        use_container_width=True
+                    )
+
+                    st.divider()
+
+                    # =========================
+                    # ANALYTICS CHART
+                    # =========================
+                    st.subheader(
+                        "📈 Probability Trend Analytics"
+                    )
+
+                    fig = px.line(
+                        df_history,
+                        x="Timestamp",
+                        y="Probability",
+                        color="Disease",
+                        markers=True,
+                        title="Disease Probability Over Time"
+                    )
+
+                    st.plotly_chart(
+                        fig,
+                        use_container_width=True
+                    )
+
+                    # =========================
+                    # RISK DISTRIBUTION
+                    # =========================
+                    st.subheader(
+                        "⚠️ Risk Distribution"
+                    )
+
+                    risk_counts = (
+                        df_history["Risk"]
+                        .value_counts()
+                    )
+
+                    st.bar_chart(risk_counts)
+
+                else:
+
+                    st.info(
+                        "No prediction history available yet."
+                    )
 
             except Exception as e:
 
