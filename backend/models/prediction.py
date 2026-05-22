@@ -2,7 +2,6 @@
 import os
 import json
 import numpy as np
-from tensorflow.keras.preprocessing import image
 from backend import db
 from sqlalchemy import CheckConstraint
 from datetime import datetime
