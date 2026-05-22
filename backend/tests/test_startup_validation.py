@@ -4,13 +4,14 @@ Tests for the startup configuration and model file validator.
 
 import os
 import sys
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+
+from backend.utils.config_validator import validate_startup_config
 
 # Add parent directory to path to ensure backend imports work
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from backend.utils.config_validator import validate_startup_config
 
 
 def test_production_missing_secret_key(monkeypatch):
@@ -25,7 +26,9 @@ def test_production_missing_secret_key(monkeypatch):
     with pytest.raises(ValueError) as exc_info:
         validate_startup_config(app)
 
-    assert "SECRET_KEY environment variable is required in production" in str(exc_info.value)
+    assert "SECRET_KEY environment variable is required in production" in str(
+        exc_info.value
+    )
 
 
 def test_production_weak_secret_key(monkeypatch):
@@ -55,7 +58,9 @@ def test_production_missing_gemini_key(monkeypatch):
     with pytest.raises(ValueError) as exc_info:
         validate_startup_config(app)
 
-    assert "GEMINI_API_KEY environment variable is required in production" in str(exc_info.value)
+    assert "GEMINI_API_KEY environment variable is required in production" in str(
+        exc_info.value
+    )
 
 
 def test_production_missing_model_files(monkeypatch):

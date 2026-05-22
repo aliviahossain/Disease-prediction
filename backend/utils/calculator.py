@@ -1,6 +1,7 @@
 import csv
 import math
 
+
 def bayesian_survival(prevalence, sensitivity, false_positive):
     """
     Calculate posterior probability using Bayes' Theorem.
@@ -15,7 +16,7 @@ def bayesian_survival(prevalence, sensitivity, false_positive):
     for name, value in [
         ("Prevalence", prevalence),
         ("Sensitivity", sensitivity),
-        ("False positive rate", false_positive)
+        ("False positive rate", false_positive),
     ]:
         if not (0.0 <= value <= 1.0):
             raise ValueError(f"{name} must be between 0 and 1. Got {value}")
@@ -26,6 +27,7 @@ def bayesian_survival(prevalence, sensitivity, false_positive):
 
     posterior = (sensitivity * prevalence) / p_pos
     return posterior
+
 
 def load_data(filepath):
     """
@@ -42,6 +44,7 @@ def load_data(filepath):
             row["Posterior"] = round(posterior, 4)
             results.append(row)
     return results
+
 
 def display_results(results):
     """
@@ -62,16 +65,19 @@ def display_results(results):
 # UPGRADED: BayesCalculator Class for ML Integration (Netlify & Frontend Sync)
 # ============================================================================
 
+
 class BayesCalculator:
     """
     Bayesian probability calculator for disease prediction.
     Enhanced with data types, risk stratification, and backwards compatibility.
     """
-    
+
     def __init__(self):
         pass
 
-    def calculate_posterior(self, prior: float, likelihood: float, false_positive_rate: float = 0.05) -> dict:
+    def calculate_posterior(
+        self, prior: float, likelihood: float, false_positive_rate: float = 0.05
+    ) -> dict:
         """
         Calculates the posterior probability using Bayes' Theorem for ML models.
         """
@@ -82,7 +88,11 @@ class BayesCalculator:
         except (TypeError, ValueError):
             raise ValueError("Non-numeric input provided")
 
-        for name, value in [("Prior probability", prior), ("Likelihood", likelihood), ("False positive rate", false_positive_rate)]:
+        for name, value in [
+            ("Prior probability", prior),
+            ("Likelihood", likelihood),
+            ("False positive rate", false_positive_rate),
+        ]:
             if not (0.0 <= value <= 1.0):
                 raise ValueError(f"{name} must be between 0 and 1. Got {value}")
 
@@ -104,18 +114,24 @@ class BayesCalculator:
 
         return {
             # Legacy fields (Keeps existing frontend components working perfectly)
-            'prior': round(prior, 4),
-            'likelihood': round(likelihood, 4),
-            'posterior': round(posterior, 4),
-            'false_positive_rate': round(false_positive_rate, 4),
+            "prior": round(prior, 4),
+            "likelihood": round(likelihood, 4),
+            "posterior": round(posterior, 4),
+            "false_positive_rate": round(false_positive_rate, 4),
             # New Advanced Data Science Fields
             "prior_probability": round(prior, 4),
             "posterior_probability": round(posterior, 4),
             "risk_tier": risk_category,
-            "shift_magnitude": round(posterior - prior, 4)
+            "shift_magnitude": round(posterior - prior, 4),
         }
 
-    def calculate_with_test_result(self, prior: float, sensitivity: float, specificity: float, test_result: str = 'positive') -> dict:
+    def calculate_with_test_result(
+        self,
+        prior: float,
+        sensitivity: float,
+        specificity: float,
+        test_result: str = "positive",
+    ) -> dict:
         """
         Calculate posterior probability based on diagnostic test result.
         """
@@ -126,13 +142,17 @@ class BayesCalculator:
         except (TypeError, ValueError):
             raise ValueError("Non-numeric input provided")
 
-        for name, value in [("Prior probability", prior), ("Sensitivity", sensitivity), ("Specificity", specificity)]:
+        for name, value in [
+            ("Prior probability", prior),
+            ("Sensitivity", sensitivity),
+            ("Specificity", specificity),
+        ]:
             if not (0.0 <= value <= 1.0):
                 raise ValueError(f"{name} must be between 0 and 1. Got {value}")
 
         false_positive_rate = 1.0 - specificity
 
-        if str(test_result).lower() == 'positive':
+        if str(test_result).lower() == "positive":
             numerator = sensitivity * prior
             denominator = numerator + (false_positive_rate * (1.0 - prior))
         else:
@@ -153,17 +173,17 @@ class BayesCalculator:
 
         return {
             # Legacy fields (Keeps existing frontend components working perfectly)
-            'prior': round(prior, 4),
-            'sensitivity': round(sensitivity, 4),
-            'specificity': round(specificity, 4),
-            'false_positive_rate': round(false_positive_rate, 4),
-            'posterior': round(posterior, 4),
-            'test_result': test_result,
+            "prior": round(prior, 4),
+            "sensitivity": round(sensitivity, 4),
+            "specificity": round(specificity, 4),
+            "false_positive_rate": round(false_positive_rate, 4),
+            "posterior": round(posterior, 4),
+            "test_result": test_result,
             # New Advanced Data Science Fields
             "prior_probability": round(prior, 4),
             "posterior_probability": round(posterior, 4),
             "risk_tier": risk_category,
-            "shift_magnitude": round(posterior - prior, 4)
+            "shift_magnitude": round(posterior - prior, 4),
         }
 
 

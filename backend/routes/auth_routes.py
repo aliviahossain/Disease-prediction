@@ -1,15 +1,16 @@
 import re
 from datetime import date, datetime
+from urllib.parse import urljoin, urlparse
 
-from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_user, logout_user, login_required, current_user
-from urllib.parse import urlparse, urljoin
-from backend import db, bcrypt
-from backend.models.user import User
-from flask import session
+from flask import (Blueprint, flash, redirect, render_template, request,
+                   session, url_for)
+from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy.exc import OperationalError
 
-auth_bp = Blueprint('auth', __name__)
+from backend import bcrypt, db
+from backend.models.user import User
+
+auth_bp = Blueprint("auth", __name__)
 
 PHONE_RE = re.compile(r"^\+[1-9][0-9]{7,14}$")
 NAME_RE = re.compile(r"^[A-Za-z][A-Za-z\s'.-]{1,79}$")
@@ -130,78 +131,82 @@ def _oldest_allowed_dob(today):
 def is_safe_url(target):
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
-    return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
+    return test_url.scheme in ("http", "https") and ref_url.netloc == test_url.netloc
 
-@auth_bp.route('/auth', methods=['GET'])
+
+@auth_bp.route("/auth", methods=["GET"])
 def auth():
     # Deprecated: Redirect to login or profile
     if current_user.is_authenticated:
-        return redirect(url_for('auth.profile'))
-    return redirect(url_for('auth.login', tab=request.args.get('tab', 'signin')))
+        return redirect(url_for("auth.profile"))
+    return redirect(url_for("auth.login", tab=request.args.get("tab", "signin")))
 
-@auth_bp.route('/login', methods=['GET', 'POST'])
+
+@auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('auth.profile'))
+        return redirect(url_for("auth.profile"))
 
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
 
         user = User.query.filter_by(email=email).first()
 
         if user and bcrypt.check_password_hash(user.password_hash, password):
             login_user(user)
-            flash('Login successful!', 'success')
-            next_page = request.args.get('next')
+            flash("Login successful!", "success")
+            next_page = request.args.get("next")
             if not next_page or not is_safe_url(next_page):
-                next_page = url_for('auth.profile')
+                next_page = url_for("auth.profile")
             return redirect(next_page)
         else:
-            flash('Invalid email or password', 'danger')
-            return redirect(url_for('auth.login', tab='signin')) # Keep on login page
-            
-    # GET request: render auth template
-    active_tab = request.args.get('tab', 'signin')
-    return render_template('auth.html', active_tab=active_tab)
+            flash("Invalid email or password", "danger")
+            return redirect(url_for("auth.login", tab="signin"))  # Keep on login page
 
-@auth_bp.route('/signup', methods=['POST'])
+    # GET request: render auth template
+    active_tab = request.args.get("tab", "signin")
+    return render_template("auth.html", active_tab=active_tab)
+
+
+@auth_bp.route("/signup", methods=["POST"])
 def signup():
-    username = request.form.get('username')
-    email = request.form.get('email')
-    password = request.form.get('password')
+    username = request.form.get("username")
+    email = request.form.get("email")
+    password = request.form.get("password")
 
     # 1. Reject empty fields
     if not username or not email or not password:
-        flash('All fields are required.', 'danger')
-        return redirect(url_for('auth.login', tab='register'))
+        flash("All fields are required.", "danger")
+        return redirect(url_for("auth.login", tab="register"))
 
     # 2. Check for existing user (split for better internal logging if needed, but flash user-friendly)
     if User.query.filter_by(email=email).first():
-        flash('Email already registered.', 'danger')
-        return redirect(url_for('auth.login', tab='register'))
-    
+        flash("Email already registered.", "danger")
+        return redirect(url_for("auth.login", tab="register"))
+
     if User.query.filter_by(username=username).first():
-        flash('Username already taken.', 'danger')
-        return redirect(url_for('auth.login', tab='register'))
+        flash("Username already taken.", "danger")
+        return redirect(url_for("auth.login", tab="register"))
 
     # Hash password
-    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+    hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
     new_user = User(username=username, email=email, password_hash=hashed_password)
     db.session.add(new_user)
     db.session.commit()
 
-    flash('Account Created Successfully. Please Sign In.', 'success')
+    flash("Account Created Successfully. Please Sign In.", "success")
     # Redirect to signin tab after successful registration
-    return redirect(url_for('auth.login', tab='signin'))
+    return redirect(url_for("auth.login", tab="signin"))
 
-@auth_bp.route('/profile')
+
+@auth_bp.route("/profile")
 @login_required
 def profile():
     dob_min, dob_max = _profile_dob_bounds()
     return render_template(
-        'profile.html',
+        "profile.html",
         user=current_user,
         dob_min=dob_min,
         dob_max=dob_max,
@@ -212,7 +217,8 @@ def profile():
         weight_options=range(1, 636),
     )
 
-@auth_bp.route('/profile/update', methods=['POST'])
+
+@auth_bp.route("/profile/update", methods=["POST"])
 @login_required
 def update_profile():
     errors = []
@@ -258,7 +264,7 @@ def update_profile():
     if errors:
         for error in errors:
             flash(error, "danger")
-        return redirect(url_for('auth.profile'))
+        return redirect(url_for("auth.profile"))
 
     current_user.phone = phone
     current_user.address = address
@@ -269,7 +275,9 @@ def update_profile():
     current_user.gender = gender or None
     current_user.height = height
     current_user.weight = weight
-    current_user.bmi = round(weight / ((height / 100) ** 2), 2) if height and weight else None
+    current_user.bmi = (
+        round(weight / ((height / 100) ** 2), 2) if height and weight else None
+    )
     current_user.allergies = allergies or None
     current_user.medical_notes = medical_notes or None
     try:
@@ -282,17 +290,17 @@ def update_profile():
                 "Please restart the Flask server and check database file permissions.",
                 "danger",
             )
-            return redirect(url_for('auth.profile'))
+            return redirect(url_for("auth.profile"))
         raise
 
     flash("Profile updated successfully.", "success")
-    return redirect(url_for('auth.profile'))
+    return redirect(url_for("auth.profile"))
 
 
-@auth_bp.route('/logout')
+@auth_bp.route("/logout")
 @login_required
 def logout():
     logout_user()
     session.clear()
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('auth.login'))
+    flash("You have been logged out.", "info")
+    return redirect(url_for("auth.login"))

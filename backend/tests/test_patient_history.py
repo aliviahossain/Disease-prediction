@@ -27,7 +27,7 @@ import pytest
 
 from backend import create_app, db
 from backend.models.patient_history import PatientHistory
-from backend.services.history_service import save_history, _classify_risk
+from backend.services.history_service import _classify_risk, save_history
 
 
 # --------------------------------------------------------------------- #
@@ -89,8 +89,8 @@ def make_user(app):
     call below once you've confirmed the field names from
     backend/models/user.py.
     """
-    from backend.models.user import User
     from backend import bcrypt
+    from backend.models.user import User
 
     counter = {"n": 0}
 
@@ -203,10 +203,11 @@ class TestSaveHistoryServiceStandalone:
     def test_save_never_raises_on_bad_input(self, app):
         """A history failure must never break the prediction itself."""
         with app.app_context():
+
             class Weird:  # not JSON-friendly
                 pass
 
-            entry = save_history(
+            save_history(
                 user_id=999,
                 prediction_type="bayes",
                 inputs={"weird": Weird()},
@@ -216,15 +217,18 @@ class TestSaveHistoryServiceStandalone:
             # Either way, no exception bubbled up.
             assert PatientHistory.query.count() in (0, 1)
 
-    @pytest.mark.parametrize("prob,expected", [
-        (0.0,  "low"),
-        (0.29, "low"),
-        (0.30, "medium"),
-        (0.69, "medium"),
-        (0.70, "high"),
-        (1.0,  "high"),
-        (None, None),
-    ])
+    @pytest.mark.parametrize(
+        "prob,expected",
+        [
+            (0.0, "low"),
+            (0.29, "low"),
+            (0.30, "medium"),
+            (0.69, "medium"),
+            (0.70, "high"),
+            (1.0, "high"),
+            (None, None),
+        ],
+    )
     def test_risk_classifier(self, prob, expected):
         assert _classify_risk(prob) == expected
 
@@ -242,20 +246,23 @@ class TestHistoryAPIStandalone:
 # --------------------------------------------------------------------- #
 @pytest.mark.skip(
     reason="Update the make_user fixture to match your User model's "
-           "kwargs (likely password_hash, plus any other NOT NULL "
-           "fields like username), then remove this skip."
+    "kwargs (likely password_hash, plus any other NOT NULL "
+    "fields like username), then remove this skip."
 )
 class TestHistoryAPI:
     def test_list_returns_only_own_entries(self, app, client, make_user):
         with app.app_context():
             user1_id, _, _ = make_user()
             user2_id, _, _ = make_user()
-            save_history(user_id=user1_id, prediction_type="bayes",
-                         disease="A", probability=0.4)
-            save_history(user_id=user1_id, prediction_type="bayes",
-                         disease="B", probability=0.6)
-            save_history(user_id=user2_id, prediction_type="bayes",
-                         disease="C", probability=0.8)
+            save_history(
+                user_id=user1_id, prediction_type="bayes", disease="A", probability=0.4
+            )
+            save_history(
+                user_id=user1_id, prediction_type="bayes", disease="B", probability=0.6
+            )
+            save_history(
+                user_id=user2_id, prediction_type="bayes", disease="C", probability=0.8
+            )
 
         login_session(client, user1_id)
         resp = client.get("/api/history")
@@ -289,8 +296,12 @@ class TestHistoryAPI:
         with app.app_context():
             owner_id, _, _ = make_user()
             other_id, _, _ = make_user()
-            owned = save_history(user_id=owner_id, prediction_type="bayes",
-                                 disease="Owned", probability=0.5)
+            owned = save_history(
+                user_id=owner_id,
+                prediction_type="bayes",
+                disease="Owned",
+                probability=0.5,
+            )
             owned_id = owned.id
 
         login_session(client, other_id)
@@ -311,12 +322,15 @@ class TestHistoryAPI:
         with app.app_context():
             user1_id, _, _ = make_user()
             user2_id, _, _ = make_user()
-            save_history(user_id=user1_id, prediction_type="bayes",
-                         disease="X", probability=0.1)
-            save_history(user_id=user1_id, prediction_type="bayes",
-                         disease="Y", probability=0.2)
-            save_history(user_id=user2_id, prediction_type="bayes",
-                         disease="Z", probability=0.3)
+            save_history(
+                user_id=user1_id, prediction_type="bayes", disease="X", probability=0.1
+            )
+            save_history(
+                user_id=user1_id, prediction_type="bayes", disease="Y", probability=0.2
+            )
+            save_history(
+                user_id=user2_id, prediction_type="bayes", disease="Z", probability=0.3
+            )
 
         login_session(client, user1_id)
         resp = client.delete("/api/history")
@@ -331,10 +345,15 @@ class TestHistoryAPI:
     def test_filter_by_type(self, app, client, make_user):
         with app.app_context():
             user_id, _, _ = make_user()
-            save_history(user_id=user_id, prediction_type="bayes",
-                         disease="A", probability=0.2)
-            save_history(user_id=user_id, prediction_type="eyes",
-                         disease="Cataract", probability=0.9)
+            save_history(
+                user_id=user_id, prediction_type="bayes", disease="A", probability=0.2
+            )
+            save_history(
+                user_id=user_id,
+                prediction_type="eyes",
+                disease="Cataract",
+                probability=0.9,
+            )
 
         login_session(client, user_id)
         resp = client.get("/api/history?type=eyes")

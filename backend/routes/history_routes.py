@@ -23,15 +23,13 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from flask import (
-    Blueprint, jsonify, render_template, request, abort, current_app,
-)
+from flask import Blueprint, abort, jsonify, render_template, request
 from flask_login import current_user, login_required
 
 from backend import db
+from backend.middleware.error_handler import UnauthorizedError
 from backend.models.patient_history import PatientHistory
 from backend.services.history_service import save_history
-from backend.middleware.error_handler import UnauthorizedError
 
 logger = logging.getLogger(__name__)
 
@@ -87,25 +85,25 @@ def list_history():
     per_page = min(max(int(request.args.get("per_page", 20)), 1), 100)
     type_filter: Optional[str] = request.args.get("type") or None
 
-    query = (
-        PatientHistory.query
-        .filter_by(user_id=user_id)
-        .order_by(PatientHistory.created_at.desc())
+    query = PatientHistory.query.filter_by(user_id=user_id).order_by(
+        PatientHistory.created_at.desc()
     )
     if type_filter:
         query = query.filter_by(prediction_type=type_filter)
 
     paginated = query.paginate(page=page, per_page=per_page, error_out=False)
 
-    return jsonify({
-        "items": [entry.to_dict() for entry in paginated.items],
-        "page": paginated.page,
-        "per_page": paginated.per_page,
-        "total": paginated.total,
-        "pages": paginated.pages,
-        "has_next": paginated.has_next,
-        "has_prev": paginated.has_prev,
-    })
+    return jsonify(
+        {
+            "items": [entry.to_dict() for entry in paginated.items],
+            "page": paginated.page,
+            "per_page": paginated.per_page,
+            "total": paginated.total,
+            "pages": paginated.pages,
+            "has_next": paginated.has_next,
+            "has_prev": paginated.has_prev,
+        }
+    )
 
 
 @history_bp.route("/api/history/<int:entry_id>", methods=["GET"])
@@ -133,10 +131,8 @@ def delete_history_entry(entry_id: int):
 def clear_history():
     """Delete ALL of the current user's history. Irreversible."""
     user_id = _require_user_id()
-    deleted = (
-        PatientHistory.query
-        .filter_by(user_id=user_id)
-        .delete(synchronize_session=False)
+    deleted = PatientHistory.query.filter_by(user_id=user_id).delete(
+        synchronize_session=False
     )
     try:
         db.session.commit()
