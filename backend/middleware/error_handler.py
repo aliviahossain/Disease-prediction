@@ -163,6 +163,7 @@ class ErrorHandler:
         
         # Register HTTP error handlers
         app.errorhandler(400)(self.handle_400)
+        app.errorhandler(401)(self.handle_401)
         app.errorhandler(404)(self.handle_404)
         app.errorhandler(405)(self.handle_405)
         app.errorhandler(500)(self.handle_500)
@@ -201,6 +202,14 @@ class ErrorHandler:
             'message': 'The request could not be understood or was missing required parameters',
             'timestamp': datetime.now().isoformat()
         }), 400
+    
+    def handle_401(self, error):
+        """Handle 401 Unauthorized errors."""
+        return jsonify({
+            'error': 'Unauthorized',
+            'message': 'Authentication is required to access this resource',
+            'timestamp': datetime.now().isoformat()
+        }), 401
     
     def handle_404(self, error):
         """Handle 404 Not Found errors."""

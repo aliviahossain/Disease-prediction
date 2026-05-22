@@ -464,10 +464,18 @@
 
         try {
             const response = await fetch('/api/ml/symptoms');
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                const errorMsg = errorData.message || errorData.error || `HTTP ${response.status}`;
+                container.innerHTML = `<p class="text-danger text-center">Error loading symptoms: ${errorMsg}</p>`;
+                return;
+            }
+            
             const data = await response.json();
 
             if (!data.success) {
-                container.innerHTML = `<p class="text-danger text-center">Error: ${data.error}</p>`;
+                container.innerHTML = `<p class="text-danger text-center">Error: ${data.error || 'Unknown error'}</p>`;
                 return;
             }
 
