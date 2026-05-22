@@ -31,6 +31,7 @@ from flask_login import current_user, login_required
 from backend import db
 from backend.models.patient_history import PatientHistory
 from backend.services.history_service import save_history
+from backend.middleware.error_handler import UnauthorizedError
 
 logger = logging.getLogger(__name__)
 
@@ -45,14 +46,9 @@ history_bp = Blueprint(
 # Helpers
 # --------------------------------------------------------------------- #
 def _require_user_id() -> int:
-    """Return the current authenticated user's id, or 401 JSON if not."""
+    """Return the current authenticated user's id, or raise UnauthorizedError."""
     if not current_user.is_authenticated:
-        # `abort` with a JSON-y response so the fetch() on the page gets
-        # something it can read, rather than the default HTML error page.
-        response = jsonify(error="authentication_required",
-                           message="You must be logged in to view history.")
-        response.status_code = 401
-        abort(response)
+        raise UnauthorizedError("You must be logged in to view history.")
     return current_user.id
 
 

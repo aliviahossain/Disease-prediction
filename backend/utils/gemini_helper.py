@@ -3,8 +3,6 @@ Gemini API helper for generating recommendations based on disease probability re
 """
 
 import os
-from google import genai
-from google.genai import types
 from typing import Optional
 
 # Global client variable to keep configuration simple
@@ -13,6 +11,13 @@ client = None
 def configure_gemini():
     """Configure Gemini API with the API key from environment variables."""
     global client
+    try:
+        from google import genai
+    except ImportError:
+        import warnings
+        warnings.warn("google-genai package not properly installed. Gemini features disabled.")
+        return
+    
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise ValueError("GEMINI_API_KEY environment variable is not set")
