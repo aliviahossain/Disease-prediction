@@ -2,10 +2,12 @@ from flask import Blueprint, render_template, abort, Response
 from flask_login import login_required, current_user
 from backend.models.prediction import PredictionHistory
 from backend import db
+import logging
 import csv
 from io import StringIO
 
 history_bp = Blueprint('history', __name__)
+logger = logging.getLogger(__name__)
 
 @history_bp.route('/history', methods=['GET'])
 @login_required
@@ -73,10 +75,19 @@ def export_history_csv():
 
     output.seek(0)
 
-    return Response(
-        output,
-        mimetype='text/csv',
-        headers={
-            'Content-Disposition': 'attachment; filename=prediction_history.csv'
-        }
-    )
+    try:
+        return Response(
+            output,
+            mimetype='text/csv',
+            headers={
+                'Content-Disposition': 'attachment; filename=prediction_history.csv'
+            }
+        )
+
+    except Exception:
+        logger.exception(
+            "Failed to export prediction history for user_id=%s",
+            current_user.id
+        )
+
+        abort(500)

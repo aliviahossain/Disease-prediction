@@ -1,4 +1,9 @@
+import logging
+
 import pandas as pd
+
+
+logger = logging.getLogger(__name__)
 
 def bayesian_survival(prior, sensitivity, specificity):
     """
@@ -222,5 +227,6 @@ if __name__ == "__main__":
     try:
         results = load_data(data_file)
         display_results(results)
-    except Exception as e:
-        print(f"Error: {e}")
+    except Exception:
+        logger.exception("Calculator CLI failed while processing %s", data_file)
+        print("Error: unexpected failure while processing calculator data")

@@ -1,10 +1,14 @@
 # backend/models/prediction.py
 import os
 import json
+import logging
 import numpy as np
 from tensorflow.keras.preprocessing import image
 from datetime import datetime
 from backend import db
+
+
+logger = logging.getLogger(__name__)
 
 # Configurable confidence threshold
 CONFIDENCE_THRESHOLD = float(
@@ -61,12 +65,17 @@ def predict_disease(model, img_path, target_size=(224, 224)):
             "confidence": round(confidence, 4),
             "message": "Prediction generated successfully."
         }
-    except Exception as e:
+    except Exception:
+        logger.exception(
+            "Disease prediction failed for image=%s",
+            img_path
+        )
+
         return {
             "status": "error",
             "disease": None,
             "confidence": 0.0,
-            "message": f"Prediction failed: {str(e)}"
+            "message": "Prediction service unavailable"
         }
 
 

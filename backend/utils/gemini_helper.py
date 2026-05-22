@@ -3,9 +3,14 @@ Gemini API helper for generating recommendations based on disease probability re
 """
 
 import os
+import logging
 from google import genai
 from google.genai import types
 from typing import Optional
+
+from backend.exceptions import ValidationError
+
+logger = logging.getLogger(__name__)
 
 # Global client variable to keep configuration simple
 client = None
@@ -15,7 +20,7 @@ def configure_gemini():
     global client
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        raise ValueError("GEMINI_API_KEY environment variable is not set")
+        raise ValidationError("GEMINI_API_KEY environment variable is not set")
     # Initialize the new SDK client instance
     client = genai.Client(api_key=api_key)
 
@@ -41,20 +46,8 @@ def generate_recommendations(disease_name: Optional[str],
     try:
         configure_gemini()
         
-        # Create the model - use the latest available flash model
-        # Try newer models first, fall back to older ones if needed
-        model_names = [ 'gemini-2.5-flash', 'gemini-2.5-pro']
-        chosen_model = None
-        
-        for model_name in model_names:
-            try:
-                chosen_model = model_name
-                break
-            except:
-                continue
-        
-        if chosen_model is None:
-            chosen_model = 'gemini-2.5-flash'
+        # Use the primary model consistently to keep behavior predictable.
+        chosen_model = 'gemini-2.5-flash'
         
         # Construct the prompt
         disease_context = f"the disease '{disease_name}'" if disease_name else "a disease"
@@ -108,16 +101,37 @@ Keep your response concise (under 200 words), professional, educational, and emp
             "posterior_probability": posterior_probability
         }
         
-    except ValueError as ve:
+    except ValidationError:
+        logger.warning(
+            "Gemini recommendations requested without API key; disease=%s language=%s",
+            disease_name,
+            language,
+        )
         return {
             "success": False,
-            "error": str(ve),
-            "recommendations": "API key not configured. Please set GEMINI_API_KEY environment variable."
+            "error": "Gemini API key is not configured",
+            "recommendations": "AI recommendations are unavailable until GEMINI_API_KEY is configured."
         }
-    except Exception as e:
+    except ConnectionError:
+        logger.exception(
+            "Gemini recommendation request failed for disease=%s language=%s",
+            disease_name,
+            language,
+        )
         return {
             "success": False,
-            "error": str(e),
+            "error": "Unable to connect to the Gemini API",
+            "recommendations": "Unable to generate recommendations at this time. Please try again later."
+        }
+    except Exception:
+        logger.exception(
+            "Unexpected Gemini recommendation failure for disease=%s language=%s",
+            disease_name,
+            language,
+        )
+        return {
+            "success": False,
+            "error": "Recommendation generation failed",
             "recommendations": "Unable to generate recommendations at this time. Please try again later."
         }
 
@@ -169,15 +183,31 @@ def generate_chat_response(message: str, history: list = None) -> dict:
             "response": response.text
         }
         
-    except ValueError as ve:
+    except ValidationError:
+        logger.warning(
+            "Gemini chat requested without API key; message_length=%s",
+            len(message) if message else 0,
+        )
         return {
             "success": False,
-            "error": str(ve),
-            "response": "Configuration Error: API key missing."
+            "error": "Gemini API key is not configured",
+            "response": "Configuration Error: AI chat is unavailable until GEMINI_API_KEY is configured."
         }
-    except Exception as e:
+    except ConnectionError:
+        logger.exception("Gemini chat request failed")
         return {
             "success": False,
-            "error": str(e),
+            "error": "Unable to connect to the Gemini API",
+            "response": "I'm having trouble connecting right now. Please try again later."
+        }
+    except Exception:
+        logger.exception(
+            "Unexpected Gemini chat failure; message_length=%s history_items=%s",
+            len(message) if message else 0,
+            len(history) if history else 0,
+        )
+        return {
+            "success": False,
+            "error": "Chat response generation failed",
             "response": "I'm having trouble connecting right now. Please try again later."
         }

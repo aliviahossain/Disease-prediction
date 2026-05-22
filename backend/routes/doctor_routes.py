@@ -7,9 +7,13 @@ Also includes patient dashboard for individual user health tracking.
 from flask import Blueprint, jsonify, render_template
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
+import logging
 from sqlalchemy import func
 from backend import db
 from backend.models.prediction import PredictionHistory
+
+
+logger = logging.getLogger(__name__)
 
 doctor_bp = Blueprint(
     'doctor',
@@ -111,8 +115,10 @@ def get_real_dashboard_data():
             },
             'last_updated': datetime.utcnow().isoformat()
         }
-    except Exception as e:
-        print(f"⚠️ Error fetching dashboard data: {e}")
+    except Exception:
+        logger.exception(
+            "Failed to fetch real dashboard data"
+        )
         # Return empty data structure on error
         return {
             'total_patients': 0,
@@ -253,10 +259,15 @@ def get_patient_data():
             }
         }), 200
         
-    except Exception as e:
+    except Exception:
+        logger.exception(
+            "Failed to fetch patient dashboard for user_id=%s",
+            current_user.id
+        )
+
         return jsonify({
             'success': False,
-            'error': str(e),
+            'error': 'Internal server error',
             'message': 'Failed to fetch patient dashboard data'
         }), 500
 
@@ -283,12 +294,15 @@ def get_patient_temporal_trends():
             'data': trends
         }), 200
         
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
+    except Exception:
+        logger.exception(
+            "Failed to process temporal trends for user_id=%s",
+            current_user.id
+        )
+
         return jsonify({
             'success': False,
-            'error': str(e),
+            'error': 'Internal server error',
             'message': 'Failed to process temporal trends analysis'
         }), 500
 
@@ -326,9 +340,13 @@ def get_dashboard_data():
             'data': dashboard_data
         }), 200
         
-    except Exception as e:
+    except Exception:
+        logger.exception(
+            "Failed to fetch dashboard data"
+        )
+
         return jsonify({
             'success': False,
-            'error': str(e),
+            'error': 'Internal server error',
             'message': 'Failed to fetch dashboard data'
         }), 500

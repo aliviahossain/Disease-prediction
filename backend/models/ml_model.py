@@ -291,7 +291,10 @@ class DiseaseMLModel:
                 prediction = self.predict_disease_probability(disease, symptoms, age=age, height_cm=height_cm, weight_kg=weight_kg)
                 predictions.append(prediction)
             except Exception:
-                logger.error(f"Prediction failed for disease '{disease}'", exc_info=True)
+                logger.exception(
+                    "Prediction failed for disease=%s",
+                    disease
+                )
         predictions.sort(key=lambda x: x['calibrated_probability'], reverse=True)
         return predictions
 

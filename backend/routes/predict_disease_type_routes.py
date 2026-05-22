@@ -18,6 +18,7 @@ warnings.filterwarnings(
 
 import numpy as np
 import os
+import logging
 from PIL import Image
 from flask import Blueprint, request, jsonify
 import tensorflow as tf
@@ -30,6 +31,7 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.resnet50 import preprocess_input
 
 predict_disease_type_bp = Blueprint("disease-type", __name__)
+logger = logging.getLogger(__name__)
 
 # CONFIG 
 BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -85,7 +87,10 @@ TFLITE_MODEL_CACHE = {}
 def load_keras_model(model_type):
     if model_type not in KERAS_MODEL_CACHE:
         path = MODEL_CONFIG[model_type]["path"]
-        print(f"Loading Keras model: {model_type}")
+        logger.info(
+            "Loading Keras model: %s",
+            model_type
+        )
 
         if not os.path.exists(path):
             raise FileNotFoundError(f"Model not found: {path}")
@@ -99,7 +104,10 @@ def load_keras_model(model_type):
 def load_tflite_model(model_type):
     if model_type not in TFLITE_MODEL_CACHE:
         path = MODEL_CONFIG[model_type]["path"]
-        print(f"Loading TFLite model: {model_type}")
+        logger.info(
+            "Loading TFLite model: %s",
+            model_type
+        )
 
         if not os.path.exists(path):
             raise FileNotFoundError(f"Model not found: {path}")
@@ -169,14 +177,20 @@ def predict():
         or "eyes"
     ).lower()
 
-    print("model_type: ", model_type)
+    logger.debug(
+        "Prediction request model_type=%s",
+        model_type
+    )
 
     if model_type not in MODEL_CONFIG:
         return jsonify({
             "error": f"Invalid type '{model_type}'. Use one of: {list(MODEL_CONFIG.keys())}"
         }), 400
 
-    print(model_type not in MODEL_CONFIG)
+    logger.debug(
+        "Model type valid=%s",
+        model_type in MODEL_CONFIG
+    )
     
     try:
         # 1. Preprocess image
@@ -198,5 +212,20 @@ def predict():
             "type": model_type
         }), 200
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except FileNotFoundError:
+        logger.exception(
+            "Model file missing for model_type=%s",
+            model_type
+        )
+        return jsonify({
+            "error": "Required prediction model not available"
+        }), 500
+
+    except Exception:
+        logger.exception(
+            "Prediction failed for model_type=%s",
+            model_type
+        )
+        return jsonify({
+            "error": "Prediction service unavailable"
+        }), 500

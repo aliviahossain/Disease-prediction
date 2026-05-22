@@ -6,8 +6,11 @@ from backend.utils.calculator import BayesCalculator
 from backend.utils.uncertainty_handler import uncertainty_handler  # NEW
 from backend.models.prediction import PredictionHistory
 from backend import db
+import logging
 import json
-import traceback
+
+
+logger = logging.getLogger(__name__)
  
 ml_bp = Blueprint('ml', __name__)
  
@@ -28,8 +31,9 @@ def ml_prediction_page():
         return render_template('ml_prediction.html',
                                diseases=disease_data,
                                active_page='ml_prediction')
-    except Exception as e:
-        return render_template('error.html', error=str(e)), 500
+    except Exception:
+        logger.exception("Failed to render ML prediction page")
+        return render_template('error.html', error='Internal server error'), 500
  
  
 @ml_bp.route('/api/ml/predict', methods=['POST'])
@@ -46,6 +50,7 @@ def predict_disease():
     Response includes is_sufficient and reason so the frontend can render
     the appropriate UI (result card vs. uncertainty warning).
     """
+    disease = 'unknown'
     try:
         data = request.get_json()
  
@@ -178,9 +183,11 @@ def predict_disease():
             db.session.add(prediction_record)
             db.session.commit()
             print(f"✅ Prediction saved: disease={disease}, risk_level={risk_level_db}, survival_prob={survival_prob}%")
-        except Exception as db_error:
-            print(f"⚠️ Failed to save prediction to database: {db_error}")
-            traceback.print_exc()
+        except Exception:
+            logger.exception(
+                "Failed to save prediction for disease=%s",
+                disease
+            )
             db.session.rollback()
  
         # Build full result (only reached when prediction is confident)
@@ -216,8 +223,14 @@ def predict_disease():
  
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
-    except Exception as e:
-        return jsonify({'error': f'Prediction failed: {str(e)}'}), 500
+    except Exception:
+        logger.exception(
+            "Prediction failed for disease=%s",
+            disease
+        )
+        return jsonify(
+            {'error': 'Prediction service unavailable'}
+        ), 500
  
  
 @ml_bp.route('/api/ml/predict-multiple', methods=['POST'])
@@ -320,6 +333,7 @@ def predict_multiple_diseases():
         
         # If user is authenticated, save the top prediction to history to enable temporal progression tracking!
         if current_user.is_authenticated and top_predictions:
+            disease_key = 'unknown'
             try:
                 top_pred = top_predictions[0]
                 # Normalize disease key
@@ -381,9 +395,11 @@ def predict_multiple_diseases():
                 db.session.add(prediction_record)
                 db.session.commit()
                 print(f"✅ Auto-saved home page top prediction to history: {disease_key}, risk={risk_level_db}, survival_prob={survival_prob}%")
-            except Exception as db_err:
-                print(f"⚠️ Failed to auto-save prediction: {db_err}")
-                traceback.print_exc()
+            except Exception:
+                logger.exception(
+                    "Failed to auto-save prediction for disease=%s",
+                    disease_key
+                )
                 db.session.rollback()
         
         return jsonify({
@@ -397,8 +413,11 @@ def predict_multiple_diseases():
         
     except PreprocessingError as e:
         return jsonify({'error': str(e)}), 400
-    except Exception as e:
-        return jsonify({'error': f'Prediction failed: {str(e)}'}), 500
+    except Exception:
+        logger.exception("Prediction failed for multiple disease request")
+        return jsonify(
+            {'error': 'Prediction service unavailable'}
+        ), 500
  
  
 @ml_bp.route('/api/ml/diseases', methods=['GET'])
@@ -411,8 +430,11 @@ def get_diseases():
             for disease in diseases
         ]
         return jsonify({'success': True, 'diseases': disease_list}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    except Exception:
+        logger.exception("Failed to load endpoint data")
+        return jsonify(
+            {'error': 'Internal server error'}
+        ), 500
  
  
 @ml_bp.route('/api/ml/symptoms/<disease>', methods=['GET'])
@@ -428,8 +450,11 @@ def get_disease_symptoms(disease):
         }), 200
     except ValueError as e:
         return jsonify({'error': str(e)}), 404
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    except Exception:
+        logger.exception("Failed to load endpoint data")
+        return jsonify(
+            {'error': 'Internal server error'}
+        ), 500
  
  
 @ml_bp.route('/api/ml/symptoms', methods=['GET'])
@@ -438,8 +463,11 @@ def get_all_symptoms():
     try:
         symptoms = ml_model.get_all_unique_symptoms()
         return jsonify({'success': True, 'symptoms': symptoms, 'count': len(symptoms)}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    except Exception:
+        logger.exception("Failed to load endpoint data")
+        return jsonify(
+            {'error': 'Internal server error'}
+        ), 500
  
  
 @ml_bp.route('/api/ml/symptom-importance/<disease>', methods=['GET'])
@@ -458,8 +486,11 @@ def get_symptom_importance(disease):
         }), 200
     except ValueError as e:
         return jsonify({'error': str(e)}), 404
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    except Exception:
+        logger.exception("Failed to load endpoint data")
+        return jsonify(
+            {'error': 'Internal server error'}
+        ), 500
  
  
 @ml_bp.route('/api/ml/config', methods=['GET'])

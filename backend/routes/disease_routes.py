@@ -3,6 +3,7 @@ from datetime import datetime
 import csv
 import os
 import io
+import logging
 #pdf generation imports
 from reportlab.lib.pagesizes import letter  
 from reportlab.lib import colors
@@ -17,6 +18,7 @@ from backend.utils.tts_helper import generate_tts_audio
 from backend.models.ml_model import ml_model
 
 disease_bp = Blueprint("disease", __name__)
+logger = logging.getLogger(__name__)
 
 def get_project_root():
     """Helper function to get the project root directory"""
@@ -31,11 +33,19 @@ def load_diseases():
         with open(csv_path, newline="", encoding='utf-8') as csvfile:
             reader = csv.DictReader(csvfile)
             diseases = [row["Disease"] for row in reader]
-        print(f"Loaded {len(diseases)} diseases from CSV")
+        logger.info(
+            "Loaded %s diseases from CSV",
+            len(diseases)
+        )
     except FileNotFoundError:
-        print(f"Error: hospital_data.csv not found at {csv_path}")
-    except Exception as e:
-        print(f"Error loading diseases: {e}")
+        logger.exception(
+            "hospital_data.csv not found at %s",
+            csv_path
+        )
+    except Exception:
+        logger.exception(
+            "Failed to load disease CSV data"
+        )
     return diseases
 
 @disease_bp.route("/")
@@ -91,8 +101,14 @@ def preset():
 
     except FileNotFoundError:
         return jsonify({"error": "Hospital data file not found"}), 500
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        logger.exception(
+            "Unexpected error in preset"
+        )
+
+        return jsonify({
+            "error": "Internal server error"
+        }), 500
 
 
 @disease_bp.route("/disease", methods=["POST"])
@@ -139,8 +155,14 @@ def disease():
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-    except Exception as e:
-        return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
+    except Exception:
+        logger.exception(
+            "Unexpected error in disease"
+        )
+
+        return jsonify({
+            "error": "Internal server error"
+        }), 500
 
 @disease_bp.route("/contact")
 def contact():
@@ -177,10 +199,14 @@ def gemini_recommendations():
             "error": f"Invalid input: {str(e)}",
             "recommendations": "Unable to generate recommendations. Please check your inputs."
         }), 400
-    except Exception as e:
+    except Exception:
+        logger.exception(
+            "Unexpected error in gemini_recommendations"
+        )
+
         return jsonify({
             "success": False,
-            "error": str(e),
+            "error": "Internal server error",
             "recommendations": "Unable to generate recommendations. Please try again later."
         }), 500
 
@@ -292,8 +318,14 @@ def download_results():
             download_name="Possibility_Report.pdf"
         )
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        logger.exception(
+            "Unexpected error in download_results"
+        )
+
+        return jsonify({
+            "error": "Internal server error"
+        }), 500
 
 
 @disease_bp.route("/download-ml-results", methods=["POST"])
@@ -403,8 +435,14 @@ def download_ml_results():
             download_name=filename
         )
     
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        logger.exception(
+            "Unexpected error in download_ml_results"
+        )
+
+        return jsonify({
+            "error": "Internal server error"
+        }), 500
     
 
 @disease_bp.route('/disease-detection-dashboard')
@@ -436,8 +474,14 @@ def text_to_speech():
             as_attachment=False,
             download_name="recommendation.mp3"
         )
-    except Exception as e:
-        return jsonify({"error": f"TTS generation failed: {str(e)}"}), 500
+    except Exception:
+        logger.exception(
+            "TTS generation failed"
+        )
+
+        return jsonify({
+            "error": "TTS generation failed"
+        }), 500
 
 
 from backend.middleware.error_handler import NotFoundError
