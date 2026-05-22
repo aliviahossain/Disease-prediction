@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import sys
 import os
+from datetime import datetime
+import plotly.express as px
 
 # Add the current directory to sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -11,6 +13,12 @@ from backend.models.ml_model import ml_model
 
 # Import disease descriptions
 from backend.data.disease_info import DISEASE_INFO
+
+# Import history manager
+from backend.utils.history_manager import (
+    load_history,
+    save_history
+)
 
 # =========================
 # PAGE CONFIG
@@ -24,7 +32,10 @@ st.set_page_config(
 # TITLE
 # =========================
 st.title("🩺 Multi-Disease Prediction System")
-st.markdown("### Interactive Dashboard for Disease Prediction & Analysis")
+
+st.markdown(
+    "### Interactive Dashboard for Disease Prediction & Analysis"
+)
 
 # =========================
 # SIDEBAR
@@ -45,18 +56,15 @@ if app_mode == "Prediction":
 
     # Get available diseases
     diseases = ml_model.get_available_diseases()
-    
 
-    # Disease selection dropdown
+    # Disease selection
     selected_disease = st.selectbox(
         "Select Disease to Analyze:",
         diseases,
         format_func=lambda x: x.replace('_', ' ').title()
     )
 
-    # =========================
-    # DISEASE INFO BOX
-    # =========================
+    # Disease info
     if selected_disease in DISEASE_INFO:
         st.info(DISEASE_INFO[selected_disease])
 
@@ -65,120 +73,279 @@ if app_mode == "Prediction":
     # =========================
     # SYMPTOM SELECTION
     # =========================
-    if selected_disease:
+    st.write(
+        f"#### Select Symptoms for "
+        f"{selected_disease.replace('_', ' ').title()}"
+    )
 
-        st.write(
-            f"#### Select Symptoms for "
-            f"{selected_disease.replace('_', ' ').title()}"
-        )
+    symptoms_map = ml_model.get_disease_symptoms(
+        selected_disease
+    )
 
-        # Get symptoms for selected disease
-        symptoms_map = ml_model.get_disease_symptoms(
-            selected_disease
-        )
+    selected_symptoms = []
 
-        # Selected symptoms list
-        selected_symptoms = []
+    cols = st.columns(3)
 
-        # Create 3-column layout
-        cols = st.columns(3)
+    for i, (key, label) in enumerate(
+        symptoms_map.items()
+    ):
 
-        # Generate symptom checkboxes
-        for i, (key, label) in enumerate(symptoms_map.items()):
+        with cols[i % 3]:
 
-            with cols[i % 3]:
+            if st.checkbox(label, key=key):
+                selected_symptoms.append(key)
 
-                if st.checkbox(label, key=key):
-                    selected_symptoms.append(key)
+    st.divider()
 
-        st.divider()
+    # =========================
+    # ANALYZE BUTTON
+    # =========================
+    if st.button(
+        "Analyze Symptoms",
+        type="primary"
+    ):
 
-        # =========================
-        # ANALYZE BUTTON
-        # =========================
-        if st.button("Analyze Symptoms", type="primary"):
+        if not selected_symptoms:
 
-            if not selected_symptoms:
+            st.warning(
+                "Please select at least one symptom."
+            )
 
-                st.warning(
-                    "Please select at least one symptom."
+        else:
+
+            try:
+
+                # =========================
+                # PREDICTION
+                # =========================
+                result = ml_model.predict_disease_probability(
+                    selected_disease,
+                    selected_symptoms
                 )
 
-            else:
+                # =========================
+                # SAVE PREDICTION HISTORY
+                # =========================
+                probability = round(
+                    result['raw_probability'] * 100,
+                    1
+                )
 
-                try:
+                if probability < 30:
+                    risk_level = "Low"
 
-                    # Get prediction result
-                    result = ml_model.predict_disease_probability(
-                        selected_disease,
-                        selected_symptoms
+                elif probability < 60:
+                    risk_level = "Moderate"
+
+                else:
+                    risk_level = "High"
+
+                history_entry = {
+                    "Disease": selected_disease.replace('_', ' ').title(),
+                    "Probability": probability,
+                    "Risk": risk_level,
+                    "Symptoms": ", ".join(selected_symptoms),
+                    "Timestamp": datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    )
+                }
+
+                # Save prediction history
+                save_history(history_entry)
+
+                # =========================
+                # METRICS
+                # =========================
+                col1, col2, col3 = st.columns(3)
+
+                with col1:
+                    st.metric(
+                        "Probability",
+                        f"{result['raw_probability'] * 100:.1f}%"
                     )
 
-                    # =========================
-                    # METRICS
-                    # =========================
-                    col1, col2, col3 = st.columns(3)
+                with col2:
+                    st.metric(
+                        "Confidence Score",
+                        f"{result['confidence_score'] * 100:.1f}%"
+                    )
 
-                    with col1:
-                        st.metric(
-                            "Probability",
-                            f"{result['raw_probability'] * 100:.1f}%"
-                        )
+                with col3:
+                    st.metric(
+                        "Symptoms Matched",
+                        f"{result['symptoms_matched']} / "
+                        f"{result['total_symptoms']}"
+                    )
 
-                    with col2:
-                        st.metric(
-                            "Confidence Score",
-                            f"{result['confidence_score'] * 100:.1f}%"
-                        )
+                # =========================
+                # PROGRESS BAR
+                # =========================
+                st.write("### Risk Probability")
 
-                    with col3:
-                        st.metric(
-                            "Symptoms Matched",
-                            f"{result['symptoms_matched']} / "
-                            f"{result['total_symptoms']}"
-                        )
+                st.progress(
+                    result['raw_probability']
+                )
 
-                    # =========================
-                    # PROGRESS BAR
-                    # =========================
-                    st.write("### Risk Probability")
+                st.divider()
 
-                    st.progress(result['raw_probability'])
+                # =========================
+                # RISK ASSESSMENT
+                # =========================
+                prob = (
+                    result['raw_probability']
+                    * 100
+                )
+
+                if prob < 30:
+
+                    st.success(
+                        "✅ Low Risk: Symptoms do not strongly "
+                        "indicate this disease."
+                    )
+
+                elif prob < 60:
+
+                    st.warning(
+                        "⚠️ Moderate Risk: Consider consulting "
+                        "a doctor for further evaluation."
+                    )
+
+                else:
+
+                    st.error(
+                        "🚨 High Risk: Immediate medical "
+                        "attention is recommended."
+                    )
+
+                # =========================
+                # BAYES THEOREM SECTION
+                # =========================
+                st.divider()
+
+                st.subheader(
+                    "Bayesian Probability Concept"
+                )
+
+                st.write("""
+                This prediction system uses
+                probabilistic reasoning inspired by
+                Bayes' Theorem to estimate disease
+                likelihood based on symptoms.
+                """)
+
+                # Formula
+                st.latex(
+                    r"P(D \mid S)=\frac{P(S \mid D)\cdot P(D)}{P(S)}"
+                )
+
+                st.caption(
+                    """
+                    D = Disease
+                    | S = Symptoms
+                    """
+                )
+
+                # Explanation Cards
+                col1, col2, col3 = st.columns(3)
+
+                with col1:
+                    st.info("""
+                    **P(D)**
+
+                    Prior probability
+                    of disease
+                    """)
+
+                with col2:
+                    st.info("""
+                    **P(S|D)**
+
+                    Probability of symptoms
+                    given disease
+                    """)
+
+                with col3:
+                    st.info("""
+                    **P(D|S)**
+
+                    Updated disease
+                    probability
+                    """)
+
+                # =========================
+                # PREDICTION HISTORY
+                # =========================
+                st.divider()
+
+                st.subheader(
+                    "📜 Prediction History Timeline"
+                )
+
+                # Load prediction history
+                history_data = load_history()
+
+                if history_data:
+
+                    df_history = pd.DataFrame(history_data)
+
+                    # Latest predictions first
+                    df_history = df_history.iloc[::-1]
+
+                    # Display table
+                    st.dataframe(
+                        df_history,
+                        use_container_width=True
+                    )
 
                     st.divider()
 
                     # =========================
-                    # RISK ASSESSMENT
+                    # ANALYTICS CHART
                     # =========================
-                    prob = result['raw_probability'] * 100
-
-                    if prob < 30:
-
-                        st.success(
-                            "✅ Low Risk: Symptoms do not strongly "
-                            "indicate this disease."
-                        )
-
-                    elif prob < 60:
-
-                        st.warning(
-                            "⚠️ Moderate Risk: Consider consulting "
-                            "a doctor for further evaluation."
-                        )
-
-                    else:
-
-                        st.error(
-                            "🚨 High Risk: Immediate medical "
-                            "attention is recommended."
-                        )
-
-                except Exception as e:
-
-                    st.error(
-                        f"An error occurred during prediction: "
-                        f"{str(e)}"
+                    st.subheader(
+                        "📈 Probability Trend Analytics"
                     )
+
+                    fig = px.line(
+                        df_history,
+                        x="Timestamp",
+                        y="Probability",
+                        color="Disease",
+                        markers=True,
+                        title="Disease Probability Over Time"
+                    )
+
+                    st.plotly_chart(
+                        fig,
+                        use_container_width=True
+                    )
+
+                    # =========================
+                    # RISK DISTRIBUTION
+                    # =========================
+                    st.subheader(
+                        "⚠️ Risk Distribution"
+                    )
+
+                    risk_counts = (
+                        df_history["Risk"]
+                        .value_counts()
+                    )
+
+                    st.bar_chart(risk_counts)
+
+                else:
+
+                    st.info(
+                        "No prediction history available yet."
+                    )
+
+            except Exception as e:
+
+                st.error(
+                    f"An error occurred during prediction: "
+                    f"{str(e)}"
+                )
 
 # =========================
 # MODEL INSIGHTS MODE
@@ -213,7 +380,7 @@ elif app_mode == "Model Insights":
             columns=['Symptom', 'Importance']
         )
 
-        # Display bar chart
+        # Display chart
         st.bar_chart(
             df_importance.set_index('Symptom')
         )

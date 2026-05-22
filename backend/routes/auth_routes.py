@@ -1,11 +1,131 @@
+import re
+from datetime import date, datetime
+
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from urllib.parse import urlparse, urljoin
 from backend import db, bcrypt
 from backend.models.user import User
 from flask import session
+from sqlalchemy.exc import OperationalError
 
 auth_bp = Blueprint('auth', __name__)
+
+PHONE_RE = re.compile(r"^\+[1-9][0-9]{7,14}$")
+NAME_RE = re.compile(r"^[A-Za-z][A-Za-z\s'.-]{1,79}$")
+RELATION_RE = re.compile(r"^[A-Za-z][A-Za-z\s'.-]{1,49}$")
+ADDRESS_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9\s,.'/#-]{4,159}$")
+MEDICAL_TEXT_RE = re.compile(r"^[A-Za-z][A-Za-z\s,.';:/()&+-]*$")
+ALLOWED_GENDERS = {"Male", "Female", "Other", ""}
+MAX_PROFILE_AGE = 120
+
+
+def _clean_form_value(name):
+    return (request.form.get(name) or "").strip()
+
+
+def _validate_phone(value, label, errors):
+    if not value:
+        return None
+
+    if not PHONE_RE.fullmatch(value):
+        errors.append(
+            f"{label} must start with a country code plus sign and contain digits only."
+        )
+        return None
+    return value
+
+
+def _validate_pattern(value, pattern, label, errors, message):
+    if not value:
+        return None
+    if not pattern.fullmatch(value):
+        errors.append(f"{label} {message}")
+        return None
+    return value
+
+
+def _validate_dob(value, errors):
+    dob_day = _clean_form_value("dob_day")
+    dob_month = _clean_form_value("dob_month")
+    dob_year = _clean_form_value("dob_year")
+    has_dropdown_dob = any([dob_day, dob_month, dob_year])
+
+    if has_dropdown_dob:
+        if not all([dob_day, dob_month, dob_year]):
+            errors.append("Date of birth requires day, month, and year.")
+            return None
+
+        try:
+            parsed = date(int(dob_year), int(dob_month), int(dob_day))
+        except ValueError:
+            errors.append("Date of birth must be a valid date.")
+            return None
+    elif value:
+        try:
+            parsed = datetime.strptime(value, "%Y-%m-%d").date()
+        except ValueError:
+            errors.append("Date of birth must be a valid date.")
+            return None
+    else:
+        return None
+
+    today = date.today()
+    oldest_allowed = _oldest_allowed_dob(today)
+    if parsed > today:
+        errors.append("Date of birth cannot be in the future.")
+        return None
+    if parsed < oldest_allowed:
+        errors.append(f"Date of birth must be within the last {MAX_PROFILE_AGE} years.")
+        return None
+    return parsed
+
+
+def _validate_float(value, label, minimum, maximum, errors):
+    if not value:
+        return None
+
+    try:
+        parsed = float(value)
+    except ValueError:
+        errors.append(f"{label} must be a number.")
+        return None
+
+    if parsed < minimum or parsed > maximum:
+        errors.append(f"{label} must be between {minimum:g} and {maximum:g}.")
+        return None
+    return parsed
+
+
+def _validate_medical_text(value, label, max_length, errors):
+    if not value:
+        return None
+    if len(value) > max_length:
+        errors.append(f"{label} must be {max_length} characters or fewer.")
+        return None
+    if not MEDICAL_TEXT_RE.fullmatch(value):
+        errors.append(f"{label} must contain text only. Numbers are not allowed.")
+        return None
+    return value
+
+
+def _profile_dob_bounds():
+    today = date.today()
+    return _oldest_allowed_dob(today).isoformat(), today.isoformat()
+
+
+def _dob_year_options():
+    today = date.today()
+    oldest_allowed = _oldest_allowed_dob(today)
+    return range(today.year, oldest_allowed.year - 1, -1)
+
+
+def _oldest_allowed_dob(today):
+    try:
+        return today.replace(year=today.year - MAX_PROFILE_AGE)
+    except ValueError:
+        return today.replace(year=today.year - MAX_PROFILE_AGE, day=28)
+
 
 def is_safe_url(target):
     ref_url = urlparse(request.host_url)
@@ -79,12 +199,93 @@ def signup():
 @auth_bp.route('/profile')
 @login_required
 def profile():
-    return render_template('profile.html', user=current_user)
+    dob_min, dob_max = _profile_dob_bounds()
+    return render_template(
+        'profile.html',
+        user=current_user,
+        dob_min=dob_min,
+        dob_max=dob_max,
+        day_options=range(1, 32),
+        month_options=range(1, 13),
+        year_options=_dob_year_options(),
+        height_options=range(30, 273),
+        weight_options=range(1, 636),
+    )
 
 @auth_bp.route('/profile/update', methods=['POST'])
 @login_required
 def update_profile():
-    # handle form update logic here
+    errors = []
+    phone = _validate_phone(_clean_form_value("phone"), "Phone", errors)
+    emergency_phone = _validate_phone(
+        _clean_form_value("emergency_phone"), "Emergency phone", errors
+    )
+    address = _validate_pattern(
+        _clean_form_value("address"),
+        ADDRESS_RE,
+        "Address",
+        errors,
+        "must be 5 to 160 characters and contain only letters, numbers, spaces, and common address punctuation.",
+    )
+    emergency_name = _validate_pattern(
+        _clean_form_value("emergency_name"),
+        NAME_RE,
+        "Emergency contact name",
+        errors,
+        "must contain only letters, spaces, apostrophes, periods, or hyphens.",
+    )
+    emergency_relation = _validate_pattern(
+        _clean_form_value("emergency_relation"),
+        RELATION_RE,
+        "Emergency relation",
+        errors,
+        "must contain only letters, spaces, apostrophes, periods, or hyphens.",
+    )
+    dob = _validate_dob(_clean_form_value("dob"), errors)
+    gender = _clean_form_value("gender")
+    height = _validate_float(_clean_form_value("height"), "Height", 30, 272, errors)
+    weight = _validate_float(_clean_form_value("weight"), "Weight", 1, 635, errors)
+    allergies = _validate_medical_text(
+        _clean_form_value("allergies"), "Allergies", 200, errors
+    )
+    medical_notes = _validate_medical_text(
+        _clean_form_value("medical_notes"), "Medical notes", 1000, errors
+    )
+
+    if gender not in ALLOWED_GENDERS:
+        errors.append("Gender must be Male, Female, or Other.")
+
+    if errors:
+        for error in errors:
+            flash(error, "danger")
+        return redirect(url_for('auth.profile'))
+
+    current_user.phone = phone
+    current_user.address = address
+    current_user.emergency_name = emergency_name
+    current_user.emergency_relation = emergency_relation
+    current_user.emergency_phone = emergency_phone
+    current_user.dob = dob
+    current_user.gender = gender or None
+    current_user.height = height
+    current_user.weight = weight
+    current_user.bmi = round(weight / ((height / 100) ** 2), 2) if height and weight else None
+    current_user.allergies = allergies or None
+    current_user.medical_notes = medical_notes or None
+    try:
+        db.session.commit()
+    except OperationalError as error:
+        db.session.rollback()
+        if "readonly database" in str(error).lower():
+            flash(
+                "Profile could not be saved because the local database is read-only. "
+                "Please restart the Flask server and check database file permissions.",
+                "danger",
+            )
+            return redirect(url_for('auth.profile'))
+        raise
+
+    flash("Profile updated successfully.", "success")
     return redirect(url_for('auth.profile'))
 
 
@@ -95,4 +296,3 @@ def logout():
     session.clear()
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))
-

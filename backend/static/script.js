@@ -321,10 +321,10 @@ function calculateDisease() {
 
         // Store data for download
         lastCalculationData = {
-          diseaseName: diseaseSelect.value || 'Custom Disease',
+          diseaseName: 'Custom Disease',
           priorProbability: parseFloat(document.getElementById('pD').value),
           posteriorProbability: data.p_d_given_result,
-          testResult: testResult
+          testResult: testResultInput.value
         };
 
         // Show download section
@@ -442,6 +442,34 @@ function getAIRecommendations() {
         contentDiv.style.display = 'block';
         disclaimerDiv.style.display = 'block';
         contentGenerated = true; // Mark content as generated
+
+        // === TTS: Fetch and render audio player ===
+        const language = languageSelect ? languageSelect.value : 'english';
+        // Remove any existing audio player
+        const existingAudio = document.getElementById('ttsAudioPlayer');
+        if (existingAudio) existingAudio.remove();
+
+        fetch('/text-to-speech', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: data.recommendations, language: language })
+        })
+          .then(function(res) { return res.blob(); })
+          .then(function(blob) {
+            const audioUrl = URL.createObjectURL(blob);
+            const audioEl = document.createElement('audio');
+            audioEl.id = 'ttsAudioPlayer';
+            audioEl.controls = true;
+            audioEl.src = audioUrl;
+            audioEl.className = 'mt-3 w-100';
+            audioEl.style.borderRadius = '8px';
+            contentDiv.appendChild(audioEl);
+          })
+          .catch(function(err) {
+            console.warn('TTS audio generation failed:', err);
+          });
+        // === End TTS ===
+
       } else {
         contentDiv.innerHTML = `
         <div class="alert alert-warning">

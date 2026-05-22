@@ -4,7 +4,9 @@ import secrets
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from backend.middleware.error_handler import ErrorHandler
-
+from sqlalchemy import inspect, text
+from dotenv import load_dotenv
+load_dotenv()
 # Initialize extensions
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -24,6 +26,39 @@ def load_user(user_id):
 from datetime import datetime
 
 
+def _ensure_user_profile_columns(engine):
+    """Add profile columns to existing SQLite databases created before this model update."""
+    if engine.dialect.name != "sqlite":
+        return
+
+    inspector = inspect(engine)
+    if "user" not in inspector.get_table_names():
+        return
+
+    existing_columns = {column["name"] for column in inspector.get_columns("user")}
+    profile_columns = {
+        "phone": "VARCHAR(20)",
+        "address": "VARCHAR(160)",
+        "emergency_name": "VARCHAR(80)",
+        "emergency_relation": "VARCHAR(50)",
+        "emergency_phone": "VARCHAR(20)",
+        "dob": "DATE",
+        "gender": "VARCHAR(20)",
+        "height": "FLOAT",
+        "weight": "FLOAT",
+        "bmi": "FLOAT",
+        "allergies": "VARCHAR(200)",
+        "medical_notes": "TEXT",
+    }
+
+    with engine.begin() as connection:
+        for column_name, column_type in profile_columns.items():
+            if column_name not in existing_columns:
+                connection.execute(
+                    text(f"ALTER TABLE user ADD COLUMN {column_name} {column_type}")
+                )
+
+
 def create_app():
     # Get the backend directory (where this __init__.py file is)
     backend_root = os.path.dirname(os.path.abspath(__file__))
@@ -32,11 +67,10 @@ def create_app():
     print(f"Templates folder: {os.path.join(backend_root, 'templates')}")
 
     # Initialize Flask app with correct paths
-    app = Flask(
-        __name__,
-        static_folder=os.path.join(backend_root, 'static'),
-        template_folder=os.path.join(backend_root, 'templates')
-    )
+    app = Flask(__name__,
+                static_folder=os.path.join(backend_root, 'static'),
+                template_folder=os.path.join(backend_root, 'templates')
+            )
 
     # Configure Database
     database_url = os.getenv("DATABASE_URL")
@@ -75,11 +109,21 @@ def create_app():
 
     app.config["SECRET_KEY"] = secret_key
 
+    # Validate startup configuration (environment variables and model files)
+    from backend.utils.config_validator import validate_startup_config
+    validate_startup_config(app)
+
     # Initialize extensions with app
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
-
+    
+    # --- Models -------------------------------------------------------
+    # Import the models so SQLAlchemy registers them with `db` before create_all() is called below.
+    # Without this import the patient_history table is never created, which is one half of the bug where history is "not being recorded".
+    from backend.models import user
+    from backend.models import patient_history
+    
     # Register Disease Routes Blueprint
     from backend.routes.disease_routes import disease_bp
     app.register_blueprint(disease_bp)
@@ -160,5 +204,10 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        _ensure_user_profile_columns(db.engine)
 
+    @app.errorhandler(404)
+    def page_not_found(error):
+        return render_template("404.html"), 404     
+    
     return app

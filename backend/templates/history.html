@@ -1,95 +1,78 @@
 {% extends "base.html" %}
 
-{% block title %}My Prediction History{% endblock %}
+{% block title %}Patient History · Disease Prediction{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0">
-            <i class="fas fa-history me-2 text-primary"></i>Prediction History
-        </h2>
-        <div>
-            <a href="/" class="btn btn-outline-primary">
-                <i class="fas fa-plus me-1"></i> New Prediction
-            </a>
-        </div>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/history.css') }}">
+
+<main id="history-root" class="history-container">
+
+  <header class="history-header">
+    <div>
+      <h1>Patient History</h1>
+      <p class="history-subtitle">
+        Every calculation and prediction you've run, newest first.
+      </p>
     </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            {% if history %}
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th scope="col" class="ps-4">Date</th>
-                            <th scope="col">Disease</th>
-                            <th scope="col">Risk Level</th>
-                            <th scope="col">Probability</th>
-                            <th scope="col">More Info</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in history %}
-                        <tr>
-                            <td class="ps-4 text-nowrap">
-                                {% if item.created_at %}
-                                {{ item.created_at.strftime('%Y-%m-%d %H:%M') }}
-                                {% else %}
-                                <span class="text-muted">N/A</span>
-                                {% endif %}
-                            </td>
-                            <td class="fw-medium text-dark">
-                                {{ item.disease }}
-                            </td>
-                            <td>
-                                {% if item.risk_level == 'Critical' or item.risk_level == 'critical' %}
-                                <span class="badge bg-danger rounded-pill">Critical</span>
-                                {% elif item.risk_level == 'High' or item.risk_level == 'high' %}
-                                <span class="badge bg-warning text-dark rounded-pill">High</span>
-                                {% elif item.risk_level == 'Medium' or item.risk_level == 'medium' %}
-                                <span class="badge bg-info text-dark rounded-pill">Medium</span>
-                                {% else %}
-                                <span class="badge bg-success rounded-pill">Low</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="progress flex-grow-1 me-2" style="height: 6px; max-width: 100px;">
-                                        <div class="progress-bar {% if item.ml_probability is not none and item.ml_probability > 0.7 %}bg-danger{% elif item.ml_probability is not none and item.ml_probability > 0.4 %}bg-warning{% else %}bg-success{% endif %}"
-                                            role="progressbar"
-                                            style="width: {{ (item.ml_probability * 100) | round(1) if item.ml_probability is not none else 0 }}%;">
-                                        </div>
-                                    </div>
-                                    <span class="small text-muted">
-                                        {{ "%.1f"|format(item.ml_probability * 100) if item.ml_probability is not none
-                                        else "N/A" }}
-                                    </span>
-                                </div>
-                            </td>
-                            <td>
-                                <a href="{{ url_for('history.history_detail', prediction_id=item.id) }}"
-                                   class="btn btn-sm btn-light text-muted"
-                                   title="View detailed prediction information">
-                                    <i class="fas fa-chevron-right"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="text-center py-5">
-                <div class="mb-3">
-                    <i class="fas fa-notes-medical fa-3x text-muted opacity-50"></i>
-                </div>
-                <h5 class="text-muted">No prediction history found</h5>
-                <p class="text-muted small mb-4">Your health assessment records will appear here.</p>
-                <a href="/" class="btn btn-primary px-4">Start Assessment</a>
-            </div>
-            {% endif %}
-        </div>
+    <div class="history-actions">
+      <select id="history-type-filter" aria-label="Filter by prediction type">
+        <option value="">All types</option>
+        <option value="bayes">Bayes calculator</option>
+        <option value="symptom">Symptom-based</option>
+        <option value="eyes">Eye disease (image)</option>
+        <option value="skin">Skin disease (image)</option>
+      </select>
+      <button id="history-refresh-btn"
+              type="button"
+              class="btn btn-secondary"
+              aria-label="Refresh history list">
+        ↻ Refresh
+      </button>
+      <button id="history-clear-btn"
+              type="button"
+              class="btn btn-danger"
+              aria-label="Delete all history entries">
+        Clear all
+      </button>
     </div>
+  </header>
+
+  {# Container for status messages (auth required / empty / error). #}
+  <div id="history-status" class="history-status" role="status" aria-live="polite"></div>
+
+  {# Skeleton shown while the first fetch is in flight. #}
+  <div id="history-loading" class="history-loading" hidden>
+    <div class="skeleton-row"></div>
+    <div class="skeleton-row"></div>
+    <div class="skeleton-row"></div>
+  </div>
+
+  {# Where the JS injects <article class="history-card"> entries. #}
+  <ul id="history-list" class="history-list" aria-label="History entries"></ul>
+
+  {# Pagination footer — buttons hidden when there's nothing to page. #}
+  <nav id="history-pagination" class="history-pagination" aria-label="History pagination" hidden>
+    <button id="history-prev-btn" type="button" class="btn btn-secondary" disabled>← Previous</button>
+    <span id="history-page-indicator" class="history-page-indicator"></span>
+    <button id="history-next-btn" type="button" class="btn btn-secondary" disabled>Next →</button>
+  </nav>
+
+</main>
+
+{# Modal shown when the user clicks a history card to see full details. #}
+<div id="history-modal" class="history-modal" hidden aria-hidden="true" role="dialog" aria-labelledby="history-modal-title">
+  <div class="history-modal-backdrop" data-close-modal></div>
+  <div class="history-modal-content" role="document">
+    <header class="history-modal-header">
+      <h2 id="history-modal-title">Entry details</h2>
+      <button type="button" class="history-modal-close" data-close-modal aria-label="Close details">×</button>
+    </header>
+    <section id="history-modal-body" class="history-modal-body">
+      {# Populated by history.js #}
+    </section>
+  </div>
 </div>
+
+<script src="{{ url_for('static', filename='js/history.js') }}" defer></script>
 {% endblock %}
