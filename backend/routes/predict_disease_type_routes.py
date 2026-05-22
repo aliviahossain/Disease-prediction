@@ -18,6 +18,7 @@ warnings.filterwarnings(
 
 import numpy as np
 import os
+import tempfile                                          # NEW: needed to save upload to disk for Grad-CAM
 from PIL import Image
 from flask import Blueprint, request, jsonify
 from flask_login import current_user
@@ -31,6 +32,7 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.resnet50 import preprocess_input
 
 from backend.services.history_service import save_history
+from backend.utils.gradcam import generate_gradcam_overlay, generate_tflite_scorecam_overlay  # NEW
 
 predict_disease_type_bp = Blueprint("disease-type", __name__)
 
@@ -182,22 +184,67 @@ def predict():
     print(model_type not in MODEL_CONFIG)
     
     try:
-        # 1. Preprocess image
-        img_array = preprocess_image(image_file, model_type)
+        # NEW: Save the upload to a temp file on disk so Grad-CAM can read
+        # it by path (PIL.open from a stream can only be read once).
+        suffix = os.path.splitext(image_file.filename or ".jpg")[1] or ".jpg"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            image_file.save(tmp)
+            tmp_path = tmp.name
 
-        # 2. Run inference model to get predictions
-        if MODEL_CONFIG[model_type]["format"] == "keras":
-            preds = run_keras_inference(model_type, img_array)
-        else:
-            preds = run_tflite_inference(model_type, img_array)
-        
-        # 3. Get predicted class and confidence
-        idx = int(np.argmax(preds))
-        confidence = float(preds[idx])
-        predicted_class = MODEL_CONFIG[model_type]["class_names"][idx]
+        try:
+            # 1. Preprocess image
+            img_array = preprocess_image(tmp_path, model_type)
 
-        # Issue #230: persist the prediction. model_type ("eyes" / "skin")
-        # becomes the prediction_type so the History page can filter on it.
+            # 2. Run inference model to get predictions
+            if MODEL_CONFIG[model_type]["format"] == "keras":
+                preds = run_keras_inference(model_type, img_array)
+            else:
+                preds = run_tflite_inference(model_type, img_array)
+            
+            # 3. Get predicted class and confidence
+            idx = int(np.argmax(preds))
+            confidence = float(preds[idx])
+            predicted_class = MODEL_CONFIG[model_type]["class_names"][idx]
+
+            # 4. NEW: Generate Grad-CAM / Score-CAM heatmap
+            gradcam_overlay = None
+            gradcam_heatmap = None
+            explanation_method = None
+
+            try:
+                config = MODEL_CONFIG[model_type]
+
+                if config["format"] == "keras":
+                    # Eye model → Grad-CAM using the cached Keras model
+                    keras_model = load_keras_model(model_type)
+                    gradcam_overlay, gradcam_heatmap = generate_gradcam_overlay(
+                        model=keras_model,
+                        img_path=tmp_path,
+                        class_index=idx,
+                        target_size=config["img_size"],
+                    )
+                    explanation_method = "grad-cam"
+
+                else:
+                    # Skin model → Score-CAM using the .tflite file path
+                    gradcam_overlay, gradcam_heatmap = generate_tflite_scorecam_overlay(
+                        tflite_path=config["path"],
+                        img_path=tmp_path,
+                        class_index=idx,
+                        target_size=config["img_size"],
+                    )
+                    explanation_method = "score-cam"
+
+            except Exception as cam_err:
+                import traceback
+                print(f"[Grad-CAM] Warning: heatmap generation failed: {cam_err}")
+                traceback.print_exc()
+
+        finally:
+            # Always clean up the temp file
+            os.unlink(tmp_path)
+
+        # 5. Persist prediction history (unchanged)
         save_history(
             user_id=current_user.id if current_user.is_authenticated else None,
             prediction_type=model_type,
@@ -213,10 +260,14 @@ def predict():
             probability=confidence,
         )
 
+        # 6. Return prediction + heatmap (gradcam fields are None if generation failed)
         return jsonify({
             "prediction": predicted_class,
             "confidence": round(confidence * 100, 2),
-            "type": model_type
+            "type": model_type,
+            "gradcam_overlay": gradcam_overlay,       # NEW: base64 PNG, image + heatmap blended
+            "gradcam_heatmap": gradcam_heatmap,       # NEW: base64 PNG, raw heatmap only
+            "explanation_method": explanation_method,  # NEW: "grad-cam" | "score-cam" | None
         }), 200
 
     except Exception as e:
