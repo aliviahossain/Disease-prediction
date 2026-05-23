@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
 import sys
 import os
@@ -110,11 +109,11 @@ if app_mode == "Prediction":
         if suggestions:
             st.write("### Suggestions:")
             for s in suggestions:
-                components.html(
-                    f"<div>👉 {highlight_text(s, search_query)}</div>",
-                    height=30,
-                    scrolling=False
-                )
+                st.markdown(
+                    f"👉 {highlight_text(s, search_query)}",
+                    unsafe_allow_html=True
+                    )
+
 
     # 🔎 Apply filtering
     if search_query:
@@ -146,11 +145,11 @@ if app_mode == "Prediction":
                     selected_symptoms.append(key)
 
             with col_text:
-                components.html(
+                st.markdown(
                     display_label,
-                    height=30,
-                    scrolling=False
-                )
+                    unsafe_allow_html=True
+                    )
+
     st.divider()
     
 
