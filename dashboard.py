@@ -59,7 +59,8 @@ if app_mode == "Prediction":
 
     st.divider()
 
-    # =========================
+    
+        # =========================
     # SYMPTOM SELECTION
     # =========================
     st.write(f"#### Select Symptoms for {selected_disease.replace('_', ' ').title()}")
@@ -67,15 +68,23 @@ if app_mode == "Prediction":
     symptoms_map = ml_model.get_disease_symptoms(selected_disease)
 
     selected_symptoms = []
+    cols = st.columns(2)
 
-    cols = st.columns(3)
-
-    for i, (key, label) in enumerate(symptoms_map.items()):
-        with cols[i % 3]:
-            if st.checkbox(label, key=key):
-                selected_symptoms.append(key)
-
-    st.divider()
+    # ✅ Display filtered checkboxes
+    for i, (key, label) in enumerate(filtered_symptoms.items()):
+        with cols[i % 2]:
+            for i, (key, label) in enumerate(symptoms_map.items()):
+                with cols[i % 3]:
+                    if st.checkbox(label, key=key):
+                        selected_symptoms.append(key)
+                with col_text:
+                    components.html(
+                        display_label,
+                        height=30,
+                        scrolling=False
+                        )
+                    st.divider()
+    
 
     # =========================
     # ANALYZE BUTTON
@@ -268,9 +277,6 @@ if app_mode == "Prediction":
             except Exception as e:
                 st.error(f"An error occurred during prediction: {str(e)}")
 
-# =========================
-# MODEL INSIGHTS MODE
-# =========================
 elif app_mode == "Model Insights":
     st.subheader("Model Interpretability")
 
@@ -288,7 +294,6 @@ elif app_mode == "Model Insights":
         # Get symptom importance
         importance = ml_model.get_symptom_importance(disease_for_insight)
 
-        # Create DataFrame
         df_importance = pd.DataFrame(
             list(importance.items()), columns=["Symptom", "Importance"]
         )
