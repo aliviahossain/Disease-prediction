@@ -4,6 +4,7 @@ Gemini API helper for generating recommendations based on disease probability re
 
 import os
 from typing import Optional
+from google.genai import types
 
 # Global client variable to keep configuration simple
 client = None
