@@ -1,9 +1,21 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import sys
 import os
 from datetime import datetime
 import plotly.express as px
+import re
+
+def highlight_text(text, query):
+    if not query or not query.strip():
+        return text
+    query = query.strip()
+    pattern = re.compile(f"({re.escape(query)})", re.IGNORECASE)
+    return pattern.sub(
+        r"<mark style='background-color:#fffa65; color:black; padding:0 2px; border-radius:3px;'>\1</mark>",
+        text
+    )
 
 # Add the current directory to sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -70,7 +82,8 @@ if app_mode == "Prediction":
 
     st.divider()
 
-    # =========================
+    
+        # =========================
     # SYMPTOM SELECTION
     # =========================
     st.write(
@@ -78,32 +91,76 @@ if app_mode == "Prediction":
         f"{selected_disease.replace('_', ' ').title()}"
     )
 
-    symptoms_map = ml_model.get_disease_symptoms(
-        selected_disease
+    # Get symptoms
+    symptoms_map = ml_model.get_disease_symptoms(selected_disease)
+    # 🔍 SEARCH BAR
+    search_query = st.text_input(
+        "🔍 Search Symptoms",
+        placeholder="Type to filter symptoms...",
+        key="symptom_search"
     )
 
+    # 🔎 SUGGESTIONS (NEW)
+    if search_query:
+        suggestions = [
+            label for label in symptoms_map.values()
+            if search_query.lower() in label.lower()
+        ][:5]
+
+        if suggestions:
+            st.write("### Suggestions:")
+            for s in suggestions:
+                components.html(
+                    f"<div>👉 {highlight_text(s, search_query)}</div>",
+                    height=30,
+                    scrolling=False
+                )
+
+    # 🔎 Apply filtering
+    if search_query:
+        filtered_symptoms = {
+            key: label
+            for key, label in symptoms_map.items()
+            if search_query.lower() in label.lower()
+        }
+    else:
+        filtered_symptoms = symptoms_map
+
+    # ⚠️ No results case
+    if search_query and not filtered_symptoms:
+        st.warning("No matching symptoms found. Try a different keyword.")
+
     selected_symptoms = []
+    cols = st.columns(2)
 
-    cols = st.columns(3)
+    # ✅ Display filtered checkboxes
+    for i, (key, label) in enumerate(filtered_symptoms.items()):
+        with cols[i % 2]:
 
-    for i, (key, label) in enumerate(
-        symptoms_map.items()
-    ):
+            display_label = highlight_text(label, search_query)
 
-        with cols[i % 3]:
+            col_checkbox, col_text = st.columns([1, 5])
 
-            if st.checkbox(label, key=key):
-                selected_symptoms.append(key)
+            with col_checkbox:
+                if st.checkbox("", key=key):
+                    selected_symptoms.append(key)
 
+            with col_text:
+                components.html(
+                    display_label,
+                    height=30,
+                    scrolling=False
+                )
     st.divider()
+    
 
     # =========================
     # ANALYZE BUTTON
     # =========================
     if st.button(
-        "Analyze Symptoms",
-        type="primary"
-    ):
+            "Analyze Symptoms",
+            type="primary"
+        ):
 
         if not selected_symptoms:
 
@@ -347,11 +404,7 @@ if app_mode == "Prediction":
                     f"{str(e)}"
                 )
 
-# =========================
-# MODEL INSIGHTS MODE
-# =========================
 elif app_mode == "Model Insights":
-
     st.subheader("Model Interpretability")
 
     st.write(
@@ -369,18 +422,15 @@ elif app_mode == "Model Insights":
 
     if disease_for_insight:
 
-        # Get symptom importance
         importance = ml_model.get_symptom_importance(
             disease_for_insight
         )
 
-        # Create DataFrame
         df_importance = pd.DataFrame(
             list(importance.items()),
             columns=['Symptom', 'Importance']
         )
 
-        # Display chart
         st.bar_chart(
             df_importance.set_index('Symptom')
         )
