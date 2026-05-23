@@ -34,29 +34,44 @@
                         placeholder="Enter age (e.g. 45)" min="1" max="120">
                 </div>
 
-                <div class="mb-4">
-                    <label for="height-input" class="form-label">
-                        <i class="fas fa-ruler-vertical me-1"></i> Height (in cm)
-                    </label>
-                    <input type="range" id="height-input" class="form-range form-range-lg"
-                        placeholder="Enter height (e.g. 154)" value="170" min="50" max="280" step="1"
-                        oninput="updateHeight(this.value)">
-                    <div class="text-muted">
-                        <span id="height-value">170</span>cm
-                    </div>
-                </div>
+<div class="mb-4">
+    <label for="height-input" class="form-label">
+        <i class="fas fa-ruler-vertical me-1"></i> Height (in cm)
+    </label>
 
-                <div class="mb-4">
-                    <label for="weight-input" class="form-label">
-                        <i class="fas fa-ruler-vertical me-1"></i> Weight (in kg)
-                    </label>
-                    <input type="range" id="weight-input" class="form-range form-range-lg"
-                        placeholder="Enter weight (e.g. 67 kg)" value="60" min="2" max="170" step="1"
-                        oninput="updateWeight(this.value)">
-                    <div class="text-muted">
-                        <span id="weight-value">60</span>kg
-                    </div>
-                </div>
+    <input type="range" id="height-input" class="form-range form-range-lg"
+        value="170" min="50" max="250"
+        oninput="updateHeight(this.value)">
+
+    <input type="number" id="height-number" class="form-control mt-2"
+        placeholder="Enter height directly (e.g. 170)"
+        value="170" min="50" max="250"
+        oninput="updateHeight(this.value)">
+
+    <div class="text-muted">
+        <span id="height-value">170</span>cm
+    </div>
+</div>
+
+
+<div class="mb-4">
+    <label for="weight-input" class="form-label">
+        <i class="fas fa-weight me-1"></i> Weight (in kg)
+    </label>
+
+    <input type="range" id="weight-input" class="form-range form-range-lg"
+        value="60" min="2" max="170"
+        oninput="updateWeight(this.value)">
+
+    <input type="number" id="weight-number" class="form-control mt-2"
+        placeholder="Enter weight directly (e.g. 60)"
+        value="60" min="2" max="170"
+        oninput="updateWeight(this.value)">
+
+    <div class="text-muted">
+        <span id="weight-value">60</span>kg
+    </div>
+</div>
 
                 <div class="alert alert-info mt-3" id="bmi-box">
                     BMI: <strong id="bmi-value">—</strong>
@@ -694,34 +709,60 @@
     // =========================================================
     // HEIGHT / WEIGHT / BMI
     // =========================================================
-    function updateHeight(val) {
-        document.getElementById("height-value").innerText = val;
-        calculateBMI();
+function updateHeight(val) {
+    const heightRange = document.getElementById("height-input");
+    const heightNumber = document.getElementById("height-number");
+    const heightValue = document.getElementById("height-value");
+
+    heightRange.value = val;
+    heightNumber.value = val;
+    heightValue.innerText = val;
+
+    calculateBMI();
+}
+
+function updateWeight(val) {
+    const weightRange = document.getElementById("weight-input");
+    const weightNumber = document.getElementById("weight-number");
+    const weightValue = document.getElementById("weight-value");
+
+    weightRange.value = val;
+    weightNumber.value = val;
+    weightValue.innerText = val;
+
+    calculateBMI();
+}
+
+function calculateBMI() {
+    const h = document.getElementById("height-input").value / 100;
+    const w = document.getElementById("weight-input").value;
+
+    if (!h || !w) return;
+
+    const bmi = (w / (h * h)).toFixed(1);
+    document.getElementById("bmi-value").innerText = bmi;
+
+    let category = "Normal";
+    let badge = "bg-success";
+
+    if (bmi < 18.5) {
+        category = "Underweight";
+        badge = "bg-warning";
+    } else if (bmi < 25) {
+        category = "Normal";
+        badge = "bg-success";
+    } else if (bmi < 30) {
+        category = "Overweight";
+        badge = "bg-warning";
+    } else {
+        category = "Obese";
+        badge = "bg-danger";
     }
 
-    function updateWeight(val) {
-        document.getElementById("weight-value").innerText = val;
-        calculateBMI();
-    }
-
-    function calculateBMI() {
-        const h = document.getElementById("height-input").value / 100;
-        const w = document.getElementById("weight-input").value;
-        if (!h || !w) return;
-
-        const bmi = (w / (h * h)).toFixed(1);
-        document.getElementById("bmi-value").innerText = bmi;
-
-        let category = "Normal", badge = "bg-success";
-        if      (bmi < 18.5) { category = "Underweight"; badge = "bg-warning"; }
-        else if (bmi < 25)   { category = "Normal";      badge = "bg-success"; }
-        else if (bmi < 30)   { category = "Overweight";  badge = "bg-warning"; }
-        else                  { category = "Obese";       badge = "bg-danger";  }
-
-        const catEl = document.getElementById("bmi-category");
-        catEl.innerText = category;
-        catEl.className = `badge ${badge}`;
-    }
+    const catEl = document.getElementById("bmi-category");
+    catEl.innerText = category;
+    catEl.className = `badge ${badge}`;
+}
 
     let calibrationChart = null;
 
