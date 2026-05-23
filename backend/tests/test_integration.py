@@ -199,3 +199,17 @@ def test_custom_disease_calculation(client):
                     response = json.loads(rv.data)
                     assert 'p_d_given_pos' in response
                     assert round(response['p_d_given_pos'], 4) == 0.95
+
+
+def test_contact_page(client):
+    """Test if contact page loads correctly"""
+    rv = client.get('/contact')
+    assert rv.status_code == 200
+    assert b'Connect With Us' in rv.data
+
+
+def test_connect_redirects_to_contact(client):
+    """Test if /connect redirects to /contact"""
+    rv = client.get('/connect')
+    assert rv.status_code in (301, 302)
+    assert rv.location.endswith('/contact')

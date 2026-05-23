@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, current_app
+from flask import Blueprint, render_template, current_app, redirect, url_for
 
 general_bp = Blueprint(
     'general',
@@ -25,7 +25,7 @@ def terms():
 
 @general_bp.route('/connect')
 def connect():
-    return render_template('connect.html')
+    return redirect(url_for('disease.contact'))
 
 @general_bp.route('/service-worker.js')
 def service_worker():
