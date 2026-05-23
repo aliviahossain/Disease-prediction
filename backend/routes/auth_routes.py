@@ -170,6 +170,11 @@ def login():
     active_tab = request.args.get('tab', 'signin')
     return render_template('auth.html', active_tab=active_tab)
 
+
+
+MIN_PASSWORD_LEN = 8
+MAX_USERNAME_LEN = 20  
+
 @auth_bp.route('/signup', methods=['POST'])
 def signup():
     username = (request.form.get('username') or '').strip()
@@ -191,7 +196,7 @@ def signup():
         flash(f'Password must be at least {MIN_PASSWORD_LEN} characters.', 'danger')
         return redirect(url_for('auth.login', tab='register'))
 
-    # 4. Check for existing user (unchanged)
+    # 4. Check for existing user
     if User.query.filter_by(email=email).first():
         flash('Email already registered.', 'danger')
         return redirect(url_for('auth.login', tab='register'))
@@ -200,7 +205,9 @@ def signup():
         flash('Username already taken.', 'danger')
         return redirect(url_for('auth.login', tab='register'))
 
+    # Hash password and create user
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+
     new_user = User(username=username, email=email, password_hash=hashed_password)
     db.session.add(new_user)
     db.session.commit()
