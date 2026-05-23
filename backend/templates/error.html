@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Error - Disease Prediction{% endblock %}
+
+{% block content %}
+<div class="text-center my-5">
+    <h1 class="display-5 fw-bold text-danger">Unable to load the page</h1>
+    <p class="lead text-muted">An error occurred while rendering this view.</p>
+    <div class="alert alert-warning text-start mt-4">
+        <strong>Error details:</strong>
+        <pre class="mb-0">{{ error }}</pre>
+    </div>
+    <a href="/" class="btn btn-primary mt-3">Return home</a>
+</div>
+{% endblock %}

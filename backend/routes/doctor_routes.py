@@ -113,7 +113,6 @@ def get_real_dashboard_data():
         }
     except Exception as e:
         print(f"⚠️ Error fetching dashboard data: {e}")
-        # Return empty data structure on error
         return {
             'total_patients': 0,
             'new_cases': 0,
@@ -130,6 +129,7 @@ def get_real_dashboard_data():
 
 
 @doctor_bp.route('/doctor-dashboard')
+@login_required  # FIX #308: require authentication for doctor dashboard page
 def doctor_dashboard():
     """Render the doctor dashboard page"""
     return render_template('doctor_dashboard.html')
@@ -155,32 +155,25 @@ def get_patient_dashboard_data(user_id):
     Raises:
         Exception: Propagates database errors to caller for proper handling
     """
-    # Get all predictions for this user
     user_predictions = PredictionHistory.query.filter_by(
         user_id=user_id
     ).order_by(PredictionHistory.created_at.desc()).all()
     
     total_predictions = len(user_predictions)
     
-    # Calculate risk level counts
     risk_counts = {'low': 0, 'medium': 0, 'high': 0, 'critical': 0}
     disease_counts = {}
     
     for pred in user_predictions:
-        # Count risk levels
         if pred.risk_level in risk_counts:
             risk_counts[pred.risk_level] += 1
-        
-        # Count diseases
         if pred.disease:
             disease_counts[pred.disease] = disease_counts.get(pred.disease, 0) + 1
     
-    # Find most common disease
     most_common_disease = None
     if disease_counts:
         most_common_disease = max(disease_counts, key=disease_counts.get)
     
-    # Calculate percentages
     if total_predictions > 0:
         risk_distribution = {
             level: {
@@ -195,14 +188,12 @@ def get_patient_dashboard_data(user_id):
             for level in risk_counts
         }
     
-    # Get last prediction date
     last_prediction_date = None
     last_disease = None
     if user_predictions:
         last_prediction_date = user_predictions[0].created_at.isoformat()
         last_disease = user_predictions[0].disease
     
-    # Convert predictions to dict list
     predictions_list = [pred.to_dict() for pred in user_predictions]
         
     return {
@@ -225,19 +216,6 @@ def get_patient_dashboard_data(user_id):
 def get_patient_data():
     """
     API endpoint to fetch patient dashboard data for the logged-in user.
-    
-    Returns user-specific prediction history and statistics.
-    
-    Response JSON:
-    {
-        "success": true,
-        "data": {
-            "user_info": {...},
-            "statistics": {...},
-            "predictions": [...],
-            "risk_distribution": {...}
-        }
-    }
     """
     try:
         dashboard_data = get_patient_dashboard_data(current_user.id)
@@ -270,7 +248,6 @@ def get_patient_temporal_trends():
     try:
         from backend.utils.temporal_analysis import TemporalAnalysisEngine
         
-        # Get patient history (sorted chronologically oldest to newest for analysis)
         user_predictions = PredictionHistory.query.filter_by(
             user_id=current_user.id
         ).order_by(PredictionHistory.created_at.asc()).all()
@@ -294,29 +271,10 @@ def get_patient_temporal_trends():
 
 
 @doctor_bp.route('/api/doctor/dashboard', methods=['GET'])
+@login_required  # FIX #308: require authentication for doctor dashboard API
 def get_dashboard_data():
     """
     API endpoint to fetch doctor dashboard data from database.
-    
-    Returns aggregated patient metrics and risk distribution.
-    
-    Response JSON:
-    {
-        "success": true,
-        "data": {
-            "total_patients": 245,
-            "new_cases": 23,
-            "high_risk_count": 35,
-            "critical_risk_count": 12,
-            "risk_distribution": {
-                "low": {"count": 120, "percentage": 49},
-                "medium": {"count": 78, "percentage": 32},
-                "high": {"count": 35, "percentage": 14},
-                "critical": {"count": 12, "percentage": 5}
-            },
-            "last_updated": "2026-01-06T12:00:00"
-        }
-    }
     """
     try:
         dashboard_data = get_real_dashboard_data()

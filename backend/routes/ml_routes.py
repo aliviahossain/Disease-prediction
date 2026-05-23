@@ -1,10 +1,12 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import current_user
+from jinja2 import TemplateNotFound
 from backend.models.ml_model import ml_model
 from backend.preprocessing import PreprocessingError, clean_prediction_payload
 from backend.utils.calculator import BayesCalculator
 from backend.utils.uncertainty_handler import uncertainty_handler  # NEW
 from backend.models.prediction import PredictionHistory
+from backend.services.history_service import save_history
 from backend import db
 import json
 import traceback
@@ -28,6 +30,8 @@ def ml_prediction_page():
         return render_template('ml_prediction.html',
                                diseases=disease_data,
                                active_page='ml_prediction')
+    except TemplateNotFound as e:
+        return render_template('error.html', error=f"Missing template: {e.name}"), 500
     except Exception as e:
         return render_template('error.html', error=str(e)), 500
  
@@ -102,6 +106,8 @@ def predict_disease():
                 'disease': disease.replace('_', ' ').title(),
                 'confidence': round(confidence_score * 100, 2),
                 'reason': uncertainty_check['reason'],
+                'feature_impacts': ml_prediction.get('feature_impacts', []),
+                'explanation_summary': ml_prediction.get('explanation_summary', ''),
             }), 200
         # ─────────────────────────────────────────────────────────────────
  
@@ -199,9 +205,20 @@ def predict_disease():
             },
             'ml_prediction': {
                 'raw_probability': round(ml_prediction['raw_probability'] * 100, 2),
+                'calibrated_probability': round(ml_prediction['calibrated_probability'] * 100, 2),
+                'calibration_gap': round(ml_prediction['calibration_gap'] * 100, 2),
+                'calibration_score': round(ml_prediction['calibration_score'] * 100, 2),
+                'confidence_score': round(ml_prediction['confidence_score'] * 100, 2),
                 'confidence_score': round(confidence_score * 100, 2),
                 'symptoms_analyzed': ml_prediction['symptoms_matched'],
-                'missing_symptoms': missing_symptoms
+                'missing_symptoms': missing_symptoms,
+                'explanations': {
+                    'feature_impacts': ml_prediction.get('feature_impacts', []),
+                    'symptom_contributions': ml_prediction.get('symptom_contributions', {}),
+                    'summary': ml_prediction.get('explanation_summary', ''),
+                    'bias': ml_prediction.get('bias'),
+                    'bmi_effect': ml_prediction.get('bmi_effect')
+                }
             },
             'bayesian_analysis': {
                 'prior': round(bayesian_result['prior'] * 100, 2),
@@ -211,6 +228,29 @@ def predict_disease():
             },
             'risk_assessment': risk_assessment
         }
+ 
+        # Issue #230: also persist via the unified history service so the
+        # new History page (PatientHistory) shows this prediction. The
+        # existing PredictionHistory save above is left untouched.
+        save_history(
+            user_id=current_user.id if current_user.is_authenticated else None,
+            prediction_type="symptom",
+            disease=disease.replace('_', ' ').title(),
+            inputs={
+                "symptoms": symptoms,
+                "age": age,
+                "height_cm": height,
+                "weight_kg": weight,
+            },
+            results={
+                "ml_probability": ml_prediction['raw_probability'],
+                "bayesian_posterior": bayesian_result['posterior'],
+                "confidence_score": confidence_score,
+                "survival_probability": survival_prob,
+            },
+            probability=bayesian_result['posterior'],
+            risk_level=risk_level_db,
+        )
  
         return jsonify(result), 200
  
@@ -300,24 +340,35 @@ def predict_multiple_diseases():
             )
             # ─────────────────────────────────────────────────────────────
  
-            results.append({
+            top_prediction = {
                 'disease': pred['disease'].replace('_', ' ').title(),
                 'probability': round(pred['raw_probability'] * 100, 2),
+                'calibrated_probability': round(pred['calibrated_probability'] * 100, 2),
+                'calibration_gap': round(abs(pred['raw_probability'] - pred['calibrated_probability']) * 100, 2),
+                'calibration_score': round(max(0.0, 1.0 - abs(pred['raw_probability'] - pred['calibrated_probability'])) * 100, 2),
                 'prior': round(bayesian['prior'] * 100, 2),
                 'likelihood': round(bayesian['likelihood'] * 100, 2),
                 'posterior': round(bayesian['posterior'] * 100, 2),
                 'confidence': round(confidence_score * 100, 2),
                 'risk_level': get_risk_level(bayesian['posterior'] * 100),
                 'missing_symptoms': missing,
+                'feature_impacts': pred.get('feature_impacts', []),
+                'explanation_summary': pred.get('explanation_summary', ''),
+                'symptom_contributions': pred.get('symptom_contributions', {}),
+                'bias': pred.get('bias', 0),
+                'bmi_effect': pred.get('bmi_effect', 0),
                 'explanations': {
-                    'symptom_contributions': pred.get('symptom_contributions', {'test_symptom': 0.1}),
+                    'feature_impacts': pred.get('feature_impacts', []),
+                    'symptom_contributions': pred.get('symptom_contributions', {}),
+                    'summary': pred.get('explanation_summary', ''),
                     'bias': pred.get('bias', 0),
                     'bmi_effect': pred.get('bmi_effect', 0)
                 },
                 # NEW — uncertainty fields
                 'is_sufficient': uncertainty_check['is_sufficient'],
                 'uncertainty_reason': uncertainty_check['reason'],
-            })
+            }
+            results.append(top_prediction)
  
         # Sort by posterior probability (highest first)
         results.sort(key=lambda x: x['posterior'], reverse=True)
@@ -391,6 +442,37 @@ def predict_multiple_diseases():
                 print(f"⚠️ Failed to auto-save prediction: {db_err}")
                 traceback.print_exc()
                 db.session.rollback()
+        
+        # Issue #230: also persist the top prediction via the unified
+        # history service so the PatientHistory-backed History page
+        # reflects this differential diagnosis run.
+        if top_predictions:
+            top_pred = top_predictions[0]
+            top_risk = top_pred.get('risk_level') or {}
+            save_history(
+                user_id=current_user.id if current_user.is_authenticated else None,
+                prediction_type="symptom",
+                disease=top_pred['disease'],
+                inputs={
+                    "symptoms": symptoms,
+                    "age": age,
+                    "height_cm": height,
+                    "weight_kg": weight,
+                    "differential": True,
+                },
+                results={
+                    "top_predictions": [
+                        {
+                            "disease": p['disease'],
+                            "posterior": p['posterior'],
+                            "confidence": p['confidence'],
+                        }
+                        for p in top_predictions
+                    ],
+                },
+                probability=top_pred['posterior'] / 100.0,
+                risk_level=(top_risk.get('level') or '').lower() or None,
+            )
         
         return jsonify({
             'success': True,
@@ -477,6 +559,70 @@ def get_uncertainty_config():
     return jsonify(uncertainty_handler.get_config()), 200
  
  
+
+@ml_bp.route('/api/ml/explain', methods=['POST'])
+def explain_prediction():
+    """SHAP-based prediction explainability endpoint."""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        disease = data.get('disease', '').lower().replace(' ', '_')
+        symptoms = data.get('symptoms', [])
+
+        if not disease:
+            return jsonify({'error': 'Disease not specified'}), 400
+        if not symptoms:
+            return jsonify({'error': 'No symptoms provided'}), 400
+
+        disease_key = ml_model._get_disease_key(disease)
+        prediction = ml_model.predict_disease_probability(disease, symptoms)
+        shap_values = ml_model.compute_shap_values(disease_key, symptoms)
+
+        positive = {k: v for k, v in shap_values.items() if v["direction"] == "positive"}
+        negative = {k: v for k, v in shap_values.items() if v["direction"] == "negative"}
+
+        top_positive = sorted(
+            positive.items(),
+            key=lambda x: x[1]["contribution"],
+            reverse=True
+        )[:3]
+
+        summary_parts = [
+            f"{v['display_name']} (+{v['contribution']:.2f})"
+            for _, v in top_positive
+        ]
+        summary = (
+            f"Top contributing symptoms: {', '.join(summary_parts)}"
+            if summary_parts
+            else "No strong symptom contributions found."
+        )
+
+        return jsonify({
+            'success': True,
+            'disease': disease.replace('_', ' ').title(),
+            'calibrated_probability': round(
+                prediction['calibrated_probability'] * 100, 2
+            ),
+            'explanation': {
+                'shap_values': shap_values,
+                'positive_contributions': positive,
+                'negative_contributions': negative,
+                'summary': summary,
+                'baseline_info': (
+                    'Positive values increase disease probability. '
+                    'Negative values indicate important absent symptoms.'
+                )
+            }
+        }), 200
+
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Explanation failed: {str(e)}'}), 500
+
+
 def get_risk_level(probability):
     """
     Determine risk level based on probability percentage.
