@@ -5,7 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from backend.middleware.error_handler import ErrorHandler
 from sqlalchemy import inspect, text
-
+from dotenv import load_dotenv
+load_dotenv()
 # Initialize extensions
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -66,11 +67,10 @@ def create_app():
     print(f"Templates folder: {os.path.join(backend_root, 'templates')}")
 
     # Initialize Flask app with correct paths
-    app = Flask(
-        __name__,
-        static_folder=os.path.join(backend_root, 'static'),
-        template_folder=os.path.join(backend_root, 'templates')
-    )
+    app = Flask(__name__,
+                static_folder=os.path.join(backend_root, 'static'),
+                template_folder=os.path.join(backend_root, 'templates')
+            )
 
     # Configure Database
     database_url = os.getenv("DATABASE_URL")
@@ -117,7 +117,13 @@ def create_app():
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
-
+    
+    # --- Models -------------------------------------------------------
+    # Import the models so SQLAlchemy registers them with `db` before create_all() is called below.
+    # Without this import the patient_history table is never created, which is one half of the bug where history is "not being recorded".
+    from backend.models import user
+    from backend.models import patient_history
+    
     # Register Disease Routes Blueprint
     from backend.routes.disease_routes import disease_bp
     app.register_blueprint(disease_bp)
@@ -200,4 +206,8 @@ def create_app():
         db.create_all()
         _ensure_user_profile_columns(db.engine)
 
+    @app.errorhandler(404)
+    def page_not_found(error):
+        return render_template("404.html"), 404     
+    
     return app

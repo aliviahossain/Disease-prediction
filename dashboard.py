@@ -1,7 +1,21 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import sys
 import os
+from datetime import datetime
+import plotly.express as px
+import re
+
+def highlight_text(text, query):
+    if not query or not query.strip():
+        return text
+    query = query.strip()
+    pattern = re.compile(f"({re.escape(query)})", re.IGNORECASE)
+    return pattern.sub(
+        r"<mark style='background-color:#fffa65; color:black; padding:0 2px; border-radius:3px;'>\1</mark>",
+        text
+    )
 
 # Add the current directory to sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -11,6 +25,12 @@ from backend.models.ml_model import ml_model
 
 # Import disease descriptions
 from backend.data.disease_info import DISEASE_INFO
+
+# Import history manager
+from backend.utils.history_manager import (
+    load_history,
+    save_history
+)
 
 # =========================
 # PAGE CONFIG
@@ -24,6 +44,7 @@ st.set_page_config(
 # TITLE
 # =========================
 st.title("🩺 Multi-Disease Prediction System")
+
 st.markdown(
     "### Interactive Dashboard for Disease Prediction & Analysis"
 )
@@ -61,7 +82,8 @@ if app_mode == "Prediction":
 
     st.divider()
 
-    # =========================
+    
+        # =========================
     # SYMPTOM SELECTION
     # =========================
     st.write(
@@ -69,32 +91,76 @@ if app_mode == "Prediction":
         f"{selected_disease.replace('_', ' ').title()}"
     )
 
-    symptoms_map = ml_model.get_disease_symptoms(
-        selected_disease
+    # Get symptoms
+    symptoms_map = ml_model.get_disease_symptoms(selected_disease)
+    # 🔍 SEARCH BAR
+    search_query = st.text_input(
+        "🔍 Search Symptoms",
+        placeholder="Type to filter symptoms...",
+        key="symptom_search"
     )
 
+    # 🔎 SUGGESTIONS (NEW)
+    if search_query:
+        suggestions = [
+            label for label in symptoms_map.values()
+            if search_query.lower() in label.lower()
+        ][:5]
+
+        if suggestions:
+            st.write("### Suggestions:")
+            for s in suggestions:
+                components.html(
+                    f"<div>👉 {highlight_text(s, search_query)}</div>",
+                    height=30,
+                    scrolling=False
+                )
+
+    # 🔎 Apply filtering
+    if search_query:
+        filtered_symptoms = {
+            key: label
+            for key, label in symptoms_map.items()
+            if search_query.lower() in label.lower()
+        }
+    else:
+        filtered_symptoms = symptoms_map
+
+    # ⚠️ No results case
+    if search_query and not filtered_symptoms:
+        st.warning("No matching symptoms found. Try a different keyword.")
+
     selected_symptoms = []
+    cols = st.columns(2)
 
-    cols = st.columns(3)
+    # ✅ Display filtered checkboxes
+    for i, (key, label) in enumerate(filtered_symptoms.items()):
+        with cols[i % 2]:
 
-    for i, (key, label) in enumerate(
-        symptoms_map.items()
-    ):
+            display_label = highlight_text(label, search_query)
 
-        with cols[i % 3]:
+            col_checkbox, col_text = st.columns([1, 5])
 
-            if st.checkbox(label, key=key):
-                selected_symptoms.append(key)
+            with col_checkbox:
+                if st.checkbox("", key=key):
+                    selected_symptoms.append(key)
 
+            with col_text:
+                components.html(
+                    display_label,
+                    height=30,
+                    scrolling=False
+                )
     st.divider()
+    
 
     # =========================
     # ANALYZE BUTTON
     # =========================
     if st.button(
-        "Analyze Symptoms",
-        type="primary"
-    ):
+            "Analyze Symptoms",
+            type="primary"
+        ):
 
         if not selected_symptoms:
 
@@ -113,6 +179,36 @@ if app_mode == "Prediction":
                     selected_disease,
                     selected_symptoms
                 )
+
+                # =========================
+                # SAVE PREDICTION HISTORY
+                # =========================
+                probability = round(
+                    result['raw_probability'] * 100,
+                    1
+                )
+
+                if probability < 30:
+                    risk_level = "Low"
+
+                elif probability < 60:
+                    risk_level = "Moderate"
+
+                else:
+                    risk_level = "High"
+
+                history_entry = {
+                    "Disease": selected_disease.replace('_', ' ').title(),
+                    "Probability": probability,
+                    "Risk": risk_level,
+                    "Symptoms": ", ".join(selected_symptoms),
+                    "Timestamp": datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    )
+                }
+
+                # Save prediction history
+                save_history(history_entry)
 
                 # =========================
                 # METRICS
@@ -184,7 +280,7 @@ if app_mode == "Prediction":
                 st.divider()
 
                 st.subheader(
-                    " Bayesian Probability Concept"
+                    "Bayesian Probability Concept"
                 )
 
                 st.write("""
@@ -233,6 +329,74 @@ if app_mode == "Prediction":
                     probability
                     """)
 
+                # =========================
+                # PREDICTION HISTORY
+                # =========================
+                st.divider()
+
+                st.subheader(
+                    "📜 Prediction History Timeline"
+                )
+
+                # Load prediction history
+                history_data = load_history()
+
+                if history_data:
+
+                    df_history = pd.DataFrame(history_data)
+
+                    # Latest predictions first
+                    df_history = df_history.iloc[::-1]
+
+                    # Display table
+                    st.dataframe(
+                        df_history,
+                        use_container_width=True
+                    )
+
+                    st.divider()
+
+                    # =========================
+                    # ANALYTICS CHART
+                    # =========================
+                    st.subheader(
+                        "📈 Probability Trend Analytics"
+                    )
+
+                    fig = px.line(
+                        df_history,
+                        x="Timestamp",
+                        y="Probability",
+                        color="Disease",
+                        markers=True,
+                        title="Disease Probability Over Time"
+                    )
+
+                    st.plotly_chart(
+                        fig,
+                        use_container_width=True
+                    )
+
+                    # =========================
+                    # RISK DISTRIBUTION
+                    # =========================
+                    st.subheader(
+                        "⚠️ Risk Distribution"
+                    )
+
+                    risk_counts = (
+                        df_history["Risk"]
+                        .value_counts()
+                    )
+
+                    st.bar_chart(risk_counts)
+
+                else:
+
+                    st.info(
+                        "No prediction history available yet."
+                    )
+
             except Exception as e:
 
                 st.error(
@@ -240,11 +404,7 @@ if app_mode == "Prediction":
                     f"{str(e)}"
                 )
 
-# =========================
-# MODEL INSIGHTS MODE
-# =========================
 elif app_mode == "Model Insights":
-
     st.subheader("Model Interpretability")
 
     st.write(
@@ -262,18 +422,15 @@ elif app_mode == "Model Insights":
 
     if disease_for_insight:
 
-        # Get symptom importance
         importance = ml_model.get_symptom_importance(
             disease_for_insight
         )
 
-        # Create DataFrame
         df_importance = pd.DataFrame(
             list(importance.items()),
             columns=['Symptom', 'Importance']
         )
 
-        # Display chart
         st.bar_chart(
             df_importance.set_index('Symptom')
         )

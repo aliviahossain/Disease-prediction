@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, render_template, send_file
 from datetime import datetime
+from flask_login import current_user
 import csv
 import os
 import io
@@ -11,8 +12,11 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 
 from backend.utils.calculator import bayesian_survival
+from backend.utils.tts_helper import generate_tts_audio
 from backend.utils.gemini_helper import generate_recommendations
+from backend.utils.tts_helper import generate_tts_audio
 from backend.models.ml_model import ml_model
+from backend.services.history_service import save_history
 
 disease_bp = Blueprint("disease", __name__)
 
@@ -128,6 +132,25 @@ def disease():
             }), 400
 
         p_d_given_result = numerator / denominator
+
+        # Issue #230: persist the calculation so the History page can
+        # show it. save_history silently no-ops for anonymous users and
+        # never raises, so this can't break the response below. An
+        # optional "disease_name" / "disease" field in the request body
+        # gives history rows a human-readable label.
+        save_history(
+            user_id=current_user.id if current_user.is_authenticated else None,
+            prediction_type="bayes",
+            disease=data.get("disease_name") or data.get("disease"),
+            inputs={
+                "pD": p_d,
+                "sensitivity": sensitivity,
+                "falsePositive": false_pos,
+                "testResult": test_result,
+            },
+            results={"p_d_given_result": p_d_given_result},
+            probability=p_d_given_result,
+        )
 
         return jsonify({
             "p_d_given_result": round(p_d_given_result, 4),
@@ -411,5 +434,31 @@ def disease_detection_dashboard():
     # The types include the list of disease detection types available (Only "Eyes" for now)
     types = ["Eyes", "Skin"]
     return render_template('disease_detection_dashboard.html', types=types)
+
+@disease_bp.route("/text-to-speech", methods=["POST"])
+def text_to_speech():
+    """
+    Convert AI recommendation text to speech audio (MP3).
+    Accepts JSON with 'text' and 'language' fields.
+    Returns an MP3 audio file stream.
+    """
+    data = request.json
+    if not data or not data.get("text"):
+        return jsonify({"error": "No text provided for TTS."}), 400
+
+    text = data.get("text", "")
+    language = data.get("language", "english")
+
+    try:
+        audio_buffer = generate_tts_audio(text, language)
+        return send_file(
+            audio_buffer,
+            mimetype="audio/mpeg",
+            as_attachment=False,
+            download_name="recommendation.mp3"
+        )
+    except Exception as e:
+        return jsonify({"error": f"TTS generation failed: {str(e)}"}), 500
+
 
 from backend.middleware.error_handler import NotFoundError

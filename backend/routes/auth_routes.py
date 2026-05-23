@@ -24,6 +24,11 @@ def _clean_form_value(name):
     return (request.form.get(name) or "").strip()
 
 
+def _form_has_field(name):
+    """True when the field was included in the POST (disabled inputs are omitted)."""
+    return name in request.form
+
+
 def _validate_phone(value, label, errors):
     if not value:
         return None
@@ -216,62 +221,95 @@ def profile():
 @login_required
 def update_profile():
     errors = []
-    phone = _validate_phone(_clean_form_value("phone"), "Phone", errors)
-    emergency_phone = _validate_phone(
-        _clean_form_value("emergency_phone"), "Emergency phone", errors
-    )
-    address = _validate_pattern(
-        _clean_form_value("address"),
-        ADDRESS_RE,
-        "Address",
-        errors,
-        "must be 5 to 160 characters and contain only letters, numbers, spaces, and common address punctuation.",
-    )
-    emergency_name = _validate_pattern(
-        _clean_form_value("emergency_name"),
-        NAME_RE,
-        "Emergency contact name",
-        errors,
-        "must contain only letters, spaces, apostrophes, periods, or hyphens.",
-    )
-    emergency_relation = _validate_pattern(
-        _clean_form_value("emergency_relation"),
-        RELATION_RE,
-        "Emergency relation",
-        errors,
-        "must contain only letters, spaces, apostrophes, periods, or hyphens.",
-    )
-    dob = _validate_dob(_clean_form_value("dob"), errors)
-    gender = _clean_form_value("gender")
-    height = _validate_float(_clean_form_value("height"), "Height", 30, 272, errors)
-    weight = _validate_float(_clean_form_value("weight"), "Weight", 1, 635, errors)
-    allergies = _validate_medical_text(
-        _clean_form_value("allergies"), "Allergies", 200, errors
-    )
-    medical_notes = _validate_medical_text(
-        _clean_form_value("medical_notes"), "Medical notes", 1000, errors
-    )
+    phone = emergency_phone = address = emergency_name = emergency_relation = None
+    dob = height = weight = allergies = medical_notes = None
+    gender = current_user.gender
 
-    if gender not in ALLOWED_GENDERS:
-        errors.append("Gender must be Male, Female, or Other.")
+    if _form_has_field("phone"):
+        phone = _validate_phone(_clean_form_value("phone"), "Phone", errors)
+    if _form_has_field("emergency_phone"):
+        emergency_phone = _validate_phone(
+            _clean_form_value("emergency_phone"), "Emergency phone", errors
+        )
+    if _form_has_field("address"):
+        address = _validate_pattern(
+            _clean_form_value("address"),
+            ADDRESS_RE,
+            "Address",
+            errors,
+            "must be 5 to 160 characters and contain only letters, numbers, spaces, and common address punctuation.",
+        )
+    if _form_has_field("emergency_name"):
+        emergency_name = _validate_pattern(
+            _clean_form_value("emergency_name"),
+            NAME_RE,
+            "Emergency contact name",
+            errors,
+            "must contain only letters, spaces, apostrophes, periods, or hyphens.",
+        )
+    if _form_has_field("emergency_relation"):
+        emergency_relation = _validate_pattern(
+            _clean_form_value("emergency_relation"),
+            RELATION_RE,
+            "Emergency relation",
+            errors,
+            "must contain only letters, spaces, apostrophes, periods, or hyphens.",
+        )
+    if any(_form_has_field(name) for name in ("dob_day", "dob_month", "dob_year", "dob")):
+        dob = _validate_dob(_clean_form_value("dob"), errors)
+    if _form_has_field("gender"):
+        gender = _clean_form_value("gender")
+        if gender not in ALLOWED_GENDERS:
+            errors.append("Gender must be Male, Female, or Other.")
+    if _form_has_field("height"):
+        height = _validate_float(_clean_form_value("height"), "Height", 30, 272, errors)
+    if _form_has_field("weight"):
+        weight = _validate_float(_clean_form_value("weight"), "Weight", 1, 635, errors)
+    if _form_has_field("allergies"):
+        allergies = _validate_medical_text(
+            _clean_form_value("allergies"), "Allergies", 200, errors
+        )
+    if _form_has_field("medical_notes"):
+        medical_notes = _validate_medical_text(
+            _clean_form_value("medical_notes"), "Medical notes", 1000, errors
+        )
 
     if errors:
         for error in errors:
             flash(error, "danger")
         return redirect(url_for('auth.profile'))
 
-    current_user.phone = phone
-    current_user.address = address
-    current_user.emergency_name = emergency_name
-    current_user.emergency_relation = emergency_relation
-    current_user.emergency_phone = emergency_phone
-    current_user.dob = dob
-    current_user.gender = gender or None
-    current_user.height = height
-    current_user.weight = weight
-    current_user.bmi = round(weight / ((height / 100) ** 2), 2) if height and weight else None
-    current_user.allergies = allergies or None
-    current_user.medical_notes = medical_notes or None
+    if _form_has_field("phone"):
+        current_user.phone = phone
+    if _form_has_field("address"):
+        current_user.address = address
+    if _form_has_field("emergency_name"):
+        current_user.emergency_name = emergency_name
+    if _form_has_field("emergency_relation"):
+        current_user.emergency_relation = emergency_relation
+    if _form_has_field("emergency_phone"):
+        current_user.emergency_phone = emergency_phone
+    if any(_form_has_field(name) for name in ("dob_day", "dob_month", "dob_year", "dob")):
+        current_user.dob = dob
+    if _form_has_field("gender"):
+        current_user.gender = gender or None
+    if _form_has_field("height"):
+        current_user.height = height
+    if _form_has_field("weight"):
+        current_user.weight = weight
+
+    profile_height = current_user.height
+    profile_weight = current_user.weight
+    if _form_has_field("height") or _form_has_field("weight"):
+        current_user.bmi = (
+            round(profile_weight / ((profile_height / 100) ** 2), 2)
+            if profile_height and profile_weight
+            else None
+        )
+    if _form_has_field("allergies"):
+        current_user.allergies = allergies or None
+    if _form_has_field("medical_notes"):
+        current_user.medical_notes = medical_notes or None
     try:
         db.session.commit()
     except OperationalError as error:

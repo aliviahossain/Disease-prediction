@@ -1,13 +1,15 @@
 # backend/models/prediction.py
-
 import os
 import json
-from datetime import datetime
-
 import numpy as np
-from tensorflow.keras.preprocessing import image
-
+from datetime import datetime
 from backend import db
+from sqlalchemy import CheckConstraint
+
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 # Configurable confidence threshold
 CONFIDENCE_THRESHOLD = float(
@@ -28,7 +30,7 @@ def predict_disease(model, img_path, target_size=(224, 224)):
     Predict disease with uncertainty handling.
     Returns:
         {
-            "status": "success" | "uncertain",
+            "status": "success" | "uncertain" | "error",
             "disease": str | None,
             "confidence": float,
             "message": str
@@ -36,9 +38,15 @@ def predict_disease(model, img_path, target_size=(224, 224)):
     """
 
     try:
-        # Load image
-        img = image.load_img(img_path, target_size=target_size)
-        img_array = image.img_to_array(img)
+        if Image is None:
+            raise ImportError(
+                "Pillow is required for image preprocessing. Install it with `pip install pillow`."
+            )
+
+        # Load image with Pillow and resize to the model input size
+        img = Image.open(img_path).convert("RGB")
+        img = img.resize(target_size)
+        img_array = np.array(img, dtype="float32")
 
         # Normalize
         img_array = img_array / 255.0
@@ -87,55 +95,56 @@ def predict_disease(model, img_path, target_size=(224, 224)):
 
 class PredictionHistory(db.Model):
     __tablename__ = 'prediction_history'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    
+
     # Patient info (nullable for anonymous predictions)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     patient_age = db.Column(db.Integer, nullable=True)
-    
+
+    __table_args__ = (
+        CheckConstraint('patient_age >= 0', name='check_patient_age_non_negative'),
+    )
+
     # Prediction details
     disease = db.Column(db.String(100), nullable=False)
     symptoms = db.Column(db.Text, nullable=False)  # JSON string of symptoms list
-    
+
     # Probability scores
     ml_probability = db.Column(db.Float, nullable=False)
     bayesian_posterior = db.Column(db.Float, nullable=True)
     confidence_score = db.Column(db.Float, nullable=True)
-    survival_probability = db.Column(db.Float, nullable=True) # Dynamically calculated temporal survival probability
-    
+    survival_probability = db.Column(db.Float, nullable=True)
+
     # Patient Vitals (nullable, optional)
     heart_rate = db.Column(db.Float, nullable=True)
     blood_pressure_systolic = db.Column(db.Float, nullable=True)
     blood_pressure_diastolic = db.Column(db.Float, nullable=True)
     blood_glucose = db.Column(db.Float, nullable=True)
     temperature = db.Column(db.Float, nullable=True)
-    
+
     # Risk assessment
-    risk_level = db.Column(db.String(20), nullable=False, index=True)  # low, medium, high, critical
-    
+    risk_level = db.Column(db.String(20), nullable=False, index=True)
+
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
-    
+
     # Relationship to User
     user = db.relationship('User', backref=db.backref('predictions', lazy=True))
-    
+
     def __repr__(self):
         return f"PredictionHistory('{self.disease}', risk='{self.risk_level}', created='{self.created_at}')"
-    
+
     def get_symptoms_list(self):
-        """Parse symptoms JSON string to list"""
         try:
             return json.loads(self.symptoms)
         except (json.JSONDecodeError, TypeError):
             return []
-    
+
     def set_symptoms_list(self, symptoms_list):
-        """Convert symptoms list to JSON string"""
         self.symptoms = json.dumps(symptoms_list)
-    
+
     def to_dict(self):
-        """Convert to dictionary for API responses"""
         return {
             'id': self.id,
             'disease': self.disease,

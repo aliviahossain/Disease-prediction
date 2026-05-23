@@ -1,0 +1,322 @@
+/* ------------------------------------------------------------------
+   history.css — styles for the Patient History page.
+
+   Uses the existing project's CSS custom properties when available
+   (--color-bg, --color-fg, --color-primary, etc.) and falls back to
+   neutral values so the page still renders if a variable isn't set.
+   ------------------------------------------------------------------ */
+
+.history-container {
+  max-width: 960px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  color: var(--color-fg, #1e2327);
+}
+
+.history-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  margin-bottom: 1.5rem;
+}
+
+.history-header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  letter-spacing: -0.01em;
+}
+
+.history-subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--color-muted, #6b7280);
+  font-size: 0.95rem;
+}
+
+.history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.history-actions select,
+.history-actions .btn {
+  height: 2.25rem;
+}
+
+.history-actions select {
+  padding: 0 0.6rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  background: var(--color-bg, #fff);
+  color: inherit;
+}
+
+/* --- Status banner --- */
+.history-status {
+  margin: 0 0 1rem;
+  padding: 0;
+  font-size: 0.95rem;
+}
+.history-status:not(:empty) {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+}
+.history-status--info {
+  background: var(--color-info-bg, #eff6ff);
+  color: var(--color-info-fg, #1e40af);
+}
+.history-status--error {
+  background: var(--color-error-bg, #fef2f2);
+  color: var(--color-error-fg, #b91c1c);
+}
+
+/* --- Loading skeleton --- */
+.history-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.skeleton-row {
+  height: 84px;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    var(--color-skeleton-1, #f3f4f6) 0%,
+    var(--color-skeleton-2, #e5e7eb) 50%,
+    var(--color-skeleton-1, #f3f4f6) 100%
+  );
+  background-size: 200% 100%;
+  animation: history-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes history-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* --- List --- */
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.history-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--color-muted, #6b7280);
+  border: 1px dashed var(--color-border, #d1d5db);
+  border-radius: 8px;
+}
+.history-empty p { margin: 0 0 1rem; }
+
+/* --- Card --- */
+.history-card {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-card-bg, #ffffff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 8px;
+  transition: box-shadow 120ms ease, transform 120ms ease;
+}
+.history-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+.history-card-line1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.history-card-type {
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-muted, #6b7280);
+  background: var(--color-pill-bg, #f3f4f6);
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+}
+.history-card-disease {
+  font-weight: 600;
+  font-size: 1rem;
+}
+.history-card-line2 {
+  margin-top: 0.25rem;
+  color: var(--color-muted, #6b7280);
+  font-size: 0.85rem;
+}
+
+.history-card-stats {
+  display: flex;
+  gap: 1.25rem;
+}
+.history-card-stats .label {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-muted, #6b7280);
+}
+.history-card-stats .value {
+  display: block;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.history-card-risk.risk-low    .value { color: var(--color-success, #15803d); }
+.history-card-risk.risk-medium .value { color: var(--color-warning, #b45309); }
+.history-card-risk.risk-high   .value { color: var(--color-danger,  #b91c1c); }
+
+.history-card-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+.btn-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-primary, #2563eb);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  text-decoration: underline;
+}
+.btn-link:hover { text-decoration: none; }
+.btn-link--danger { color: var(--color-danger, #b91c1c); }
+
+/* --- Pagination --- */
+.history-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+}
+.history-page-indicator {
+  color: var(--color-muted, #6b7280);
+  font-size: 0.9rem;
+}
+
+/* --- Modal --- */
+.history-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.history-modal[hidden] { display: none; }
+
+.history-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.history-modal-content {
+  position: relative;
+  width: min(640px, 90vw);
+  max-height: 85vh;
+  overflow: auto;
+  background: var(--color-card-bg, #fff);
+  color: var(--color-fg, #1e2327);
+  border-radius: 10px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+.history-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+.history-modal-header h2 { margin: 0; font-size: 1.15rem; }
+.history-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: inherit;
+}
+
+.history-modal-body { padding: 1rem 1.25rem 1.5rem; }
+
+.history-modal-grid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem 1rem;
+  margin: 0 0 1rem;
+}
+.history-modal-grid dt {
+  font-weight: 600;
+  color: var(--color-muted, #6b7280);
+}
+.history-modal-grid dd { margin: 0; }
+
+.history-modal-raw {
+  margin-top: 0.75rem;
+}
+.history-modal-raw summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.history-modal-raw pre {
+  background: var(--color-code-bg, #f3f4f6);
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  overflow-x: auto;
+  max-height: 320px;
+}
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+  .history-card {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+  .history-card-stats {
+    justify-content: flex-start;
+    gap: 2rem;
+  }
+  .history-card-actions {
+    justify-content: flex-end;
+  }
+}
+
+/* --- Dark mode support (project already supports it per README) --- */
+@media (prefers-color-scheme: dark) {
+  .history-container {
+    --color-fg: #e6e9ef;
+    --color-bg: #15181d;
+    --color-muted: #94a1b2;
+    --color-border: #2a2f38;
+    --color-card-bg: #1c2129;
+    --color-pill-bg: #232a35;
+    --color-skeleton-1: #1c2129;
+    --color-skeleton-2: #2a2f38;
+    --color-code-bg: #232a35;
+    --color-info-bg: #1e3a5f;
+    --color-info-fg: #bfdbfe;
+    --color-error-bg: #4b1d1d;
+    --color-error-fg: #fecaca;
+  }
+}
