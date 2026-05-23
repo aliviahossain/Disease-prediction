@@ -172,33 +172,40 @@ def login():
 
 @auth_bp.route('/signup', methods=['POST'])
 def signup():
-    username = request.form.get('username')
-    email = request.form.get('email')
-    password = request.form.get('password')
+    username = (request.form.get('username') or '').strip()
+    email    = (request.form.get('email')    or '').strip()
+    password =  request.form.get('password') or ''
 
     # 1. Reject empty fields
     if not username or not email or not password:
         flash('All fields are required.', 'danger')
         return redirect(url_for('auth.login', tab='register'))
 
-    # 2. Check for existing user (split for better internal logging if needed, but flash user-friendly)
+    # 2. Validate username length (DB column is String(20))
+    if len(username) > MAX_USERNAME_LEN:
+        flash(f'Username must be {MAX_USERNAME_LEN} characters or fewer.', 'danger')
+        return redirect(url_for('auth.login', tab='register'))
+
+    # 3. Enforce minimum password length
+    if len(password) < MIN_PASSWORD_LEN:
+        flash(f'Password must be at least {MIN_PASSWORD_LEN} characters.', 'danger')
+        return redirect(url_for('auth.login', tab='register'))
+
+    # 4. Check for existing user (unchanged)
     if User.query.filter_by(email=email).first():
         flash('Email already registered.', 'danger')
         return redirect(url_for('auth.login', tab='register'))
-    
+
     if User.query.filter_by(username=username).first():
         flash('Username already taken.', 'danger')
         return redirect(url_for('auth.login', tab='register'))
 
-    # Hash password
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-
     new_user = User(username=username, email=email, password_hash=hashed_password)
     db.session.add(new_user)
     db.session.commit()
 
     flash('Account Created Successfully. Please Sign In.', 'success')
-    # Redirect to signin tab after successful registration
     return redirect(url_for('auth.login', tab='signin'))
 
 @auth_bp.route('/profile')
