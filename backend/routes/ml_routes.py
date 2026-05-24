@@ -209,7 +209,6 @@ def predict_disease():
                 'calibration_gap': round(ml_prediction['calibration_gap'] * 100, 2),
                 'calibration_score': round(ml_prediction['calibration_score'] * 100, 2),
                 'confidence_score': round(ml_prediction['confidence_score'] * 100, 2),
-                'confidence_score': round(confidence_score * 100, 2),
                 'symptoms_analyzed': ml_prediction['symptoms_matched'],
                 'missing_symptoms': missing_symptoms,
                 'explanations': {
