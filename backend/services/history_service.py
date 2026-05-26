@@ -75,14 +75,23 @@ def save_history(
         logger.warning("history.save called without prediction_type; skipping")
         return None
 
+    try:
+        probability_value = float(probability) if probability is not None else None
+    except (TypeError, ValueError):
+        logger.warning(
+            "history.save: invalid probability value %r; storing as None",
+            probability,
+        )
+        probability_value = None
+
     entry = PatientHistory(
         user_id=user_id,
         prediction_type=prediction_type[:32],
         disease=(disease or "")[:120] or None,
         inputs_json=_to_json(inputs),
         results_json=_to_json(results),
-        probability=float(probability) if probability is not None else None,
-        risk_level=risk_level or _classify_risk(probability),
+        probability=probability_value,
+        risk_level=risk_level or _classify_risk(probability_value),
         notes=(notes or "")[:2000] or None,
     )
 
@@ -91,7 +100,9 @@ def save_history(
         db.session.commit()
         logger.info(
             "history.save: stored entry id=%s for user_id=%s type=%s",
-            entry.id, user_id, prediction_type,
+            entry.id,
+            user_id,
+            prediction_type,
         )
         return entry
     except Exception as exc:  # broad on purpose — see docstring
