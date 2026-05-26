@@ -206,6 +206,15 @@ def create_app():
     except ImportError as e:
         print(f"⚠️ Warning: Could not import 'bias_routes'. Error: {e}")
 
+    # ✅ Register synthetic patient routes
+    try:
+        from backend.routes.synthetic_routes import synthetic_bp
+
+        app.register_blueprint(synthetic_bp)
+        print("✅ 'synthetic_routes' blueprint registered successfully")
+    except ImportError as e:
+        print(f"⚠️ Warning: Could not import 'synthetic_routes'. Error: {e}")
+
     # ✅ Keep centralized error handler (from register-error-handler branch)
     ErrorHandler(app)
 
