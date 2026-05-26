@@ -231,6 +231,21 @@ def predict_disease():
                 "vitals_summary": vitals_analysis["summary"],
                 "flags": vitals_analysis["flags"],
             },
+            'ml_prediction': {
+                'raw_probability': round(ml_prediction['raw_probability'] * 100, 2),
+                'calibrated_probability': round(ml_prediction['calibrated_probability'] * 100, 2),
+                'calibration_gap': round(ml_prediction['calibration_gap'] * 100, 2),
+                'calibration_score': round(ml_prediction['calibration_score'] * 100, 2),
+                'confidence_score': round(ml_prediction['confidence_score'] * 100, 2),
+                'symptoms_analyzed': ml_prediction['symptoms_matched'],
+                'missing_symptoms': missing_symptoms,
+                'explanations': {
+                    'feature_impacts': ml_prediction.get('feature_impacts', []),
+                    'symptom_contributions': ml_prediction.get('symptom_contributions', {}),
+                    'summary': ml_prediction.get('explanation_summary', ''),
+                    'bias': ml_prediction.get('bias'),
+                    'bmi_effect': ml_prediction.get('bmi_effect')
+                }
             "ml_prediction": {
                 "raw_probability": round(ml_prediction["raw_probability"] * 100, 2),
                 "confidence_score": round(confidence_score * 100, 2),
