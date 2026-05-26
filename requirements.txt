@@ -15,7 +15,9 @@ streamlit>=1.32
 plotly>=5.20
 flask-login>=0.6
 PyMySQL>=1.1
-tensorflow-cpu>=2.15
+tensorflow>=2.15
 pillow>=10.0
 psycopg2-binary>=2.9
 gTTS>=2.5
+opencv-python
+redis>=5.0.0
