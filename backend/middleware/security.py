@@ -1,10 +1,8 @@
-"""
-API Rate Limiting and Security Middleware
-Protects endpoints from abuse and implements security best practices
-"""
-
 import hashlib
+import os
 import re
+import sqlite3
+import threading
 import time
 from collections import defaultdict
 from datetime import datetime
@@ -12,18 +10,273 @@ from functools import wraps
 
 from flask import jsonify, request
 
+try:
+    import redis
+except ImportError:
+    redis = None
+
+
+class InMemoryBackend:
+    """
+    Thread-safe in-memory rate limit backend.
+    Uses a background thread to prune stale entries periodically.
+    """
+
+    def __init__(self, cleanup_interval=60):
+        self._requests = defaultdict(list)
+        self._lock = threading.Lock()
+        self._cleanup_interval = cleanup_interval
+        self._stop_cleanup = threading.Event()
+        self._cleanup_thread = threading.Thread(
+            target=self._periodic_cleanup, daemon=True
+        )
+        self._cleanup_thread.start()
+
+    def _periodic_cleanup(self):
+        while not self._stop_cleanup.wait(self._cleanup_interval):
+            try:
+                self.prune_stale_entries()
+            except Exception as e:
+                print(f"Error in InMemoryBackend periodic cleanup: {e}")
+
+    def prune_stale_entries(self):
+        current_time = time.time()
+        # Keep buffer of 5 minutes (300 seconds) max window
+        max_window = 300
+        with self._lock:
+            for identifier in list(self._requests.keys()):
+                cutoff = current_time - max_window
+                self._requests[identifier] = [
+                    (ts, ep) for ts, ep in self._requests[identifier] if ts > cutoff
+                ]
+                if not self._requests[identifier]:
+                    del self._requests[identifier]
+
+    def check_rate_limit(self, identifier, endpoint_type, max_requests, window):
+        current_time = time.time()
+        cutoff_time = current_time - window
+
+        with self._lock:
+            # Clean old requests
+            self._requests[identifier] = [
+                (ts, ep) for ts, ep in self._requests[identifier] if ts > cutoff_time
+            ]
+
+            # Count requests in window
+            current_requests = len(self._requests[identifier])
+
+            # Check if limit exceeded
+            if current_requests >= max_requests:
+                oldest_request = min(self._requests[identifier], key=lambda x: x[0])
+                retry_after = int(window - (current_time - oldest_request[0])) + 1
+                return False, retry_after, 0
+
+            # Add current request
+            self._requests[identifier].append((current_time, endpoint_type))
+            remaining = max_requests - current_requests - 1
+
+            return True, 0, remaining
+
+    def get_stats(self):
+        with self._lock:
+            total_identifiers = len(self._requests)
+            total_requests = sum(len(reqs) for reqs in self._requests.values())
+
+        return {
+            "total_identifiers": total_identifiers,
+            "total_requests": total_requests,
+        }
+
+    def stop(self):
+        self._stop_cleanup.set()
+
+
+class RedisBackend:
+    """
+    Distributed Redis rate limit backend using TTL-based keys and an atomic Lua script.
+    """
+
+    LUA_RATE_LIMIT = """
+    local key = KEYS[1]
+    local now = tonumber(ARGV[1])
+    local window = tonumber(ARGV[2])
+    local max_requests = tonumber(ARGV[3])
+    local endpoint_type = ARGV[4]
+
+    local cutoff = now - window
+    redis.call('ZREMRANGEBYSCORE', key, '-inf', cutoff)
+    local current_requests = redis.call('ZCARD', key)
+
+    if current_requests >= max_requests then
+        local oldest = redis.call('ZRANGE', key, 0, 0, 'WITHSCORES')
+        local retry_after = 0
+        if oldest[2] then
+            retry_after = math.max(0, math.floor(window - (now - tonumber(oldest[2])))) + 1
+        else
+            retry_after = math.max(0, math.floor(window)) + 1
+        end
+        return {0, retry_after, 0}
+    else
+        redis.call('ZADD', key, now, now .. ":" .. endpoint_type)
+        redis.call('EXPIRE', key, math.ceil(window))
+        local remaining = max_requests - current_requests - 1
+        return {1, 0, remaining}
+    end
+    """
+
+    def __init__(self, redis_url="redis://localhost:6379/0"):
+        if redis is None:
+            raise ImportError(
+                "The 'redis' package is required to use the Redis rate limit backend."
+            )
+        self.redis_client = redis.from_url(redis_url, decode_responses=True)
+        self._lua_script = self.redis_client.register_script(self.LUA_RATE_LIMIT)
+
+    def check_rate_limit(self, identifier, endpoint_type, max_requests, window):
+        key = f"rate_limit:{identifier}:{endpoint_type}"
+        current_time = time.time()
+
+        allowed, retry_after, remaining = self._lua_script(
+            keys=[key],
+            args=[current_time, window, max_requests, endpoint_type]
+        )
+
+        return bool(allowed), int(retry_after), int(remaining)
+
+    def get_stats(self):
+        try:
+            keys = self.redis_client.keys("rate_limit:*")
+            total_identifiers = len(set(k.split(":")[1] for k in keys))
+            total_requests = sum(self.redis_client.zcard(k) for k in keys)
+        except Exception:
+            total_identifiers = 0
+            total_requests = 0
+
+        return {
+            "total_identifiers": total_identifiers,
+            "total_requests": total_requests,
+        }
+
+
+class SQLiteBackend:
+    """
+    SQLite-based rate limit backend.
+    Uses WAL mode for high concurrency support among Gunicorn workers.
+    """
+
+    def __init__(self, db_path="backend/rate_limit.db", cleanup_interval=60):
+        self.db_path = db_path
+        self._init_db()
+        self._cleanup_interval = cleanup_interval
+        self._stop_cleanup = threading.Event()
+        self._cleanup_thread = threading.Thread(
+            target=self._periodic_cleanup, daemon=True
+        )
+        self._cleanup_thread.start()
+
+    def _get_connection(self):
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        conn.execute("PRAGMA journal_mode=WAL")
+        return conn
+
+    def _init_db(self):
+        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        with self._get_connection() as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS rate_limits (
+                    identifier TEXT,
+                    endpoint_type TEXT,
+                    timestamp REAL
+                )
+            """)
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_rate_limits "
+                "ON rate_limits (identifier, endpoint_type, timestamp)"
+            )
+            conn.commit()
+
+    def _periodic_cleanup(self):
+        while not self._stop_cleanup.wait(self._cleanup_interval):
+            try:
+                self.prune_stale_entries()
+            except Exception as e:
+                print(f"Error in SQLiteBackend periodic cleanup: {e}")
+
+    def prune_stale_entries(self):
+        cutoff = time.time() - 300  # 5 minutes buffer
+        with self._get_connection() as conn:
+            conn.execute("DELETE FROM rate_limits WHERE timestamp < ?", (cutoff,))
+            conn.commit()
+
+    def check_rate_limit(self, identifier, endpoint_type, max_requests, window):
+        current_time = time.time()
+        cutoff_time = current_time - window
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            # Clean old records for this identifier
+            cursor.execute(
+                "DELETE FROM rate_limits WHERE identifier = ? AND timestamp < ?",
+                (identifier, cutoff_time)
+            )
+
+            # Count requests in window
+            cursor.execute(
+                "SELECT COUNT(*) FROM rate_limits "
+                "WHERE identifier = ? AND endpoint_type = ? AND timestamp > ?",
+                (identifier, endpoint_type, cutoff_time)
+            )
+            current_requests = cursor.fetchone()[0]
+
+            if current_requests >= max_requests:
+                cursor.execute(
+                    "SELECT MIN(timestamp) FROM rate_limits "
+                    "WHERE identifier = ? AND endpoint_type = ? AND timestamp > ?",
+                    (identifier, endpoint_type, cutoff_time)
+                )
+                oldest_timestamp = cursor.fetchone()[0]
+                if oldest_timestamp:
+                    retry_after = int(window - (current_time - oldest_timestamp)) + 1
+                else:
+                    retry_after = int(window) + 1
+                return False, retry_after, 0
+
+            # Insert current request
+            cursor.execute(
+                "INSERT INTO rate_limits (identifier, endpoint_type, timestamp) "
+                "VALUES (?, ?, ?)",
+                (identifier, endpoint_type, current_time)
+            )
+            conn.commit()
+
+            remaining = max_requests - current_requests - 1
+            return True, 0, remaining
+
+    def get_stats(self):
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(DISTINCT identifier) FROM rate_limits")
+            total_identifiers = cursor.fetchone()[0]
+            cursor.execute("SELECT COUNT(*) FROM rate_limits")
+            total_requests = cursor.fetchone()[0]
+
+        return {
+            "total_identifiers": total_identifiers,
+            "total_requests": total_requests,
+        }
+
+    def stop(self):
+        self._stop_cleanup.set()
+
 
 class RateLimiter:
     """
     Token bucket rate limiter for API endpoints.
-    Implements per-IP and per-endpoint rate limiting.
+    Implements per-IP and per-endpoint rate limiting using pluggable backends.
     """
 
     def __init__(self):
-        """Initialize rate limiter with storage for requests."""
-        # Store: {identifier: [(timestamp, endpoint), ...]}
-        self._requests = defaultdict(list)
-
+        """Initialize rate limiter with configured backend selection."""
         # Rate limit configurations
         self._limits = {
             "default": {"requests": 100, "window": 60},  # 100 req/min
@@ -31,6 +284,25 @@ class RateLimiter:
             "ml_analysis": {"requests": 20, "window": 60},  # 20 req/min
             "report": {"requests": 10, "window": 60},  # 10 req/min
         }
+
+        # Pluggable backend selection
+        backend_type = os.getenv("RATE_LIMIT_BACKEND", "in_memory").lower()
+
+        if backend_type == "redis":
+            try:
+                redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+                self.backend = RedisBackend(redis_url=redis_url)
+                print(f"✅ RateLimiter using Redis backend ({redis_url})")
+            except Exception as e:
+                print(f"⚠️ Failed to initialize Redis backend: {e}. Falling back to in_memory.")
+                self.backend = InMemoryBackend()
+        elif backend_type == "sqlite":
+            db_path = os.getenv("RATE_LIMIT_DB_PATH", "backend/rate_limit.db")
+            self.backend = SQLiteBackend(db_path=db_path)
+            print(f"✅ RateLimiter using SQLite backend ({db_path})")
+        else:
+            self.backend = InMemoryBackend()
+            print("✅ RateLimiter using InMemory backend")
 
         print("✅ RateLimiter initialized")
 
@@ -55,24 +327,6 @@ class RateLimiter:
 
         return identifier
 
-    def _clean_old_requests(self, identifier, window):
-        """
-        Remove requests outside the time window.
-
-        Args:
-            identifier: Request identifier
-            window: Time window in seconds
-        """
-        current_time = time.time()
-        cutoff_time = current_time - window
-
-        # Keep only requests within the window
-        self._requests[identifier] = [
-            (timestamp, endpoint)
-            for timestamp, endpoint in self._requests[identifier]
-            if timestamp > cutoff_time
-        ]
-
     def check_rate_limit(self, endpoint_type="default"):
         """
         Check if request is within rate limit.
@@ -90,27 +344,9 @@ class RateLimiter:
         max_requests = config["requests"]
         window = config["window"]
 
-        # Clean old requests
-        self._clean_old_requests(identifier, window)
-
-        # Count requests in current window
-        current_requests = len(self._requests[identifier])
-
-        # Check if limit exceeded
-        if current_requests >= max_requests:
-            # Calculate retry after time
-            oldest_request = min(self._requests[identifier], key=lambda x: x[0])
-            retry_after = int(window - (time.time() - oldest_request[0])) + 1
-
-            return False, retry_after, 0
-
-        # Add current request
-        self._requests[identifier].append((time.time(), endpoint_type))
-
-        # Calculate remaining requests
-        remaining = max_requests - current_requests - 1
-
-        return True, 0, remaining
+        return self.backend.check_rate_limit(
+            identifier, endpoint_type, max_requests, window
+        )
 
     def get_stats(self):
         """
@@ -119,14 +355,10 @@ class RateLimiter:
         Returns:
             Dictionary with statistics
         """
-        total_identifiers = len(self._requests)
-        total_requests = sum(len(reqs) for reqs in self._requests.values())
-
-        return {
-            "total_identifiers": total_identifiers,
-            "total_requests": total_requests,
-            "limits": self._limits,
-        }
+        stats = self.backend.get_stats()
+        stats["limits"] = self._limits
+        stats["backend"] = self.backend.__class__.__name__
+        return stats
 
 
 class SecurityValidator:

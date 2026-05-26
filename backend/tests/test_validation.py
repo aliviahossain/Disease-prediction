@@ -99,14 +99,14 @@ def test_high_probabilities():
     assert round(bayes_theorem(0.95, 0.95, 0.95, "positive"), 4) == 0.9972
 
 
-                def test_low_probabilities():
-                    assert (
-                        round(bayes_theorem(0.01, 0.01, 0.01, "positive"), 4) == 0.0099
-                    )
-                    assert (
-                        round(bayes_theorem(0.05, 0.05, 0.05, "positive"), 4) == 0.0526
-                    )
+def test_low_probabilities():
+    assert (
+        round(bayes_theorem(0.01, 0.01, 0.01, "positive"), 4) == 0.0099
+    )
+    assert (
+        round(bayes_theorem(0.05, 0.05, 0.05, "positive"), 4) == 0.0526
+    )
 
-                def test_high_probabilities():
-                    assert round(bayes_theorem(0.99, 0.99, 0.99, "positive"), 4) == 0.99
-                    assert round(bayes_theorem(0.95, 0.95, 0.95, "positive"), 4) == 0.95
+def test_high_probabilities_duplicate():
+    assert round(bayes_theorem(0.99, 0.99, 0.99, "positive"), 4) == 0.99
+    assert round(bayes_theorem(0.95, 0.95, 0.95, "positive"), 4) == 0.95
