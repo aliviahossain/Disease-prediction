@@ -3,16 +3,26 @@ Gemini API helper for generating recommendations based on disease probability re
 """
 
 import os
-from google import genai
-from google.genai import types
 from typing import Optional
+from google.genai import types
 
 # Global client variable to keep configuration simple
 client = None
 
+
 def configure_gemini():
     """Configure Gemini API with the API key from environment variables."""
     global client
+    try:
+        from google import genai
+    except ImportError:
+        import warnings
+
+        warnings.warn(
+            "google-genai package not properly installed. Gemini features disabled."
+        )
+        return
+
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise ValueError("GEMINI_API_KEY environment variable is not set")
@@ -20,55 +30,61 @@ def configure_gemini():
     client = genai.Client(api_key=api_key)
 
 
-def generate_recommendations(disease_name: Optional[str], 
-                            prior_probability: float, 
-                            posterior_probability: float,
-                            test_result: str = "positive",
-                            language: str = "english") -> dict:
+def generate_recommendations(
+    disease_name: Optional[str],
+    prior_probability: float,
+    posterior_probability: float,
+    test_result: str = "positive",
+    language: str = "english",
+) -> dict:
     """
     Generate AI-powered recommendations using Gemini API based on disease probability results.
-    
+
     Args:
         disease_name: Name of the disease (optional, can be None for custom input)
         prior_probability: Prior probability of disease (before test)
         posterior_probability: Posterior probability of disease (after test)
         test_result: The test result ("positive" or "negative")
         language: Language for the response (english, hindi, gujarati, tamil)
-    
+
     Returns:
         dict: Contains 'success', 'recommendations', and optional 'error' keys
     """
     try:
         configure_gemini()
-        
+
         # Create the model - use the latest available flash model
         # Try newer models first, fall back to older ones if needed
-        model_names = [ 'gemini-2.5-flash', 'gemini-2.5-pro']
+        model_names = ["gemini-2.5-flash", "gemini-2.5-pro"]
         chosen_model = None
-        
+
         for model_name in model_names:
             try:
                 chosen_model = model_name
                 break
-            except:
+            except Exception:
                 continue
-        
+
         if chosen_model is None:
-            chosen_model = 'gemini-2.5-flash'
-        
+            chosen_model = "gemini-2.5-flash"
+
         # Construct the prompt
-        disease_context = f"the disease '{disease_name}'" if disease_name else "a disease"
-        
+        disease_context = (
+            f"the disease '{disease_name}'" if disease_name else "a disease"
+        )
+
         # Language mapping for prompt instructions
         language_instructions = {
             "english": "Respond in English.",
             "hindi": "Respond in Hindi (हिंदी में जवाब दें). Use Devanagari script.",
             "gujarati": "Respond in Gujarati (ગુજરાતીમાં જવાબ આપો). Use Gujarati script.",
-            "tamil": "Respond in Tamil (தமிழில் பதிலளிக்கவும்). Use Tamil script."
+            "tamil": "Respond in Tamil (தமிழில் பதிலளிக்கவும்). Use Tamil script.",
         }
-        
-        language_instruction = language_instructions.get(language.lower(), language_instructions["english"])
-        
+
+        language_instruction = language_instructions.get(
+            language.lower(), language_instructions["english"]
+        )
+
         prompt = f"""
 You are a medical informatics assistant helping to interpret diagnostic test results.
 
@@ -94,52 +110,49 @@ Structure your response in the following format:
 
 Keep your response concise (under 200 words), professional, educational, and emphasize that this is a probabilistic tool, not a definitive diagnosis. The recommendations should be general guidance that would apply to most cases.
 """
-        
+
         # Generate response using the new client format
-        response = client.models.generate_content(
-            model=chosen_model,
-            contents=prompt
-        )
-        
+        response = client.models.generate_content(model=chosen_model, contents=prompt)
+
         return {
             "success": True,
             "recommendations": response.text,
             "prior_probability": prior_probability,
-            "posterior_probability": posterior_probability
+            "posterior_probability": posterior_probability,
         }
-        
+
     except ValueError as ve:
         return {
             "success": False,
             "error": str(ve),
-            "recommendations": "API key not configured. Please set GEMINI_API_KEY environment variable."
+            "recommendations": "API key not configured. Please set GEMINI_API_KEY environment variable.",
         }
     except Exception as e:
         return {
             "success": False,
             "error": str(e),
-            "recommendations": "Unable to generate recommendations at this time. Please try again later."
+            "recommendations": "Unable to generate recommendations at this time. Please try again later.",
         }
 
 
 def generate_chat_response(message: str, history: list = None) -> dict:
     """
     Generate a chat response using Gemini API, restricted to medical/health domain.
-    
+
     Args:
         message: The user's query
         history: Optional list of previous chat messages for context
-    
+
     Returns:
         dict: Contains 'success', 'response', and optional 'error' keys
     """
     try:
         configure_gemini()
-        
+
         # System instruction to restrict domain
         system_instruction = """
         You are a helpful AI assistant for a Disease Prediction Application.
-        
+
         YOUR ROLE:
         - Helper users understand disease predictions.
         - Answer general health and medical questions.
@@ -153,31 +166,26 @@ def generate_chat_response(message: str, history: list = None) -> dict:
         4. Keep answers concise (under 150 words) unless detailed explanation is requested.
         5. Be empathetic and professional.
         """
-        
+
         # Use the modern chats utility instance configuration passing system instruction
         chat = client.chats.create(
-            model='gemini-2.5-flash',
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction
-            )
+            model="gemini-2.5-flash",
+            config=type.GenerateContentConfig(system_instruction=system_instruction),
         )
-        
+
         response = chat.send_message(message)
-        
-        return {
-            "success": True,
-            "response": response.text
-        }
-        
+
+        return {"success": True, "response": response.text}
+
     except ValueError as ve:
         return {
             "success": False,
             "error": str(ve),
-            "response": "Configuration Error: API key missing."
+            "response": "Configuration Error: API key missing.",
         }
     except Exception as e:
         return {
             "success": False,
             "error": str(e),
-            "response": "I'm having trouble connecting right now. Please try again later."
+            "response": "I'm having trouble connecting right now. Please try again later.",
         }
