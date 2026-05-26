@@ -9,6 +9,7 @@ from backend.models.disease import Disease
 
 app = create_app()
 
+
 def seed():
     df = pd.read_csv("hospital_data.csv")
 
@@ -22,12 +23,13 @@ def seed():
                 disease=row["Disease"],
                 prevalence=row["Prevalence"],
                 sensitivity=row["Sensitivity"],
-                false_positive=row["FalsePositive"]
+                false_positive=row["FalsePositive"],
             )
             db.session.add(disease)
 
         db.session.commit()
         print("✅ Diseases table populated successfully (MySQL)")
+
 
 if __name__ == "__main__":
     seed()

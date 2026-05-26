@@ -11,7 +11,8 @@ History page had nothing to display.
 
 from datetime import datetime
 
-from backend import db  # the SQLAlchemy() instance created in backend/__init__.py
+from backend import \
+    db  # the SQLAlchemy() instance created in backend/__init__.py
 
 
 class PatientHistory(db.Model):
@@ -58,8 +59,8 @@ class PatientHistory(db.Model):
 
     # Convenience scalar columns so the history list can show useful info
     # without parsing the JSON blob for every row.
-    probability = db.Column(db.Float, nullable=True)         # 0.0–1.0
-    risk_level = db.Column(db.String(16), nullable=True)     # low/medium/high
+    probability = db.Column(db.Float, nullable=True)  # 0.0–1.0
+    risk_level = db.Column(db.String(16), nullable=True)  # low/medium/high
 
     # Optional free-text note the user can attach to a history entry.
     notes = db.Column(db.Text, nullable=True)
@@ -70,12 +71,15 @@ class PatientHistory(db.Model):
 
     # Back-populate from User (set up the matching relationship on User
     # if you want bi-directional access; see __init__.py snippet).
-    user = db.relationship("User", backref=db.backref(
-        "history_entries",
-        lazy="dynamic",
-        cascade="all, delete-orphan",
-        order_by="PatientHistory.created_at.desc()",
-    ))
+    user = db.relationship(
+        "User",
+        backref=db.backref(
+            "history_entries",
+            lazy="dynamic",
+            cascade="all, delete-orphan",
+            order_by="PatientHistory.created_at.desc()",
+        ),
+    )
 
     # ------------------------------------------------------------------ #
     # Helpers
@@ -101,7 +105,8 @@ class PatientHistory(db.Model):
             "probability": self.probability,
             "probability_percent": (
                 round(self.probability * 100, 2)
-                if self.probability is not None else None
+                if self.probability is not None
+                else None
             ),
             "risk_level": self.risk_level,
             "notes": self.notes,
