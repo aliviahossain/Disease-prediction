@@ -3,7 +3,7 @@ Configuration and model file validator for fail-fast startup checks.
 """
 
 import os
-import sys
+
 
 def validate_startup_config(app):
     """
@@ -15,9 +15,7 @@ def validate_startup_config(app):
     flask_env = os.getenv("FLASK_ENV")
     flask_debug = os.getenv("FLASK_DEBUG")
     is_production = (
-        flask_env == "production"
-        and flask_debug != "1"
-        and flask_env != "development"
+        flask_env == "production" and flask_debug != "1" and flask_env != "development"
     )
 
     # 2. Check SECRET_KEY
@@ -54,12 +52,19 @@ def validate_startup_config(app):
     models_to_check = {
         "eyes": {
             "name": "eye_disease_resnet50_fp16.keras",
-            "path": os.path.join(backend_dir, "models", "resnet50_models", "eye_disease_resnet50_fp16.keras")
+            "path": os.path.join(
+                backend_dir,
+                "models",
+                "resnet50_models",
+                "eye_disease_resnet50_fp16.keras",
+            ),
         },
         "skin": {
             "name": "skin_model.tflite",
-            "path": os.path.join(backend_dir, "models", "resnet50_models", "skin_model.tflite")
-        }
+            "path": os.path.join(
+                backend_dir, "models", "resnet50_models", "skin_model.tflite"
+            ),
+        },
     }
 
     for model_type, info in models_to_check.items():
@@ -75,5 +80,7 @@ def validate_startup_config(app):
                 print("\n=======================================================")
                 print(f"⚠️  WARNING: ML model file '{info['name']}' not found!")
                 print(f"   Path checked: {model_path}")
-                print(f"   Image-based predictions for '{model_type}' will fail at runtime.")
+                print(
+                    f"   Image-based predictions for '{model_type}' will fail at runtime."
+                )
                 print("=======================================================\n")

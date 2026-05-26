@@ -1,5 +1,6 @@
 from backend import db
 
+
 class Disease(db.Model):
     __tablename__ = "diseases"
 

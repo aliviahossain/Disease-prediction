@@ -66,6 +66,7 @@ logger = logging.getLogger(__name__)
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 def _find_last_conv_layer(model: Model) -> str:
     """
     Walk the model layers in reverse and return the name of the last
@@ -113,10 +114,10 @@ def _preprocess_image(
     original_img: uint8 array of shape (H, W, 3) for overlay blending
     """
     img = Image.open(img_path).convert("RGB").resize((target_size[1], target_size[0]))
-    original_img = np.array(img, dtype=np.uint8)                    # (H, W, 3)
+    original_img = np.array(img, dtype=np.uint8)  # (H, W, 3)
 
     img_array = np.array(img, dtype=np.float32)
-    img_array = np.expand_dims(img_array, axis=0)                   # (1, H, W, 3)
+    img_array = np.expand_dims(img_array, axis=0)  # (1, H, W, 3)
     img_array = tf.keras.applications.resnet50.preprocess_input(img_array)
     return img_array, original_img
 
@@ -162,15 +163,15 @@ def _compute_gradcam_heatmap(
         loss = predictions[:, class_index]
 
     # Gradients of class score w.r.t. conv feature maps
-    grads = tape.gradient(loss, conv_outputs)           # (1, h, w, C)
+    grads = tape.gradient(loss, conv_outputs)  # (1, h, w, C)
 
     # Global-average-pool the gradients over the spatial axes → (1, 1, 1, C)
     pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))  # (C,)
 
     # Weight each activation channel by its pooled gradient
-    conv_outputs = conv_outputs[0]                       # (h, w, C)
+    conv_outputs = conv_outputs[0]  # (h, w, C)
     heatmap = conv_outputs @ pooled_grads[..., tf.newaxis]  # (h, w, 1)
-    heatmap = tf.squeeze(heatmap)                        # (h, w)
+    heatmap = tf.squeeze(heatmap)  # (h, w)
 
     # ReLU: keep only positive influences on the class score
     heatmap = tf.nn.relu(heatmap)
@@ -212,8 +213,8 @@ def _blend_overlay(
     overlay = alpha * heatmap + (1 - alpha) * original
     """
     original_f = original_img.astype(np.float32)
-    heatmap_f  = coloured_heatmap.astype(np.float32)
-    blended    = alpha * heatmap_f + (1.0 - alpha) * original_f
+    heatmap_f = coloured_heatmap.astype(np.float32)
+    blended = alpha * heatmap_f + (1.0 - alpha) * original_f
     return np.clip(blended, 0, 255).astype(np.uint8)
 
 
@@ -222,7 +223,7 @@ def _array_to_base64_png(arr: np.ndarray) -> str:
     Encode a uint8 RGB numpy array as a base64 PNG data URI.
     """
     pil_img = Image.fromarray(arr)
-    buffer  = io.BytesIO()
+    buffer = io.BytesIO()
     pil_img.save(buffer, format="PNG")
     encoded = base64.b64encode(buffer.getvalue()).decode("utf-8")
     return f"data:image/png;base64,{encoded}"
@@ -266,7 +267,7 @@ def _get_tflite_interpreter(tflite_path: str) -> "tf.lite.Interpreter":
     """
     interpreter = tf.lite.Interpreter(
         model_path=tflite_path,
-        experimental_delegates=[],          # disable XNNPACK / any hardware delegate
+        experimental_delegates=[],  # disable XNNPACK / any hardware delegate
         num_threads=1,
     )
     interpreter.allocate_tensors()
@@ -285,7 +286,7 @@ def _find_tflite_feature_tensor(
 
     # Dummy forward pass so runtime buffers are populated
     input_details = interpreter.get_input_details()
-    output_details = interpreter.get_output_details()
+    interpreter.get_output_details()
     dummy = np.zeros(input_details[0]["shape"], dtype=np.float32)
     interpreter.allocate_tensors()
     interpreter.set_tensor(input_details[0]["index"], dummy)
@@ -327,7 +328,7 @@ def _tflite_infer(
     set_tensor call on interpreters that are reused across multiple inferences.
     """
     interpreter.allocate_tensors()
-    input_details  = interpreter.get_input_details()
+    input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
 
     interpreter.set_tensor(input_details[0]["index"], img_array.astype(np.float32))
@@ -348,7 +349,7 @@ def _tflite_infer_with_feature(
     feature_map : float32 array of shape (H_feat, W_feat, C)
     predictions : float32 array of shape (num_classes,)
     """
-    input_details  = interpreter.get_input_details()
+    input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
 
     interpreter.allocate_tensors()
@@ -393,7 +394,7 @@ def _compute_scorecam_heatmap(
     h_feat, w_feat, num_channels = feature_map.shape
 
     # ── Step 2: select top-variance channels to stay within budget ──────────
-    channel_variances = feature_map.var(axis=(0, 1))          # (C,)
+    channel_variances = feature_map.var(axis=(0, 1))  # (C,)
     if num_channels > max_channels:
         top_indices = np.argsort(channel_variances)[-max_channels:]
     else:
@@ -404,7 +405,7 @@ def _compute_scorecam_heatmap(
 
     for ch_idx in top_indices:
         # (a) Extract and upsample this channel's activation mask
-        channel_act = feature_map[:, :, ch_idx]               # (h_feat, w_feat)
+        channel_act = feature_map[:, :, ch_idx]  # (h_feat, w_feat)
         mask_resized = cv2.resize(channel_act, (input_w, input_h))  # (H, W)
 
         # (b) Normalise mask to [0, 1]
@@ -414,12 +415,12 @@ def _compute_scorecam_heatmap(
         mask_norm = (mask_resized - m_min) / (m_max - m_min)  # (H, W)
 
         # (c) Apply mask to input image
-        mask_3c   = mask_norm[:, :, np.newaxis]                # (H, W, 1)
-        masked_img = img_array * mask_3c                        # (1, H, W, 3)
+        mask_3c = mask_norm[:, :, np.newaxis]  # (H, W, 1)
+        masked_img = img_array * mask_3c  # (1, H, W, 3)
 
         # (d) Forward pass on masked image
         masked_preds = _tflite_infer(interpreter, masked_img)  # (1, num_classes)
-        score        = float(masked_preds[0, class_index])
+        score = float(masked_preds[0, class_index])
 
         # (e) Accumulate: weight activation map by the class score
         cam_accumulator += score * channel_act
@@ -474,10 +475,10 @@ def generate_tflite_scorecam_overlay(
 
     h, w = original_img.shape[:2]
     coloured_heatmap = _heatmap_to_colormap(heatmap, target_hw=(h, w))
-    overlay          = _blend_overlay(original_img, coloured_heatmap, alpha=heatmap_alpha)
+    overlay = _blend_overlay(original_img, coloured_heatmap, alpha=heatmap_alpha)
 
-    overlay_b64  = _array_to_base64_png(overlay)
-    heatmap_b64  = _array_to_base64_png(coloured_heatmap)
+    overlay_b64 = _array_to_base64_png(overlay)
+    heatmap_b64 = _array_to_base64_png(coloured_heatmap)
 
     logger.info(
         "Score-CAM generated | tensor_idx=%d | class_index=%d | img=%s",
@@ -492,6 +493,7 @@ def generate_tflite_scorecam_overlay(
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def generate_gradcam_overlay(
     model: Model,
@@ -546,8 +548,8 @@ def generate_gradcam_overlay(
     overlay = _blend_overlay(original_img, coloured_heatmap, alpha=heatmap_alpha)
 
     # 6. Encode both as base64 PNG data URIs
-    overlay_b64  = _array_to_base64_png(overlay)
-    heatmap_b64  = _array_to_base64_png(coloured_heatmap)
+    overlay_b64 = _array_to_base64_png(overlay)
+    heatmap_b64 = _array_to_base64_png(coloured_heatmap)
 
     logger.info(
         "Grad-CAM generated | layer=%s | class_index=%d | img=%s",
@@ -562,6 +564,7 @@ def generate_gradcam_overlay(
 # ---------------------------------------------------------------------------
 # Convenience wrapper — drop-in alongside predict_disease()
 # ---------------------------------------------------------------------------
+
 
 def predict_with_gradcam(
     model,
@@ -609,8 +612,8 @@ def predict_with_gradcam(
         gradcam_heatmap  – base64 PNG data URI (raw heatmap) or None on error
         explanation_method – "grad-cam" | "score-cam" | None
     """
-    gradcam_overlay    = None
-    gradcam_heatmap    = None
+    gradcam_overlay = None
+    gradcam_heatmap = None
     explanation_method = None
 
     # ── Detect model type ───────────────────────────────────────────────────
@@ -621,12 +624,12 @@ def predict_with_gradcam(
 
         # ── Inference ───────────────────────────────────────────────────────
         if is_tflite:
-            predictions     = _tflite_infer(model, img_array)   # (1, C)
-            predictions     = predictions[0]                     # (C,)
+            predictions = _tflite_infer(model, img_array)  # (1, C)
+            predictions = predictions[0]  # (C,)
         else:
-            predictions     = model.predict(img_array)[0]        # (C,)
+            predictions = model.predict(img_array)[0]  # (C,)
 
-        confidence      = float(np.max(predictions))
+        confidence = float(np.max(predictions))
         predicted_index = int(np.argmax(predictions))
 
         # ── Explainability ──────────────────────────────────────────────────
@@ -663,7 +666,9 @@ def predict_with_gradcam(
 
         except Exception as cam_err:
             # Explainability failure must NOT kill the prediction response
-            logger.warning("Heatmap generation failed (%s): %s", explanation_method, cam_err)
+            logger.warning(
+                "Heatmap generation failed (%s): %s", explanation_method, cam_err
+            )
 
         # ── Uncertainty gate ────────────────────────────────────────────────
         if confidence < confidence_threshold:
