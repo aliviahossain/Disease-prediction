@@ -5,10 +5,10 @@ from datetime import date, timedelta
 import pytest
 from sqlalchemy.exc import OperationalError
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from backend import bcrypt, create_app, db
 from backend.models.user import User
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 @pytest.fixture
