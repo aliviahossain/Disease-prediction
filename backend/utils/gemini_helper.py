@@ -170,7 +170,7 @@ def generate_chat_response(message: str, history: list = None) -> dict:
         # Use the modern chats utility instance configuration passing system instruction
         chat = client.chats.create(
             model="gemini-2.5-flash",
-            config=type.GenerateContentConfig(system_instruction=system_instruction),
+            config=types.GenerateContentConfig(system_instruction=system_instruction),
         )
 
         response = chat.send_message(message)
