@@ -34,7 +34,7 @@ def load_data(filepath):
     Load hospital data from CSV and calculate posterior probabilities.
     """
     results = []
-    with open(filepath, mode="r") as file:
+    with open(filepath, mode="r", encoding="utf-8") as file:
         reader = csv.DictReader(file)
         for row in reader:
             prevalence = float(row["Prevalence"])
