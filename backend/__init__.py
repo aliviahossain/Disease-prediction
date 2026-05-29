@@ -91,7 +91,7 @@ def create_app():
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    # ✅ SECURITY FIX: Load SECRET_KEY from environment variable
+    # SECURITY FIX: Load SECRET_KEY from environment variable
     secret_key = os.getenv("SECRET_KEY")
     if not secret_key:
         is_development = (
@@ -100,12 +100,12 @@ def create_app():
 
         if is_development:
             secret_key = secrets.token_hex(32)
-            print("\n⚠️  WARNING: SECRET_KEY not set in environment.")
+            print("\n[WARN] WARNING: SECRET_KEY not set in environment.")
             print("   Using random key for development only.")
             print("   For production, set SECRET_KEY in your .env file!\n")
         else:
             raise ValueError(
-                "\n❌ CRITICAL ERROR: SECRET_KEY environment variable is required!\n"
+                "\n[FAIL] CRITICAL ERROR: SECRET_KEY environment variable is required!\n"
                 "   Please set SECRET_KEY in your .env file.\n"
                 '   Generate one with: python -c "import secrets; print(secrets.token_hex(32))"\n'
             )
@@ -160,9 +160,9 @@ def create_app():
         from backend.routes.history_routes import history_bp
 
         app.register_blueprint(history_bp)
-        print("✅ 'history_routes' blueprint registered successfully")
+        print("[OK] 'history_routes' blueprint registered successfully")
     except ImportError as e:
-        print(f"⚠️ Warning: Could not import 'history_routes'. Error: {e}")
+        print(f"[WARN] Warning: Could not import 'history_routes'. Error: {e}")
 
     try:
         from backend.routes.predict_disease_type_routes import \
@@ -187,35 +187,35 @@ def create_app():
         app.register_blueprint(scalability_bp)
         print("'scalability_routes' blueprint registered successfully")
     except ImportError as e:
-        print(f"⚠️ Warning: Could not import 'scalability_routes'. Error: {e}")
+        print(f"[WARN] Warning: Could not import 'scalability_routes'. Error: {e}")
 
     try:
         from backend.routes.chat_routes import chat_bp
 
         app.register_blueprint(chat_bp)
-        print("✅ 'chat_routes' blueprint registered successfully")
+        print("[OK] 'chat_routes' blueprint registered successfully")
     except ImportError as e:
-        print(f"⚠️ Warning: Could not import 'chat_routes'. Error: {e}")
+        print(f"[WARN] Warning: Could not import 'chat_routes'. Error: {e}")
 
-    # ✅ Keep bias routes (from main branch)
+    # Keep bias routes (from main branch)
     try:
         from backend.routes.bias_routes import bias_bp
 
         app.register_blueprint(bias_bp)
-        print("✅ 'bias_routes' blueprint registered successfully")
+        print("[OK] 'bias_routes' blueprint registered successfully")
     except ImportError as e:
-        print(f"⚠️ Warning: Could not import 'bias_routes'. Error: {e}")
+        print(f"[WARN] Warning: Could not import 'bias_routes'. Error: {e}")
 
-    # ✅ Register synthetic patient routes
+    # Register synthetic patient routes
     try:
         from backend.routes.synthetic_routes import synthetic_bp
 
         app.register_blueprint(synthetic_bp)
-        print("✅ 'synthetic_routes' blueprint registered successfully")
+        print("[OK] 'synthetic_routes' blueprint registered successfully")
     except ImportError as e:
-        print(f"⚠️ Warning: Could not import 'synthetic_routes'. Error: {e}")
+        print(f"[WARN] Warning: Could not import 'synthetic_routes'. Error: {e}")
 
-    # ✅ Keep centralized error handler (from register-error-handler branch)
+    # Keep centralized error handler (from register-error-handler branch)
     ErrorHandler(app)
 
     @app.context_processor
