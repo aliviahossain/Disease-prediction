@@ -125,6 +125,8 @@ def create_app():
     # --- Models -------------------------------------------------------
     # Import the models so SQLAlchemy registers them with `db` before create_all() is called below.
     # Without this import the patient_history table is never created, which is one half of the bug where history is "not being recorded".
+    from backend.models.user import User
+    from backend.models.prediction import PredictionHistory
 
     # Register Disease Routes Blueprint
     from backend.routes.disease_routes import disease_bp

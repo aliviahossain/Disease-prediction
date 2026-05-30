@@ -12,15 +12,15 @@ from backend.src.calculator import (bayesian_survival, display_results,
 class TestBayesianCalculator(unittest.TestCase):
     def test_mid_range_probabilities(self):
         self.assertAlmostEqual(bayesian_survival(0.5, 0.5, 0.5), 0.5, places=4)
-        self.assertAlmostEqual(bayesian_survival(0.3, 0.7, 0.6), 0.5385, places=4)
+        self.assertAlmostEqual(bayesian_survival(0.3, 0.7, 0.6), 0.4286, places=4)
 
     def test_low_probabilities(self):
-        self.assertAlmostEqual(bayesian_survival(0.01, 0.01, 0.01), 0.0099, places=4)
-        self.assertAlmostEqual(bayesian_survival(0.05, 0.05, 0.05), 0.0526, places=4)
+        self.assertAlmostEqual(bayesian_survival(0.01, 0.01, 0.01), 0.0001, places=4)
+        self.assertAlmostEqual(bayesian_survival(0.05, 0.05, 0.05), 0.0028, places=4)
 
     def test_high_probabilities(self):
-        self.assertAlmostEqual(bayesian_survival(0.99, 0.99, 0.99), 0.99, places=4)
-        self.assertAlmostEqual(bayesian_survival(0.95, 0.95, 0.95), 0.95, places=4)
+        self.assertAlmostEqual(bayesian_survival(0.99, 0.99, 0.99), 0.9999, places=4)
+        self.assertAlmostEqual(bayesian_survival(0.95, 0.95, 0.95), 0.9972, places=4)
 
     def test_boundary_conditions(self):
         # Prior at bounds
@@ -30,8 +30,8 @@ class TestBayesianCalculator(unittest.TestCase):
         self.assertAlmostEqual(bayesian_survival(0.5, 0, 0.5), 0.0, places=4)
         self.assertAlmostEqual(bayesian_survival(0.5, 1, 0.5), 0.6667, places=4)
         # Specificity at bounds
-        self.assertAlmostEqual(bayesian_survival(0.5, 0.5, 0), 0.5, places=4)
-        self.assertAlmostEqual(bayesian_survival(0.5, 0.5, 1), 0.5, places=4)
+        self.assertAlmostEqual(bayesian_survival(0.5, 0.5, 0), 0.3333, places=4)
+        self.assertAlmostEqual(bayesian_survival(0.5, 0.5, 1), 1.0, places=4)
 
     # -----------------------------
     # Test load_data
