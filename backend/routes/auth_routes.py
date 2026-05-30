@@ -16,6 +16,7 @@ NAME_RE = re.compile(r"^[A-Za-z][A-Za-z\s'.-]{1,79}$")
 RELATION_RE = re.compile(r"^[A-Za-z][A-Za-z\s'.-]{1,49}$")
 ADDRESS_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9\s,.'/#-]{4,159}$")
 MEDICAL_TEXT_RE = re.compile(r"^[A-Za-z][A-Za-z\s,.';:/()&+-]*$")
+EMAIL_RE = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 ALLOWED_GENDERS = {"Male", "Female", "Other", ""}
 MAX_PROFILE_AGE = 120
 
@@ -174,6 +175,16 @@ def signup():
     # 1. Reject empty fields
     if not username or not email or not password:
         flash('All fields are required.', 'danger')
+        return redirect(url_for('auth.login', tab='register'))
+
+    # 2. Validate email format
+    if not EMAIL_RE.fullmatch(email):
+        flash('Invalid email address format.', 'danger')
+        return redirect(url_for('auth.login', tab='register'))
+
+    # 3. Validate password strength
+    if len(password) < 8 or not re.search(r"\d", password) or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+        flash('Password must be at least 8 characters long, contain at least one number and one special character.', 'danger')
         return redirect(url_for('auth.login', tab='register'))
 
     # 2. Check for existing user (split for better internal logging if needed, but flash user-friendly)
