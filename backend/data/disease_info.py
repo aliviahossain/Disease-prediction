@@ -1,296 +1,100 @@
 DISEASE_INFO = {
-
-    "diabetes":
-    "A chronic disease affecting the body's ability to regulate blood sugar levels.",
-
-    "hypertension":
-    "A condition where blood pressure remains consistently higher than normal.",
-
-    "covid19":
-    "A viral respiratory illness caused by the SARS-CoV-2 virus.",
-
-    "heart_disease":
-    "A group of conditions affecting the heart and blood vessels.",
-
-    "influenza":
-    "A contagious viral infection affecting the respiratory system.",
-
-    "malaria":
-    "A mosquito-borne infectious disease caused by parasites.",
-
-    "diabetes_type_2":
-    "A chronic condition that affects how the body processes blood sugar.",
-
-    "breast_cancer":
-    "A cancer that develops in breast tissue cells.",
-
-    "lung_cancer":
-    "A type of cancer that begins in the lungs.",
-
-    "colorectal_cancer":
-    "Cancer affecting the colon or rectum.",
-
-    "prostate_cancer":
-    "A cancer that develops in the prostate gland.",
-
-    "stroke":
-    "A medical emergency caused by interrupted blood flow to the brain.",
-
-    "pneumonia":
-    "An infection that inflames the air sacs in the lungs.",
-
-    "tuberculosis":
-    "A bacterial infection primarily affecting the lungs.",
-
-    "hepatitis_b":
-    "A viral infection that attacks the liver.",
-
-    "hepatitis_c":
-    "A viral liver infection caused by the hepatitis C virus.",
-
-    "hiv_aids":
-    "A disease that weakens the immune system by attacking immune cells.",
-
-    "alzheimers_disease":
-    "A neurological disorder causing memory loss and cognitive decline.",
-
-    "parkinsons_disease":
-    "A neurological disorder affecting movement and coordination.",
-
-    "multiple_sclerosis":
-    "An autoimmune disease affecting the brain and spinal cord.",
-
-    "epilepsy":
-    "A neurological disorder causing recurrent seizures.",
-
-    "asthma":
-    "A chronic respiratory condition causing airway inflammation.",
-
-    "copd":
-    "A chronic lung disease that obstructs airflow and breathing.",
-
-    "kidney_disease":
-    "A condition where kidney function becomes impaired.",
-
-    "liver_disease":
-    "A disease affecting liver function and metabolism.",
-
-    "osteoarthritis":
-    "A degenerative joint disease causing cartilage breakdown.",
-
-    "rheumatoid_arthritis":
-    "An autoimmune disorder affecting joints and causing inflammation.",
-
-    "osteoporosis":
-    "A condition causing bones to become weak and fragile.",
-
-    "migraine":
-    "A neurological condition causing severe headaches.",
-
-    "depression":
-    "A mental health disorder causing persistent sadness and low mood.",
-
-    "anxiety_disorder":
-    "A mental health condition involving excessive fear and worry.",
-
-    "bipolar_disorder":
-    "A mental disorder characterized by extreme mood swings.",
-
-    "schizophrenia":
-    "A severe mental disorder affecting thinking and behavior.",
-
-    "celiac_disease":
-    "An autoimmune disorder triggered by gluten consumption.",
-
-    "crohns_disease":
-    "A chronic inflammatory bowel disease affecting digestion.",
-
-    "ulcerative_colitis":
-    "A chronic inflammatory condition causing ulcers in the colon.",
-
-    "gout":
-    "A form of arthritis caused by uric acid crystal buildup.",
-
-    "psoriasis":
-    "An autoimmune skin disease causing red, scaly patches.",
-
-    "lupus":
-    "An autoimmune disease where the immune system attacks healthy tissue.",
-
-    "fibromyalgia":
-    "A disorder causing widespread muscle pain and fatigue.",
-
-    "iron_deficiency_anemia":
-    "A condition caused by insufficient iron levels in the body.",
-
-    "vitamin_d_deficiency":
-    "A condition resulting from low vitamin D levels.",
-
-    "hypothyroidism":
-    "A condition where the thyroid gland produces too little hormone.",
-
-    "hyperthyroidism":
-    "A condition where the thyroid gland produces excessive hormone.",
-
-    "adrenal_insufficiency":
-    "A disorder where the adrenal glands fail to produce enough hormones.",
-
-    "pituitary_disorders":
-    "Conditions affecting hormone production by the pituitary gland.",
-
-    "glaucoma":
-    "An eye disease damaging the optic nerve due to pressure buildup.",
-
-    "cataracts":
-    "A condition causing clouding of the eye lens.",
-
-    "macular_degeneration":
-    "An eye disorder causing central vision loss.",
-
-    "hearing_loss":
-    "Partial or complete inability to hear sounds clearly.",
-
-    "tinnitus":
-    "A condition causing ringing or buzzing sounds in the ears.",
-
-    "sleep_apnea":
-    "A sleep disorder involving interrupted breathing during sleep.",
-
-    "insomnia":
-    "A sleep disorder causing difficulty falling or staying asleep.",
-
-    "gerd":
-    "A digestive disorder where stomach acid flows back into the esophagus.",
-
-    "ibs":
-    "A gastrointestinal disorder causing abdominal pain and bowel issues.",
-
-    "gallstones":
-    "Hardened deposits that form inside the gallbladder.",
-
-    "kidney_stones":
-    "Hard mineral deposits that form inside the kidneys.",
-
-    "uti":
-    "An infection affecting the urinary system.",
-
-    "benign_prostatic_hyperplasia":
-    "A noncancerous enlargement of the prostate gland.",
-
-    "endometriosis":
-    "A condition where uterine-like tissue grows outside the uterus.",
-
-    "pcos":
-    "A hormonal disorder affecting ovarian function.",
-
-    "preeclampsia":
-    "A pregnancy complication characterized by high blood pressure.",
-
-    "gestational_diabetes":
-    "A type of diabetes that develops during pregnancy.",
-
-    "myocardial_infarction":
-    "A heart attack caused by blocked blood flow to the heart.",
-
-    "atrial_fibrillation":
-    "An irregular and often rapid heart rhythm.",
-
-    "heart_failure":
-    "A condition where the heart cannot pump blood effectively.",
-
-    "peripheral_artery_disease":
-    "A circulatory condition reducing blood flow to limbs.",
-
-    "deep_vein_thrombosis":
-    "A blood clot forming in a deep vein.",
-
-    "pulmonary_embolism":
-    "A blockage in a lung artery caused by a blood clot.",
-
-    "sepsis":
-    "A life-threatening response to infection causing organ dysfunction.",
-
-    "meningitis":
-    "Inflammation of protective membranes surrounding the brain and spinal cord.",
-
-    "encephalitis":
-    "Inflammation of the brain usually caused by infection.",
-
-    "appendicitis":
-    "Inflammation of the appendix causing abdominal pain.",
-
-    "cholecystitis":
-    "Inflammation of the gallbladder.",
-
-    "pancreatitis":
-    "Inflammation of the pancreas affecting digestion.",
-
-    "gastritis":
-    "Inflammation of the stomach lining.",
-
-    "peptic_ulcer":
-    "Sores developing in the stomach lining or upper intestine.",
-
-    "diverticulitis":
-    "Inflammation or infection of pouches in the digestive tract.",
-
-    "hemorrhoids":
-    "Swollen veins in the lower rectum or anus.",
-
-    "hernia":
-    "A condition where tissue pushes through a weak muscle wall.",
-
-    "fracture":
-    "A break or crack in a bone.",
-
-    "spinal_stenosis":
-    "Narrowing of spaces within the spine causing nerve pressure.",
-
-    "herniated_disc":
-    "A condition where spinal disc material pushes outward.",
-
-    "scoliosis":
-    "An abnormal sideways curvature of the spine.",
-
-    "tendonitis":
-    "Inflammation or irritation of a tendon.",
-
-    "bursitis":
-    "Inflammation of fluid-filled sacs cushioning joints.",
-
-    "carpal_tunnel_syndrome":
-    "A condition caused by pressure on the wrist nerve.",
-
-    "plantar_fasciitis":
-    "Inflammation of tissue along the bottom of the foot.",
-
-    "shingles":
-    "A viral infection causing painful skin rashes and nerve pain.",
-
-    "herpes_simplex":
-    "A viral infection causing sores around the mouth or genitals.",
-
-    "chickenpox":
-    "A contagious viral disease causing itchy skin rashes.",
-
-    "measles":
-    "A highly contagious viral disease characterized by fever and rash.",
-
-    "mumps":
-    "A viral infection affecting the salivary glands.",
-
-    "rubella":
-    "A contagious viral infection known for its red rash.",
-
-    "whooping_cough":
-    "A bacterial infection causing severe coughing fits.",
-
-    "diptheria":
-    "A serious bacterial infection affecting the throat and airways.",
-
-    "tetanus":
-    "A bacterial infection causing muscle stiffness and spasms.",
-
-    "polio":
-    "A viral disease that can lead to paralysis."
+    "diabetes": "A chronic disease affecting the body's ability to regulate blood sugar levels.",
+    "hypertension": "A condition where blood pressure remains consistently higher than normal.",
+    "covid19": "A viral respiratory illness caused by the SARS-CoV-2 virus.",
+    "heart_disease": "A group of conditions affecting the heart and blood vessels.",
+    "influenza": "A contagious viral infection affecting the respiratory system.",
+    "malaria": "A mosquito-borne infectious disease caused by parasites.",
+    "diabetes_type_2": "A chronic condition that affects how the body processes blood sugar.",
+    "breast_cancer": "A cancer that develops in breast tissue cells.",
+    "lung_cancer": "A type of cancer that begins in the lungs.",
+    "colorectal_cancer": "Cancer affecting the colon or rectum.",
+    "prostate_cancer": "A cancer that develops in the prostate gland.",
+    "stroke": "A medical emergency caused by interrupted blood flow to the brain.",
+    "pneumonia": "An infection that inflames the air sacs in the lungs.",
+    "tuberculosis": "A bacterial infection primarily affecting the lungs.",
+    "hepatitis_b": "A viral infection that attacks the liver.",
+    "hepatitis_c": "A viral liver infection caused by the hepatitis C virus.",
+    "hiv_aids": "A disease that weakens the immune system by attacking immune cells.",
+    "alzheimers_disease": "A neurological disorder causing memory loss and cognitive decline.",
+    "parkinsons_disease": "A neurological disorder affecting movement and coordination.",
+    "multiple_sclerosis": "An autoimmune disease affecting the brain and spinal cord.",
+    "epilepsy": "A neurological disorder causing recurrent seizures.",
+    "asthma": "A chronic respiratory condition causing airway inflammation.",
+    "copd": "A chronic lung disease that obstructs airflow and breathing.",
+    "kidney_disease": "A condition where kidney function becomes impaired.",
+    "liver_disease": "A disease affecting liver function and metabolism.",
+    "osteoarthritis": "A degenerative joint disease causing cartilage breakdown.",
+    "rheumatoid_arthritis": "An autoimmune disorder affecting joints and causing inflammation.",
+    "osteoporosis": "A condition causing bones to become weak and fragile.",
+    "migraine": "A neurological condition causing severe headaches.",
+    "depression": "A mental health disorder causing persistent sadness and low mood.",
+    "anxiety_disorder": "A mental health condition involving excessive fear and worry.",
+    "bipolar_disorder": "A mental disorder characterized by extreme mood swings.",
+    "schizophrenia": "A severe mental disorder affecting thinking and behavior.",
+    "celiac_disease": "An autoimmune disorder triggered by gluten consumption.",
+    "crohns_disease": "A chronic inflammatory bowel disease affecting digestion.",
+    "ulcerative_colitis": "A chronic inflammatory condition causing ulcers in the colon.",
+    "gout": "A form of arthritis caused by uric acid crystal buildup.",
+    "psoriasis": "An autoimmune skin disease causing red, scaly patches.",
+    "lupus": "An autoimmune disease where the immune system attacks healthy tissue.",
+    "fibromyalgia": "A disorder causing widespread muscle pain and fatigue.",
+    "iron_deficiency_anemia": "A condition caused by insufficient iron levels in the body.",
+    "vitamin_d_deficiency": "A condition resulting from low vitamin D levels.",
+    "hypothyroidism": "A condition where the thyroid gland produces too little hormone.",
+    "hyperthyroidism": "A condition where the thyroid gland produces excessive hormone.",
+    "adrenal_insufficiency": "A disorder where the adrenal glands fail to produce enough hormones.",
+    "pituitary_disorders": "Conditions affecting hormone production by the pituitary gland.",
+    "glaucoma": "An eye disease damaging the optic nerve due to pressure buildup.",
+    "cataracts": "A condition causing clouding of the eye lens.",
+    "macular_degeneration": "An eye disorder causing central vision loss.",
+    "hearing_loss": "Partial or complete inability to hear sounds clearly.",
+    "tinnitus": "A condition causing ringing or buzzing sounds in the ears.",
+    "sleep_apnea": "A sleep disorder involving interrupted breathing during sleep.",
+    "insomnia": "A sleep disorder causing difficulty falling or staying asleep.",
+    "gerd": "A digestive disorder where stomach acid flows back into the esophagus.",
+    "ibs": "A gastrointestinal disorder causing abdominal pain and bowel issues.",
+    "gallstones": "Hardened deposits that form inside the gallbladder.",
+    "kidney_stones": "Hard mineral deposits that form inside the kidneys.",
+    "uti": "An infection affecting the urinary system.",
+    "benign_prostatic_hyperplasia": "A noncancerous enlargement of the prostate gland.",
+    "endometriosis": "A condition where uterine-like tissue grows outside the uterus.",
+    "pcos": "A hormonal disorder affecting ovarian function.",
+    "preeclampsia": "A pregnancy complication characterized by high blood pressure.",
+    "gestational_diabetes": "A type of diabetes that develops during pregnancy.",
+    "myocardial_infarction": "A heart attack caused by blocked blood flow to the heart.",
+    "atrial_fibrillation": "An irregular and often rapid heart rhythm.",
+    "heart_failure": "A condition where the heart cannot pump blood effectively.",
+    "peripheral_artery_disease": "A circulatory condition reducing blood flow to limbs.",
+    "deep_vein_thrombosis": "A blood clot forming in a deep vein.",
+    "pulmonary_embolism": "A blockage in a lung artery caused by a blood clot.",
+    "sepsis": "A life-threatening response to infection causing organ dysfunction.",
+    "meningitis": "Inflammation of protective membranes surrounding the brain and spinal cord.",
+    "encephalitis": "Inflammation of the brain usually caused by infection.",
+    "appendicitis": "Inflammation of the appendix causing abdominal pain.",
+    "cholecystitis": "Inflammation of the gallbladder.",
+    "pancreatitis": "Inflammation of the pancreas affecting digestion.",
+    "gastritis": "Inflammation of the stomach lining.",
+    "peptic_ulcer": "Sores developing in the stomach lining or upper intestine.",
+    "diverticulitis": "Inflammation or infection of pouches in the digestive tract.",
+    "hemorrhoids": "Swollen veins in the lower rectum or anus.",
+    "hernia": "A condition where tissue pushes through a weak muscle wall.",
+    "fracture": "A break or crack in a bone.",
+    "spinal_stenosis": "Narrowing of spaces within the spine causing nerve pressure.",
+    "herniated_disc": "A condition where spinal disc material pushes outward.",
+    "scoliosis": "An abnormal sideways curvature of the spine.",
+    "tendonitis": "Inflammation or irritation of a tendon.",
+    "bursitis": "Inflammation of fluid-filled sacs cushioning joints.",
+    "carpal_tunnel_syndrome": "A condition caused by pressure on the wrist nerve.",
+    "plantar_fasciitis": "Inflammation of tissue along the bottom of the foot.",
+    "shingles": "A viral infection causing painful skin rashes and nerve pain.",
+    "herpes_simplex": "A viral infection causing sores around the mouth or genitals.",
+    "chickenpox": "A contagious viral disease causing itchy skin rashes.",
+    "measles": "A highly contagious viral disease characterized by fever and rash.",
+    "mumps": "A viral infection affecting the salivary glands.",
+    "rubella": "A contagious viral infection known for its red rash.",
+    "whooping_cough": "A bacterial infection causing severe coughing fits.",
+    "diptheria": "A serious bacterial infection affecting the throat and airways.",
+    "tetanus": "A bacterial infection causing muscle stiffness and spasms.",
+    "polio": "A viral disease that can lead to paralysis.",
 }

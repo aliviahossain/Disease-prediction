@@ -32,6 +32,7 @@ Always consult a qualified healthcare professional for medical advice.
   - [Educational Features](#-educational-features)
   - [ML Features](#-ml-features)
   - [AI Features](#-ai-features)
+  - [Height, Weight & BMI Integration](#-height-weight--bmi-integration)
   - [Project Structure](#project-structure)
   - [Getting Started](#getting-started-detailed)
 - [Using AI-Powered Recommendations](#-using-ai-powered-recommendations)
@@ -84,6 +85,50 @@ That’s it 🎉
   - 🇮🇳 Tamil
 
 Powered by Google Gemini API
+## 📏 Height, Weight & BMI Integration
+The disease prediction system supports height and weight inputs as part of the prediction workflow. These values are used to calculate BMI (Body Mass Index), which contributes to disease risk estimation and probability analysis.
+### ✅ Accepted Input Formats
+- Height must be entered in **centimeters (cm)**
+- Weight must be entered in **kilograms (kg)**
+- Decimal (float) values are supported
+- Only numeric values are accepted
+### 📌 Accepted Ranges
+| Input | Supported Range |
+|-------|----------------|
+| Height | 30 cm – 272 cm |
+| Weight | 1 kg – 635 kg |
+### 🧮 BMI Calculation
+BMI is calculated using the standard formula:
+```
+BMI = weight (kg) / (height in meters)²
+```
+Example:
+| Height | Weight | BMI |
+|--------|--------|-----|
+| 170 cm | 65 kg | 22.49 |
+### ⚠️ Validation Rules
+- Height must be greater than 0
+- Weight must be greater than 0
+- Empty or invalid inputs are rejected
+- Non-numeric values are not supported
+- Float/decimal values are allowed
+### 📊 BMI Categories Used
+| BMI Range | Category |
+|-----------|----------|
+| Below 18.5 | Underweight |
+| 18.5 – 24.9 | Normal |
+| 25 – 29.9 | Overweight |
+| 30+ | Obese |
+### 🔗 Integration with Prediction System
+BMI contributes to disease-risk analysis using internally weighted probability adjustments. Higher BMI categories may increase risk contribution during prediction calculations.
+#### 💻 Example Data Payload
+When interacting with the prediction workflow backend, the fields are structured as follows:
+```json
+{
+  "symptoms": ["fever", "fatigue"],
+  "height": 170.5,
+  "weight": 65.0
+}
 
 ## 🗂️ Project Structure
 ```bash
