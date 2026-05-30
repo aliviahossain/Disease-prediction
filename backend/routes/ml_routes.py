@@ -252,7 +252,7 @@ def predict_disease():
                 ),
                 "vitals_summary": vitals_analysis["summary"],
                 "flags": vitals_analysis["flags"],
-        },
+            },
             "ml_prediction": {
                 "raw_probability": round(ml_prediction.get("raw_probability", 0) * 100, 2),
                 "calibrated_probability": round(ml_prediction.get("calibrated_probability", 0) * 100, 2) if ml_prediction.get("calibrated_probability") is not None else None,

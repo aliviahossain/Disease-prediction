@@ -71,10 +71,7 @@ if app_mode == "Prediction":
 
     st.divider()
 
-<<<<<<< HEAD
     
-=======
->>>>>>> 96d75ed (Fix various bugs: duplicate ml_prediction key, undefined dashboard vars, incorrect Bayes overrides, missing model imports, file encoding, and wrong test expectations)
     # =========================
     # SYMPTOM SELECTION
     # =========================
@@ -123,7 +120,6 @@ if app_mode == "Prediction":
 
     for i, (key, label) in enumerate(symptoms_map.items()):
         with cols[i % 2]:
-<<<<<<< HEAD
             display_label = highlight_text(label, search_query)
             col_checkbox, col_text = st.columns([1, 10])
             with col_checkbox:
@@ -133,11 +129,6 @@ if app_mode == "Prediction":
                 st.markdown(display_label, unsafe_allow_html=True)
 
     st.divider()
-=======
-            if st.checkbox(label, key=key):
-                selected_symptoms.append(key)
-    
->>>>>>> 96d75ed (Fix various bugs: duplicate ml_prediction key, undefined dashboard vars, incorrect Bayes overrides, missing model imports, file encoding, and wrong test expectations)
 
     # =========================
     # ANALYZE BUTTON

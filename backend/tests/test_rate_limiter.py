@@ -233,8 +233,9 @@ def test_rate_limiter_load_sqlite():
 @mock.patch.dict(os.environ, {"RATE_LIMIT_BACKEND": "redis", "REDIS_URL": "redis://localhost:6379/0"})
 def test_rate_limiter_load_redis_fallback():
     """Test that RateLimiter falls back to InMemoryBackend if Redis connection/initialization fails."""
-    # Mock redis package to raise an exception or simply fail to connect
-    with mock.patch("redis.from_url", side_effect=Exception("Redis connection error")):
+    mock_redis = mock.MagicMock()
+    mock_redis.from_url.side_effect = Exception("Redis connection error")
+    with mock.patch("backend.middleware.security.redis", mock_redis):
         limiter = RateLimiter()
         # Should print warning and fall back to InMemoryBackend
         assert isinstance(limiter.backend, InMemoryBackend)

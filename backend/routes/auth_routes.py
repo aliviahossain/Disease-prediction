@@ -297,20 +297,35 @@ def update_profile():
             flash(error, "danger")
         return redirect(url_for("auth.profile"))
 
-    current_user.phone = phone
-    current_user.address = address
-    current_user.emergency_name = emergency_name
-    current_user.emergency_relation = emergency_relation
-    current_user.emergency_phone = emergency_phone
-    current_user.dob = dob
-    current_user.gender = gender or None
-    current_user.height = height
-    current_user.weight = weight
-    current_user.bmi = (
-        round(weight / ((height / 100) ** 2), 2) if height and weight else None
-    )
-    current_user.allergies = allergies or None
-    current_user.medical_notes = medical_notes or None
+    if _form_has_field("phone"):
+        current_user.phone = phone
+    if _form_has_field("address"):
+        current_user.address = address
+    if _form_has_field("emergency_name"):
+        current_user.emergency_name = emergency_name
+    if _form_has_field("emergency_relation"):
+        current_user.emergency_relation = emergency_relation
+    if _form_has_field("emergency_phone"):
+        current_user.emergency_phone = emergency_phone
+    if any(_form_has_field(name) for name in ("dob_day", "dob_month", "dob_year", "dob")):
+        current_user.dob = dob
+    if _form_has_field("gender"):
+        current_user.gender = gender or None
+    if _form_has_field("height"):
+        current_user.height = height
+    if _form_has_field("weight"):
+        current_user.weight = weight
+    
+    # Recompute BMI if height or weight were sent/updated in this request
+    if _form_has_field("height") or _form_has_field("weight"):
+        h = current_user.height
+        w = current_user.weight
+        current_user.bmi = round(w / ((h / 100) ** 2), 2) if h and w else None
+
+    if _form_has_field("allergies"):
+        current_user.allergies = allergies or None
+    if _form_has_field("medical_notes"):
+        current_user.medical_notes = medical_notes or None
     try:
         db.session.commit()
     except OperationalError as error:
