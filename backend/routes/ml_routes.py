@@ -144,6 +144,14 @@ def predict_disease():
             false_positive_rate=0.05,
         )
 
+        order_invariance_diagnostics = calculator.verify_order_invariance(
+            model=ml_model,
+            disease=disease,
+            symptoms=symptoms,
+            tolerance=1e-6,
+            max_permutations=6,
+        )
+
         # Determine risk level for storage
         risk_assessment = get_risk_level(bayesian_result["posterior"] * 100)
         risk_level_map = {
@@ -268,6 +276,7 @@ def predict_disease():
                 "false_positive_rate": round(
                     bayesian_result["false_positive_rate"] * 100, 2
                 ),
+                "order_invariance": order_invariance_diagnostics,
             },
             "risk_assessment": risk_assessment,
         }
