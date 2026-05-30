@@ -71,6 +71,8 @@ MODEL_CONFIG = {
 KERAS_MODEL_CACHE = {}
 TFLITE_MODEL_CACHE = {}
 
+# Confidence threshold for eliminating low-confidence predictions (can be adjusted or made dynamic)
+CONFIDENCE_THRESHOLD = 0.60
 
 # loads keras model in the KERAS_MODEL_CACHE (for eye disease prediction)
 def load_keras_model(model_type):
@@ -198,6 +200,22 @@ def predict():
             idx = int(np.argmax(preds))
             confidence = float(preds[idx])
             predicted_class = MODEL_CONFIG[model_type]["class_names"][idx]
+
+
+            print(
+                f"Prediction: {predicted_class}, "
+                f"Confidence: {confidence:.4f}"
+            )
+
+            if confidence < CONFIDENCE_THRESHOLD:
+                return jsonify({
+                    "error": (
+                        f"The uploaded image does not appear to be a valid "
+                        f"{model_type} disease image. "
+                        "Please upload a clear medical image."
+                    ),
+                    "confidence": round(confidence * 100, 2)
+                }), 400
 
             # 4. NEW: Generate Grad-CAM / Score-CAM heatmap
             gradcam_overlay = None
