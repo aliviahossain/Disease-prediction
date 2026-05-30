@@ -1,134 +1,145 @@
-{% extends "base.html" %}
-{% block title %}Glossary / Help Section{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help - Disease Prediction App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='assets/logo.png') }}" type="image/png">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" width="30" height="30" class="d-inline-block align-text-top">
+                Disease Predictor
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/help">Help</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/privacy">Privacy Policy</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/terms">Terms of Service</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/connect">Connect</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-{% block content %}
-<div class="text-center mb-5 animate-fade-in">
-    <h1 class="display-5 fw-bold">Glossary / Help Section</h1>
-    <p class="lead text-muted">Understand the key terms used in probability and diagnostic calculations.</p>
-</div>
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">Help & Frequently Asked Questions</h1>
 
-<!-- FAQ / Glossary Accordion -->
-<div class="card shadow-sm mb-4">
-    <div class="card-body p-4">
-        <h2 class="card-title h4 mb-3">Key Terms & Concepts</h2>
-        <div class="accordion" id="glossaryAccordion">
-
-            <!-- Item 1: Prior Probability -->
+        <div class="accordion" id="helpAccordion">
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingOne">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
-                        <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <path d="M12 6v6l4 2"></path>
-                        </svg>
-                        What is Prior Probability?
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        What is this application for?
                     </button>
                 </h2>
-                <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#glossaryAccordion">
+                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#helpAccordion">
                     <div class="accordion-body">
-                        <strong>Definition:</strong> It's the probability of a condition or event before new evidence (like a test result) is considered.<br><br>
-                        <strong>Example:</strong> The chance someone has a disease before any medical test is performed.<br><br>
-                        <a href="https://en.wikipedia.org/wiki/Prior_probability" target="_blank" class="text-decoration-none">Learn more →</a>
+                        This application helps you understand the probability of having a certain disease based on a positive or negative test result, using Bayesian inference. It's designed to provide an educational tool for understanding probability, not a diagnostic one.
                     </div>
                 </div>
             </div>
-
-            <!-- Item 2: Sensitivity -->
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingTwo">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
-                        <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                        </svg>
-                        What is Sensitivity?
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        How do I use the Disease Probability Calculator?
                     </button>
                 </h2>
-                <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#helpAccordion">
                     <div class="accordion-body">
-                        <strong>Definition:</strong> Sensitivity measures how well a test identifies true positives.<br><br>
-                        <strong>Example:</strong> A test with 95% sensitivity correctly detects 95 out of 100 people who have the disease.<br><br>
-                        <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" target="_blank" class="text-decoration-none">Learn more →</a>
+                        <ol>
+                            <li><strong>Select a Disease:</strong> Choose a disease from the dropdown list.</li>
+                            <li><strong>Enter Prior Probability:</strong> This is the general prevalence of the disease in the population. You can adjust it using the slider or input a value directly.</li>
+                            <li><strong>Enter Test Sensitivity:</strong> This is the probability that the test correctly identifies someone with the disease (true positive rate).</li>
+                            <li><strong>Enter Test Specificity:</strong> This is the probability that the test correctly identifies someone without the disease (true negative rate).</li>
+                            <li><strong>Select Test Result:</strong> Indicate whether your test result was positive or negative.</li>
+                            <li><strong>Calculate:</strong> Click the "Calculate Probability" button to see the updated (posterior) probability.</li>
+                        </ol>
                     </div>
                 </div>
             </div>
-            
-            <!-- Item 3: Specificity -->
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingThree">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
-                        <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                        </svg>
-                        What is Specificity?
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                        What do "Prior Probability," "Sensitivity," and "Specificity" mean?
                     </button>
                 </h2>
-                <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#helpAccordion">
                     <div class="accordion-body">
-                        <strong>Definition:</strong> Specificity measures how well a test identifies true negatives.<br><br>
-                        <strong>Example:</strong> A 90% specific test correctly clears 90 out of 100 healthy people.<br><br>
-                        <a href="https://en.wikipedia.org/wiki/Sensitivity_and_specificity" target="_blank" class="text-decoration-none">Learn more →</a>
+                        <ul>
+                            <li><strong>Prior Probability (Prevalence):</strong> The initial probability of a person having the disease before any test is performed. It's the general rate of the disease in the population.</li>
+                            <li><strong>Sensitivity:</strong> The ability of a test to correctly identify individuals who have the disease (true positive rate). A highly sensitive test will have few false negatives.</li>
+                            <li><strong>Specificity:</strong> The ability of a test to correctly identify individuals who do not have the disease (true negative rate). A highly specific test will have few false positives.</li>
+                        </ul>
                     </div>
                 </div>
             </div>
-
-            <!-- Item 4: False Positive Rate -->
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingFour">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">
-                        <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="15" y1="9" x2="9" y2="15"></line>
-                            <line x1="9" y1="9" x2="15" y2="15"></line>
-                        </svg>
-                        What is False Positive Rate?
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                        What is the Interactive Real-Time Slider?
                     </button>
                 </h2>
-                <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#helpAccordion">
                     <div class="accordion-body">
-                        <strong>Definition:</strong> It's the percentage of people incorrectly marked as positive when they are actually negative.<br><br>
-                        <strong>Formula:</strong> Calculated as (1 - Specificity).<br><br>
-                        <a href="https://en.wikipedia.org/wiki/False_positive_rate" target="_blank" class="text-decoration-none">Learn more →</a>
+                        The Interactive Real-Time Slider allows you to dynamically adjust the "Prior Probability" and see the immediate impact on the calculated posterior probability. As you move the slider, the "Posterior Probability" updates in real-time, providing an intuitive way to understand how changes in prior probability affect the final outcome.
                     </div>
                 </div>
             </div>
-
-            <!-- Item 5: Posterior Probability -->
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingFive">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive">
-                        <svg class="accordion-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                        </svg>
-                        What is Posterior Probability?
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                        How do AI Recommendations work?
                     </button>
                 </h2>
-                <div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#glossaryAccordion">
+                <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#helpAccordion">
                     <div class="accordion-body">
-                        <strong>Definition:</strong> The updated probability of a condition after considering new evidence, like test results.<br><br>
-                        <strong>How it works:</strong> It's calculated using Bayes' theorem, which combines prior probability with new test data.<br><br>
-                        <a href="https://en.wikipedia.org/wiki/Posterior_probability" target="_blank" class="text-decoration-none">Learn more →</a>
+                        After calculating your disease probability, you can request AI-powered recommendations. This feature uses an advanced language model (like Google Gemini) to generate personalized insights, potential next steps, or general information related to the disease and your calculated probabilities. You can also listen to these recommendations via text-to-speech and change the language.
+                        <br><br>
+                        <strong>Important:</strong> These recommendations are generated by an AI and are for informational purposes only. They do not constitute medical advice. Always consult a healthcare professional for diagnosis and treatment.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingSix">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                        Is this application a substitute for professional medical advice?
+                    </button>
+                </h2>
+                <div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix" data-bs-parent="#helpAccordion">
+                    <div class="accordion-body">
+                        <strong>No.</strong> This application is for educational purposes only and should not be used for self-diagnosis or as a substitute for professional medical advice, diagnosis, or treatment. Always consult with a qualified healthcare professional for any health concerns.
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Additional Information Card -->
-<div class="card shadow-sm mb-4">
-    <div class="card-body p-4">
-        <h2 class="card-title h4">Understanding Bayes' Theorem</h2>
-        <p class="card-text">Bayes' theorem is a mathematical formula used to update the probability of a hypothesis based on new evidence. In medical diagnostics, it helps calculate the probability that a patient has a disease given a positive or negative test result.</p>
-        <p class="card-text">The theorem considers:</p>
-        <ul>
-            <li><strong>Prior Probability:</strong> Initial belief before the test</li>
-            <li><strong>Likelihood:</strong> Test accuracy (sensitivity and specificity)</li>
-            <li><strong>Posterior Probability:</strong> Updated belief after the test</li>
-        </ul>
-    </div>
-</div>
-{% endblock %}
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">© 2023 Disease Predictor. All rights reserved.</span>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
