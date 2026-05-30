@@ -292,19 +292,19 @@ class RateLimiter:
             try:
                 redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
                 self.backend = RedisBackend(redis_url=redis_url)
-                print(f"✅ RateLimiter using Redis backend ({redis_url})")
+                print(f"[OK] RateLimiter using Redis backend ({redis_url})")
             except Exception as e:
-                print(f"⚠️ Failed to initialize Redis backend: {e}. Falling back to in_memory.")
+                print(f"[WARN] Failed to initialize Redis backend: {e}. Falling back to in_memory.")
                 self.backend = InMemoryBackend()
         elif backend_type == "sqlite":
             db_path = os.getenv("RATE_LIMIT_DB_PATH", "backend/rate_limit.db")
             self.backend = SQLiteBackend(db_path=db_path)
-            print(f"✅ RateLimiter using SQLite backend ({db_path})")
+            print(f"[OK] RateLimiter using SQLite backend ({db_path})")
         else:
             self.backend = InMemoryBackend()
-            print("✅ RateLimiter using InMemory backend")
+            print("[OK] RateLimiter using InMemory backend")
 
-        print("✅ RateLimiter initialized")
+        print("[OK] RateLimiter initialized")
 
     def _get_identifier(self, request_obj):
         """
@@ -385,7 +385,7 @@ class SecurityValidator:
 
     def __init__(self):
         """Initialize security validator."""
-        print("✅ SecurityValidator initialized")
+        print("[OK] SecurityValidator initialized")
 
     def validate_input(self, data, field_name="input"):
         """
