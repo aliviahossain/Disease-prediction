@@ -185,31 +185,45 @@ def predict_disease():
  
         # Build full result (only reached when prediction is confident)
         result = {
-            'success': True,
-            'is_sufficient': True,   # NEW — frontend uses this flag
-            'disease': disease.replace('_', ' ').title(),
-            'bmi': ml_prediction.get('bmi'),
-            'bmi_category': ml_prediction.get('bmi_category'),
-            'preprocessing': cleaned.metadata(),
-            'temporal_analysis': {
-                'survival_probability': survival_prob,
-                'vitals_health_score': round(vitals_analysis['vitals_health_score'] * 100, 1),
-                'vitals_summary': vitals_analysis['summary'],
-                'flags': vitals_analysis['flags']
+            "success": True,
+            "is_sufficient": True,  # NEW — frontend uses this flag
+            "disease": disease.replace("_", " ").title(),
+            "bmi": ml_prediction.get("bmi"),
+            "bmi_category": ml_prediction.get("bmi_category"),
+            "preprocessing": cleaned.metadata(),
+            "temporal_analysis": {
+                "survival_probability": survival_prob,
+                "vitals_health_score": round(
+                    vitals_analysis["vitals_health_score"] * 100, 1
+                ),
+                "vitals_summary": vitals_analysis["summary"],
+                "flags": vitals_analysis["flags"],
             },
-            'ml_prediction': {
-                'raw_probability': round(ml_prediction['raw_probability'] * 100, 2),
-                'confidence_score': round(confidence_score * 100, 2),
-                'symptoms_analyzed': ml_prediction['symptoms_matched'],
-                'missing_symptoms': missing_symptoms
+            "ml_prediction": {
+                "raw_probability": round(ml_prediction.get("raw_probability", 0) * 100, 2),
+                "calibrated_probability": round(ml_prediction.get("calibrated_probability", 0) * 100, 2) if ml_prediction.get("calibrated_probability") is not None else None,
+                "calibration_gap": round(ml_prediction.get("calibration_gap", 0) * 100, 2) if ml_prediction.get("calibration_gap") is not None else None,
+                "calibration_score": round(ml_prediction.get("calibration_score", 0) * 100, 2) if ml_prediction.get("calibration_score") is not None else None,
+                "confidence_score": round(confidence_score * 100, 2),
+                "symptoms_analyzed": ml_prediction.get("symptoms_matched", []),
+                "missing_symptoms": missing_symptoms,
+                "explanations": {
+                    "feature_impacts": ml_prediction.get("feature_impacts", []),
+                    "symptom_contributions": ml_prediction.get("symptom_contributions", {}),
+                    "summary": ml_prediction.get("explanation_summary", ""),
+                    "bias": ml_prediction.get("bias"),
+                    "bmi_effect": ml_prediction.get("bmi_effect"),
+                },
             },
-            'bayesian_analysis': {
-                'prior': round(bayesian_result['prior'] * 100, 2),
-                'likelihood': round(bayesian_result['likelihood'] * 100, 2),
-                'posterior': round(bayesian_result['posterior'] * 100, 2),
-                'false_positive_rate': round(bayesian_result['false_positive_rate'] * 100, 2)
+            "bayesian_analysis": {
+                "prior": round(bayesian_result["prior"] * 100, 2),
+                "likelihood": round(bayesian_result["likelihood"] * 100, 2),
+                "posterior": round(bayesian_result["posterior"] * 100, 2),
+                "false_positive_rate": round(
+                    bayesian_result["false_positive_rate"] * 100, 2
+                ),
             },
-            'risk_assessment': risk_assessment
+            "risk_assessment": risk_assessment,
         }
  
         return jsonify(result), 200

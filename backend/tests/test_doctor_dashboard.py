@@ -201,7 +201,7 @@ class TestPredictionPersistence:
         """Test that symptoms are stored as JSON string."""
         payload = {
             'disease': 'diabetes',
-            'symptoms': ['increased_thirst', 'frequent_urination'],
+            'symptoms': ['increased_thirst', 'frequent_urination', 'fatigue'],
             'age': 40
         }
         
