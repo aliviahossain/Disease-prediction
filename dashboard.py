@@ -29,7 +29,6 @@ from backend.models.ml_model import ml_model
 
 # Import history manager
 from backend.utils.history_manager import load_history, save_history
-
 # =========================
 # PAGE CONFIG
 # =========================
@@ -65,13 +64,12 @@ if app_mode == "Prediction":
         format_func=lambda x: x.replace("_", " ").title(),
     )
 
-    # Disease info
+ # Disease info
     if selected_disease in DISEASE_INFO:
         st.info(DISEASE_INFO[selected_disease])
 
     st.divider()
 
-    
     # =========================
     # SYMPTOM SELECTION
     # =========================
@@ -100,8 +98,7 @@ if app_mode == "Prediction":
                     f"<div>👉 {highlight_text(s, search_query)}</div>",
                     unsafe_allow_html=True
                 )
-
-    # 🔎 Apply filtering
+# 🔎 Apply filtering
     if search_query:
         filtered_symptoms = {
             key: label
@@ -118,7 +115,7 @@ if app_mode == "Prediction":
     selected_symptoms = []
     cols = st.columns(2)
 
-    for i, (key, label) in enumerate(symptoms_map.items()):
+    for i, (key, label) in enumerate(filtered_symptoms.items()):
         with cols[i % 2]:
             display_label = highlight_text(label, search_query)
             col_checkbox, col_text = st.columns([1, 10])
