@@ -1,5 +1,6 @@
 import pytest
-from app import app
+from backend import create_app
+app = create_app()
 import json
 
 @pytest.fixture
