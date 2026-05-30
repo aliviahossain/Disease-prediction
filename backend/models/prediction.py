@@ -4,10 +4,9 @@ import os
 from datetime import datetime
 
 import numpy as np
-from sqlalchemy import CheckConstraint
-from tensorflow.keras.preprocessing import image
-
+from keras.utils import load_img, img_to_array
 from backend import db
+from sqlalchemy import CheckConstraint
 
 # Configurable confidence threshold
 CONFIDENCE_THRESHOLD = float(os.getenv("PREDICTION_CONFIDENCE_THRESHOLD", 0.65))
@@ -19,8 +18,8 @@ CLASS_NAMES = ["Cataract", "Diabetic Retinopathy", "Glaucoma", "Normal"]
 def predict_disease(model, img_path, target_size=(224, 224)):
     try:
         # Load image
-        img = image.load_img(img_path, target_size=target_size)
-        img_array = image.img_to_array(img)
+        img = load_img(img_path, target_size=target_size)
+        img_array = img_to_array(img)
 
         # Normalize
         img_array = img_array / 255.0
@@ -116,8 +115,11 @@ class PredictionHistory(db.Model):
     )
 
     # Relationship to User
-    user = db.relationship("User", backref=db.backref("predictions", lazy=True))
-
+    user = db.relationship('User', backref=db.backref('predictions', lazy=True))
+    
+    def __init__(self, **kwargs):
+        super(PredictionHistory, self).__init__(**kwargs)
+        
     def __repr__(self):
         return f"PredictionHistory('{self.disease}', risk='{self.risk_level}', created='{self.created_at}')"
 
