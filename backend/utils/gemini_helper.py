@@ -4,6 +4,7 @@ Gemini API helper for generating recommendations based on disease probability re
 
 import os
 from typing import Optional
+from google.genai import types
 
 # Global client variable to keep configuration simple
 client = None
@@ -181,6 +182,8 @@ def generate_chat_response(message: str, history: list = None) -> dict:
             "response": "Configuration Error: API key missing."
         }
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return {
             "success": False,
             "error": str(e),
