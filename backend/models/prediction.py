@@ -2,7 +2,7 @@
 import os
 import json
 import numpy as np
-from tensorflow.keras.preprocessing import image
+from keras.utils import load_img, img_to_array
 from backend import db
 from sqlalchemy import CheckConstraint
 from datetime import datetime
@@ -23,8 +23,8 @@ CLASS_NAMES = [
 def predict_disease(model, img_path, target_size=(224, 224)):
     try:
         # Load image
-        img = image.load_img(img_path, target_size=target_size)
-        img_array = image.img_to_array(img)
+        img = load_img(img_path, target_size=target_size)
+        img_array = img_to_array(img)
 
         # Normalize
         img_array = img_array / 255.0
