@@ -12,11 +12,24 @@ from backend.preprocessing import PreprocessingError, clean_prediction_payload
 from backend.services.history_service import save_history
 from backend.utils.calculator import BayesCalculator
 from backend.utils.uncertainty_handler import uncertainty_handler  # NEW
+from backend.models.prediction import PredictionHistory
+from backend.services.history_service import save_history
+from backend import db, cache
+import json
+import traceback
+import hashlib
 
-ml_bp = Blueprint("ml", __name__)
-
-
-@ml_bp.route("/ml-prediction")
+def make_prediction_cache_key(*args, **kwargs):
+    """Generate a cache key based on the request path and JSON payload."""
+    data = request.get_json(silent=True) or {}
+    data_str = json.dumps(data, sort_keys=True)
+    hash_str = hashlib.md5(data_str.encode('utf-8')).hexdigest()
+    return f"{request.path}_{hash_str}"
+ 
+ml_bp = Blueprint('ml', __name__)
+ 
+ 
+@ml_bp.route('/ml-prediction')
 def ml_prediction_page():
     """Render the ML prediction page"""
     try:
@@ -35,10 +48,11 @@ def ml_prediction_page():
     except TemplateNotFound as e:
         return render_template("error.html", error=f"Missing template: {e.name}"), 500
     except Exception as e:
-        return render_template("error.html", error=str(e)), 500
-
-
-@ml_bp.route("/api/ml/predict", methods=["POST"])
+        return render_template('error.html', error=str(e)), 500
+ 
+ 
+@ml_bp.route('/api/ml/predict', methods=['POST'])
+@cache.cached(timeout=86400, key_prefix=make_prediction_cache_key)
 def predict_disease():
     """
     API endpoint for ML disease prediction.
@@ -230,21 +244,12 @@ def predict_disease():
                 ),
                 "vitals_summary": vitals_analysis["summary"],
                 "flags": vitals_analysis["flags"],
-<<<<<<< HEAD
         },
             "ml_prediction": {
                 "raw_probability": round(ml_prediction.get("raw_probability", 0) * 100, 2),
                 "calibrated_probability": round(ml_prediction.get("calibrated_probability", 0) * 100, 2) if ml_prediction.get("calibrated_probability") is not None else None,
                 "calibration_gap": round(ml_prediction.get("calibration_gap", 0) * 100, 2) if ml_prediction.get("calibration_gap") is not None else None,
                 "calibration_score": round(ml_prediction.get("calibration_score", 0) * 100, 2) if ml_prediction.get("calibration_score") is not None else None,
-=======
-            },
-            "ml_prediction": {
-                "raw_probability": round(ml_prediction["raw_probability"] * 100, 2),
-                "calibrated_probability": round(ml_prediction["calibrated_probability"] * 100, 2),
-                "calibration_gap": round(ml_prediction["calibration_gap"] * 100, 2),
-                "calibration_score": round(ml_prediction["calibration_score"] * 100, 2),
->>>>>>> 96d75ed (Fix various bugs: duplicate ml_prediction key, undefined dashboard vars, incorrect Bayes overrides, missing model imports, file encoding, and wrong test expectations)
                 "confidence_score": round(confidence_score * 100, 2),
                 "symptoms_analyzed": ml_prediction.get("symptoms_matched", []),
                 "missing_symptoms": missing_symptoms,
@@ -295,10 +300,11 @@ def predict_disease():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     except Exception as e:
-        return jsonify({"error": f"Prediction failed: {str(e)}"}), 500
-
-
-@ml_bp.route("/api/ml/predict-multiple", methods=["POST"])
+        return jsonify({'error': f'Prediction failed: {str(e)}'}), 500
+ 
+ 
+@ml_bp.route('/api/ml/predict-multiple', methods=['POST'])
+@cache.cached(timeout=86400, key_prefix=make_prediction_cache_key)
 def predict_multiple_diseases():
     """
     API endpoint for differential diagnosis (predict multiple diseases).

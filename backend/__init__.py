@@ -15,6 +15,8 @@ load_dotenv()
 # Initialize extensions
 db = SQLAlchemy()
 bcrypt = Bcrypt()
+from flask_caching import Cache
+cache = Cache()
 
 
 login_manager = LoginManager()
@@ -117,11 +119,17 @@ def create_app():
 
     validate_startup_config(app)
 
+    app.config['CACHE_TYPE'] = os.environ.get('CACHE_TYPE', 'SimpleCache')
+    if app.config['CACHE_TYPE'] == 'RedisCache':
+        app.config['CACHE_REDIS_URL'] = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+    app.config['CACHE_DEFAULT_TIMEOUT'] = 86400
+
     # Initialize extensions with app
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
-
+    cache.init_app(app)
+    
     # --- Models -------------------------------------------------------
     # Import the models so SQLAlchemy registers them with `db` before create_all() is called below.
     # Without this import the patient_history table is never created, which is one half of the bug where history is "not being recorded".
