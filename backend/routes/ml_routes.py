@@ -12,24 +12,11 @@ from backend.preprocessing import PreprocessingError, clean_prediction_payload
 from backend.services.history_service import save_history
 from backend.utils.calculator import BayesCalculator
 from backend.utils.uncertainty_handler import uncertainty_handler  # NEW
-from backend.models.prediction import PredictionHistory
-from backend.services.history_service import save_history
-from backend import db, cache
-import json
-import traceback
-import hashlib
 
-def make_prediction_cache_key(*args, **kwargs):
-    """Generate a cache key based on the request path and JSON payload."""
-    data = request.get_json(silent=True) or {}
-    data_str = json.dumps(data, sort_keys=True)
-    hash_str = hashlib.md5(data_str.encode('utf-8')).hexdigest()
-    return f"{request.path}_{hash_str}"
- 
-ml_bp = Blueprint('ml', __name__)
- 
- 
-@ml_bp.route('/ml-prediction')
+ml_bp = Blueprint("ml", __name__)
+
+
+@ml_bp.route("/ml-prediction")
 def ml_prediction_page():
     """Render the ML prediction page"""
     try:
@@ -48,11 +35,10 @@ def ml_prediction_page():
     except TemplateNotFound as e:
         return render_template("error.html", error=f"Missing template: {e.name}"), 500
     except Exception as e:
-        return render_template('error.html', error=str(e)), 500
- 
- 
-@ml_bp.route('/api/ml/predict', methods=['POST'])
-@cache.cached(timeout=86400, key_prefix=make_prediction_cache_key)
+        return render_template("error.html", error=str(e)), 500
+
+
+@ml_bp.route("/api/ml/predict", methods=["POST"])
 def predict_disease():
     """
     API endpoint for ML disease prediction.
@@ -111,7 +97,6 @@ def predict_disease():
         uncertainty_check = uncertainty_handler.evaluate(
             confidence_score=confidence_score,
         )
-
         if not uncertainty_check["is_sufficient"]:
             # Return early with a structured "insufficient data" response.
             # The frontend reads is_sufficient=False and renders the warning card.
@@ -142,14 +127,6 @@ def predict_disease():
             prior=ml_prediction["prior_probability"],
             likelihood=ml_prediction["likelihood"],
             false_positive_rate=0.05,
-        )
-
-        order_invariance_diagnostics = calculator.verify_order_invariance(
-            model=ml_model,
-            disease=disease,
-            symptoms=symptoms,
-            tolerance=1e-6,
-            max_permutations=6,
         )
 
         # Determine risk level for storage
@@ -254,10 +231,24 @@ def predict_disease():
                 "flags": vitals_analysis["flags"],
             },
             "ml_prediction": {
-                "raw_probability": round(ml_prediction.get("raw_probability", 0) * 100, 2),
-                "calibrated_probability": round(ml_prediction.get("calibrated_probability", 0) * 100, 2) if ml_prediction.get("calibrated_probability") is not None else None,
-                "calibration_gap": round(ml_prediction.get("calibration_gap", 0) * 100, 2) if ml_prediction.get("calibration_gap") is not None else None,
-                "calibration_score": round(ml_prediction.get("calibration_score", 0) * 100, 2) if ml_prediction.get("calibration_score") is not None else None,
+                "raw_probability": round(
+                    ml_prediction.get("raw_probability", 0) * 100, 2
+                ),
+                "calibrated_probability": (
+                    round(ml_prediction.get("calibrated_probability", 0) * 100, 2)
+                    if ml_prediction.get("calibrated_probability") is not None
+                    else None
+                ),
+                "calibration_gap": (
+                    round(ml_prediction.get("calibration_gap", 0) * 100, 2)
+                    if ml_prediction.get("calibration_gap") is not None
+                    else None
+                ),
+                "calibration_score": (
+                    round(ml_prediction.get("calibration_score", 0) * 100, 2)
+                    if ml_prediction.get("calibration_score") is not None
+                    else None
+                ),
                 "confidence_score": round(confidence_score * 100, 2),
                 "symptoms_analyzed": ml_prediction.get("symptoms_matched", []),
                 "missing_symptoms": missing_symptoms,
@@ -276,7 +267,6 @@ def predict_disease():
                 "false_positive_rate": round(
                     bayesian_result["false_positive_rate"] * 100, 2
                 ),
-                "order_invariance": order_invariance_diagnostics,
             },
             "risk_assessment": risk_assessment,
         }
@@ -309,11 +299,10 @@ def predict_disease():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     except Exception as e:
-        return jsonify({'error': f'Prediction failed: {str(e)}'}), 500
- 
- 
-@ml_bp.route('/api/ml/predict-multiple', methods=['POST'])
-@cache.cached(timeout=86400, key_prefix=make_prediction_cache_key)
+        return jsonify({"error": f"Prediction failed: {str(e)}"}), 500
+
+
+@ml_bp.route("/api/ml/predict-multiple", methods=["POST"])
 def predict_multiple_diseases():
     """
     API endpoint for differential diagnosis (predict multiple diseases).
@@ -508,7 +497,7 @@ def predict_multiple_diseases():
                 traceback.print_exc()
                 db.session.rollback()
 
-        # Issue #230: also persist the top prediction via the unified
+         # Issue #230: also persist the top prediction via the unified
         # history service so the PatientHistory-backed History page
         # reflects this differential diagnosis run.
         if top_predictions:
@@ -605,7 +594,6 @@ def get_all_symptoms():
         )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @ml_bp.route("/api/ml/symptom-importance/<disease>", methods=["GET"])
 def get_symptom_importance(disease):
