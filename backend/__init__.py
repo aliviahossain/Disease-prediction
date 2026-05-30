@@ -10,6 +10,8 @@ load_dotenv()
 # Initialize extensions
 db = SQLAlchemy()
 bcrypt = Bcrypt()
+from flask_caching import Cache
+cache = Cache()
 
 from flask_login import LoginManager
 login_manager = LoginManager()
@@ -113,10 +115,16 @@ def create_app():
     from backend.utils.config_validator import validate_startup_config
     validate_startup_config(app)
 
+    app.config['CACHE_TYPE'] = os.environ.get('CACHE_TYPE', 'SimpleCache')
+    if app.config['CACHE_TYPE'] == 'RedisCache':
+        app.config['CACHE_REDIS_URL'] = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+    app.config['CACHE_DEFAULT_TIMEOUT'] = 86400
+
     # Initialize extensions with app
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
+    cache.init_app(app)
     
     # --- Models -------------------------------------------------------
     # Import the models so SQLAlchemy registers them with `db` before create_all() is called below.

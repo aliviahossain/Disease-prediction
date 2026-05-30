@@ -19,4 +19,4 @@ tensorflow-cpu
 pillow
 psycopg2-binary
 gTTS
-plotly
+Flask-Caching

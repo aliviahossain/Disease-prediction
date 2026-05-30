@@ -7,9 +7,17 @@ from backend.utils.calculator import BayesCalculator
 from backend.utils.uncertainty_handler import uncertainty_handler  # NEW
 from backend.models.prediction import PredictionHistory
 from backend.services.history_service import save_history
-from backend import db
+from backend import db, cache
 import json
 import traceback
+import hashlib
+
+def make_prediction_cache_key(*args, **kwargs):
+    """Generate a cache key based on the request path and JSON payload."""
+    data = request.get_json(silent=True) or {}
+    data_str = json.dumps(data, sort_keys=True)
+    hash_str = hashlib.md5(data_str.encode('utf-8')).hexdigest()
+    return f"{request.path}_{hash_str}"
  
 ml_bp = Blueprint('ml', __name__)
  
@@ -37,6 +45,7 @@ def ml_prediction_page():
  
  
 @ml_bp.route('/api/ml/predict', methods=['POST'])
+@cache.cached(timeout=86400, key_prefix=make_prediction_cache_key)
 def predict_disease():
     """
     API endpoint for ML disease prediction.
@@ -261,6 +270,7 @@ def predict_disease():
  
  
 @ml_bp.route('/api/ml/predict-multiple', methods=['POST'])
+@cache.cached(timeout=86400, key_prefix=make_prediction_cache_key)
 def predict_multiple_diseases():
     """
     API endpoint for differential diagnosis (predict multiple diseases).
