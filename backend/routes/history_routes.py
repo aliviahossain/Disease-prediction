@@ -84,8 +84,11 @@ def list_history():
     """
     user_id = _require_user_id()
 
-    page = max(int(request.args.get("page", 1)), 1)
-    per_page = min(max(int(request.args.get("per_page", 20)), 1), 100)
+    try:
+        page = max(int(request.args.get("page", 1)), 1)
+        per_page = min(max(int(request.args.get("per_page", 20)), 1), 100)
+    except ValueError:
+        return jsonify(error="Invalid pagination parameters. Must be integers."), 400
     type_filter: Optional[str] = request.args.get("type") or None
 
     query = PatientHistory.query.filter_by(user_id=user_id).order_by(
