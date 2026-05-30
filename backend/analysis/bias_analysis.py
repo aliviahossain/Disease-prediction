@@ -6,14 +6,11 @@ identifying class imbalance, underrepresented diseases/symptoms, and
 per-disease performance metrics.
 """
 
-import logging
 import random
 from collections import Counter, defaultdict
 from typing import Any, Dict, List
 
 import numpy as np
-
-logger = logging.getLogger(__name__)
 
 
 class BiasAnalyzer:

@@ -1,12 +1,10 @@
 """Minimal synthetic patient generator for testing rare disease combinations."""
 
-import logging
 import random
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 from backend.models.ml_model import DiseaseMLModel
-
-logger = logging.getLogger(__name__)
 
 
 class SyntheticPatientGenerator:
