@@ -12,6 +12,7 @@ POST   /api/history            Manually add an entry (used by older
                                 client code that still POSTs from the
                                 browser instead of going through a
                                 prediction route)
+GET    /history/export/csv     Export full prediction history as a CSV file
 
 Fixes the parts of issue #230 that relate to "shown as per need":
 the page used to render but its `/api/history` endpoint either didn't
@@ -20,18 +21,18 @@ exist or returned an empty list for the wrong user.
 
 from __future__ import annotations
 
+import csv
+import io
 import logging
 from typing import Optional
 
-from flask import (
-    Blueprint, jsonify, render_template, request, abort, current_app,
-)
+from flask import Blueprint, abort, jsonify, make_response, render_template, request
 from flask_login import current_user, login_required
 
 from backend import db
+from backend.middleware.error_handler import UnauthorizedError
 from backend.models.patient_history import PatientHistory
 from backend.services.history_service import save_history
-from backend.middleware.error_handler import UnauthorizedError
 
 logger = logging.getLogger(__name__)
 
@@ -87,25 +88,25 @@ def list_history():
     per_page = min(max(int(request.args.get("per_page", 20)), 1), 100)
     type_filter: Optional[str] = request.args.get("type") or None
 
-    query = (
-        PatientHistory.query
-        .filter_by(user_id=user_id)
-        .order_by(PatientHistory.created_at.desc())
+    query = PatientHistory.query.filter_by(user_id=user_id).order_by(
+        PatientHistory.created_at.desc()
     )
     if type_filter:
         query = query.filter_by(prediction_type=type_filter)
 
     paginated = query.paginate(page=page, per_page=per_page, error_out=False)
 
-    return jsonify({
-        "items": [entry.to_dict() for entry in paginated.items],
-        "page": paginated.page,
-        "per_page": paginated.per_page,
-        "total": paginated.total,
-        "pages": paginated.pages,
-        "has_next": paginated.has_next,
-        "has_prev": paginated.has_prev,
-    })
+    return jsonify(
+        {
+            "items": [entry.to_dict() for entry in paginated.items],
+            "page": paginated.page,
+            "per_page": paginated.per_page,
+            "total": paginated.total,
+            "pages": paginated.pages,
+            "has_next": paginated.has_next,
+            "has_prev": paginated.has_prev,
+        }
+    )
 
 
 @history_bp.route("/api/history/<int:entry_id>", methods=["GET"])
@@ -133,10 +134,8 @@ def delete_history_entry(entry_id: int):
 def clear_history():
     """Delete ALL of the current user's history. Irreversible."""
     user_id = _require_user_id()
-    deleted = (
-        PatientHistory.query
-        .filter_by(user_id=user_id)
-        .delete(synchronize_session=False)
+    deleted = PatientHistory.query.filter_by(user_id=user_id).delete(
+        synchronize_session=False
     )
     try:
         db.session.commit()
@@ -174,3 +173,53 @@ def add_history_entry():
     if entry is None:
         return jsonify(error="save_failed"), 500
     return jsonify(entry.to_dict()), 201
+
+
+# --------------------------------------------------------------------- #
+# CSV export
+# --------------------------------------------------------------------- #
+@history_bp.route("/history/export/csv", methods=["GET"])
+@login_required
+def export_history_csv():
+    """Export the current user's full prediction history as a CSV file."""
+    user_id = _require_user_id()
+
+    entries = (
+        PatientHistory.query
+        .filter_by(user_id=user_id)
+        .order_by(PatientHistory.created_at.desc())
+        .all()
+    )
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow([
+        "Prediction ID",
+        "Prediction Type",
+        "Disease",
+        "Probability (%)",
+        "Risk Level",
+        "Inputs",
+        "Results",
+        "Notes",
+        "Created At",
+    ])
+
+    for entry in entries:
+        writer.writerow([
+            entry.id,
+            entry.prediction_type or "",
+            entry.disease or "",
+            round(entry.probability * 100, 2) if entry.probability is not None else "",
+            entry.risk_level or "",
+            entry.inputs_json or "",
+            entry.results_json or "",
+            entry.notes or "",
+            entry.created_at.strftime("%Y-%m-%d %H:%M:%S") if entry.created_at else "",
+        ])
+
+    response = make_response(output.getvalue())
+    response.headers["Content-Disposition"] = "attachment; filename=prediction_history.csv"
+    response.headers["Content-Type"] = "text/csv"
+    return response
