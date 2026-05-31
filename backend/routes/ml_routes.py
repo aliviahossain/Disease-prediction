@@ -11,6 +11,7 @@ from backend.models.prediction import PredictionHistory
 from backend.preprocessing import PreprocessingError, clean_prediction_payload
 from backend.services.history_service import save_history
 from backend.utils.calculator import BayesCalculator
+from backend.utils.cache_utils import make_user_cache_key  # noqa: F401 — imported so callers can use it with @cache.cached
 from backend.utils.uncertainty_handler import uncertainty_handler  # NEW
 
 ml_bp = Blueprint("ml", __name__)
