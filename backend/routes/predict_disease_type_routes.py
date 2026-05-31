@@ -6,7 +6,7 @@ import warnings
 import numpy as np
 import tensorflow as tf
 from flask import Blueprint, jsonify, request
-from flask_login import current_user
+from flask_login import current_user, login_required
 from PIL import Image
 
 from backend.services.history_service import save_history
@@ -148,14 +148,52 @@ def run_tflite_inference(model_type, img_array):
     return preds
 
 
+# Magic bytes for the image formats the models accept.
+# The check uses the first 12 bytes of the upload, which is sufficient
+# to distinguish JPEG (FF D8 FF), PNG (89 50 4E 47), and WebP (52 49 46 46 ... 57 45 42 50).
+_IMAGE_MAGIC = {
+    b"\xff\xd8\xff": "image/jpeg",
+    b"\x89PNG": "image/png",
+    b"RIFF": "image/webp",  # full WebP header checked below
+}
+_MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
+def _validate_image_magic(stream) -> bool:
+    """Return True only if the leading bytes identify a supported image format."""
+    header = stream.read(12)
+    stream.seek(0)
+    if not header:
+        return False
+    if header[:3] in _IMAGE_MAGIC or header[:4] in _IMAGE_MAGIC:
+        return True
+    # WebP: bytes 0-3 = 'RIFF', bytes 8-11 = 'WEBP'
+    if header[:4] == b"RIFF" and header[8:12] == b"WEBP":
+        return True
+    return False
+
+
 #  Main prediction route
 @predict_disease_type_bp.route("/predict", methods=["POST"])
+@login_required
 def predict():
     # Accept file as "image" or "file"
     if "image" not in request.files:
         return jsonify({"error": "No image provided"}), 400
 
     image_file = request.files["image"]
+
+    # Reject uploads that exceed the size limit before reading the full stream.
+    image_file.stream.seek(0, 2)
+    file_size = image_file.stream.tell()
+    image_file.stream.seek(0)
+    if file_size > _MAX_UPLOAD_BYTES:
+        return jsonify({"error": "File size exceeds the 10 MB limit."}), 400
+
+    # Validate the file magic bytes before using the filename extension.
+    # Extension-only checks are trivially bypassed by renaming any file to .jpg.
+    if not _validate_image_magic(image_file.stream):
+        return jsonify({"error": "Uploaded file is not a recognised image (JPEG, PNG, or WebP)."}), 400
 
     # Accept type from form or JSON
     model_type = (
