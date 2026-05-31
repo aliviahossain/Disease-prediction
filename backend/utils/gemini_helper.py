@@ -184,6 +184,8 @@ def generate_chat_response(message: str, history: list = None) -> dict:
             "response": "Configuration Error: API key missing.",
         }
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return {
             "success": False,
             "error": str(e),
