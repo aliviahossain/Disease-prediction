@@ -391,6 +391,9 @@ def predict_multiple_diseases():
             top_prediction = {
                 "disease": pred["disease"].replace("_", " ").title(),
                 "probability": round(pred["raw_probability"] * 100, 2),
+                "calibrated_probability":round(pred["calibrated_probability"] * 100, 2),
+                "calibration_gap":round(pred["calibration_gap"] * 100, 2),
+                "calibration_score":round(pred["calibration_score"] * 100, 2),
                 "prior": round(bayesian["prior"] * 100, 2),
                 "likelihood": round(bayesian["likelihood"] * 100, 2),
                 "posterior": round(bayesian["posterior"] * 100, 2),
