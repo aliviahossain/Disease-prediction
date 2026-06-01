@@ -33,14 +33,16 @@
             justify-content: center;
             border-radius: 50%;
             background: var(--primary-cyan);
-            transition: all 0.2s ease;
+            transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
             z-index: 1000;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            will-change: transform;
         }
 
         .chatbot-toggler:hover {
             background: var(--dark-cyan);
-            transform: scale(1.05);
+            transform: scale(1.08);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.3);
         }
 
         .chatbot-toggler span {
@@ -59,18 +61,19 @@
 
         .chatbot {
             position: fixed;
-            right: 35px;
-            bottom: 90px;
-            width: 420px;
+            right: 10px;
+            bottom: 80px;
+            max-height: calc(100vh - 160px);
+            width: min(420px, calc(100vw - 50px));
             background: var(--white);
             border-radius: 15px;
             overflow: hidden;
             opacity: 0;
             pointer-events: none;
-            transform: scale(0.5);
+            transform: scale(0.85) translateY(10px);
             transform-origin: bottom right;
             box-shadow: 0 0 128px 0 rgba(0,0,0,0.1), 0 32px 64px -48px rgba(0,0,0,0.5);
-            transition: all 0.15s ease;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 1000;
         }
 
@@ -98,7 +101,7 @@
             position: absolute;
             right: 15px;
             top: 50%;
-            display: none;
+            display: block;
             cursor: pointer;
             transform: translateY(-50%);
             color: var(--white);
@@ -106,7 +109,8 @@
 
         .chatbot .chatbox {
             overflow-y: auto;
-            height: 510px;
+            height: auto;
+            max-height: calc(100vh - 280px);
             padding: 30px 20px 100px;
             margin-bottom: 0;
             background: var(--bg-light);
