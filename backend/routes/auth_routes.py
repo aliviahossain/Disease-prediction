@@ -161,11 +161,13 @@ def login():
 
         if user and bcrypt.check_password_hash(user.password_hash, password):
             login_user(user)
+            session.permanent = True  # Enforce PERMANENT_SESSION_LIFETIME (2h)
             flash("Login successful!", "success")
             next_page = request.args.get("next")
             if not next_page or not is_safe_url(next_page):
                 next_page = url_for("auth.profile")
             return redirect(next_page)
+
         else:
             flash("Invalid email or password", "danger")
             return redirect(url_for("auth.login", tab="signin"))  # Keep on login page
