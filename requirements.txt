@@ -18,3 +18,5 @@ PyMySQL
 tensorflow-cpu
 pillow
 psycopg2-binary
+gTTS
+Flask-Caching

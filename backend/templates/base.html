@@ -146,6 +146,29 @@
             letter-spacing: 0.05em;
         }
 
+
+        body.dark-mode .dashboard-dropdown {
+            background: #212529;
+            border-color: #373b3e;
+        }
+
+        body.dark-mode .dashboard-dropdown-item {
+            color: #f8f9fa;
+        }
+
+        body.dark-mode .dashboard-dropdown-item:hover {
+            background: rgba(26, 188, 156, 0.2);
+            color: #1abc9c;
+        }
+
+        body.dark-mode .dashboard-dropdown-divider {
+            background: #373b3e;
+        }
+
+        body.dark-mode .dashboard-dropdown-label {
+            color: #adb5bd;
+        }
+
         @media (max-width: 991.98px) {
 
             /* On mobile, make the dashboard dropdown part of the vertical flow */
@@ -170,6 +193,30 @@
                 color: rgba(255, 255, 255, 0.5);
                 padding-left: 0;
             }
+        }
+        .dashboard-dropdown-label {
+            color: rgba(255, 255, 255, 0.5);
+            padding-left: 0;
+        }
+
+        /* Disease Theory Panel - Dark Mode */
+        body.dark-mode #diseaseTheoryPanel {
+            background: #212529 !important;
+            color: #f8f9fa !important;
+        }
+        body.dark-mode #diseaseTheoryPanel h2,
+        body.dark-mode #diseaseTheoryPanel h3 {
+            color: #f8f9fa !important;
+        }
+        body.dark-mode #diseaseTheoryPanel button {
+            color: #f8f9fa !important;
+        }
+        body.dark-mode #diseaseTheoryPanel div[style*="border"] {
+            border-color: #373b3e !important;
+            background: #2c2c2c !important;
+        }
+        body.dark-mode #diseaseTheoryPanel p {
+            color: #dee2e6 !important;
         }
     </style>
 </head>
@@ -282,8 +329,11 @@
                                     <a href="/help" class="dashboard-dropdown-item">
                                         <i class="fas fa-question-circle"></i> Help
                                     </a>
-                                    <a href="/history" class="dashboard-dropdown-item">
+                                    <a href="/history" class="dashboard-dropdown-item"> 
                                         <i class="fas fa-history"></i> History
+                                    </a>
+                                    <a href="#" class="dashboard-dropdown-item" id="diseaseTheoryBtn" onclick="openDiseaseTheory(); return false;">
+                                        <i class="fas fa-book-medical"></i> Disease Theory
                                     </a>
                                     <div class="dashboard-dropdown-divider"></div>
                                     <div class="dashboard-dropdown-label">Account</div>
@@ -410,7 +460,6 @@
         }
 
         #chatbot-launcher:hover {
-            transform: scale(1.1);
             /* Subtle pop effect on hover */
         }
 
@@ -429,6 +478,66 @@
                     });
             });
         }
+    </script>
+        <!-- Disease Theory Panel -->
+        <div id="diseaseTheoryPanel" style="display:none; position:fixed; top:0; right:-450px; width:420px; height:100vh; background:#fff; box-shadow:-4px 0 20px rgba(0,0,0,0.2); z-index:9999; overflow-y:auto; transition:right 0.3s ease; padding:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="margin:0;">📖 Disease Theory</h2>
+                <button onclick="closeDiseaseTheory()" style="background:none; border:none; font-size:1.8rem; cursor:pointer;">&times;</button>
+            </div>
+
+        <div style="display:flex; flex-direction:column; gap:20px;">
+
+            <div style="border:1px solid #eee; border-radius:12px; padding:16px;">
+                <img src="{{ url_for('static', filename='assets/diabetic_retinopathy.jpg') }}" style="width:100%; height:150px; object-fit:cover; border-radius:8px; margin-bottom:10px;">
+                <h3 style="margin:0 0 8px;">🔵 Diabetic Retinopathy</h3>
+                <p style="font-size:0.85rem; opacity:0.85;">A diabetes complication affecting the retina's blood vessels. Early detection is critical to prevent blindness.</p>
+                <span style="background:#ff4d4d33; color:#ff4d4d; padding:3px 10px; border-radius:20px; font-size:0.75rem; font-weight:bold;">High Risk if Diabetic</span>
+            </div>
+
+            <div style="border:1px solid #eee; border-radius:12px; padding:16px;">
+                <img src="{{ url_for('static', filename='assets/glaucoma.jpg') }}" style="width:100%; height:150px; object-fit:cover; border-radius:8px; margin-bottom:10px;">
+                <h3 style="margin:0 0 8px;">🟢 Glaucoma</h3>
+                <p style="font-size:0.85rem; opacity:0.85;">Damages the optic nerve due to high eye pressure. One of the leading causes of blindness for people over 60.</p>
+                <span style="background:#ffa50033; color:#ffa500; padding:3px 10px; border-radius:20px; font-size:0.75rem; font-weight:bold;">Age-Related Risk</span>
+            </div>
+
+            <div style="border:1px solid #eee; border-radius:12px; padding:16px;">
+                <img src="{{ url_for('static', filename='assets/cataract.jpg') }}" style="width:100%; height:150px; object-fit:cover; border-radius:8px; margin-bottom:10px;">
+                <h3 style="margin:0 0 8px;">🟡 Cataract</h3>
+                <p style="font-size:0.85rem; opacity:0.85;">Clouding of the eye lens causing blurry vision. The leading cause of blindness worldwide but fully treatable with surgery.</p>
+                <span style="background:#4caf5033; color:#4caf50; padding:3px 10px; border-radius:20px; font-size:0.75rem; font-weight:bold;">Treatable</span>
+            </div>
+
+            <div style="border:1px solid #eee; border-radius:12px; padding:16px;">
+                <img src="{{ url_for('static', filename='assets/melanoma.jpg') }}" style="width:100%; height:150px; object-fit:cover; border-radius:8px; margin-bottom:10px;">
+                <h3 style="margin:0 0 8px;">🔴 Melanoma</h3>
+                <p style="font-size:0.85rem; opacity:0.85;">Most serious skin cancer developing in melanocytes. UV exposure increases risk. Early detection is critical.</p>
+                <span style="background:#ff4d4d33; color:#ff4d4d; padding:3px 10px; border-radius:20px; font-size:0.75rem; font-weight:bold;">High Risk</span>
+            </div>
+
+            <div style="border:1px solid #eee; border-radius:12px; padding:16px;">
+                <img src="{{ url_for('static', filename='assets/psoriasis.jpg') }}" style="width:100%; height:150px; object-fit:cover; border-radius:8px; margin-bottom:10px;">
+                <h3 style="margin:0 0 8px;">🟠 Psoriasis</h3>
+                <p style="font-size:0.85rem; opacity:0.85;">Chronic autoimmune condition causing rapid skin cell buildup. Not contagious but requires ongoing management.</p>
+                <span style="background:#ffa50033; color:#ffa500; padding:3px 10px; border-radius:20px; font-size:0.75rem; font-weight:bold;">Chronic Condition</span>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+    function openDiseaseTheory() {
+    const panel = document.getElementById('diseaseTheoryPanel');
+    panel.style.display = 'block';
+    setTimeout(() => panel.style.right = '0', 10);
+    document.getElementById('dashboardDropdown').classList.remove('show');
+    }
+    function closeDiseaseTheory() {
+        const panel = document.getElementById('diseaseTheoryPanel');
+        panel.style.right = '-450px';
+        setTimeout(() => panel.style.display = 'none', 300);
+    }
     </script>
 </body>
 

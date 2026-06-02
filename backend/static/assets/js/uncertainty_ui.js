@@ -108,6 +108,20 @@
       container.appendChild(buildUncertaintyCard(result));
       return;
     }
+    // When prediction IS sufficient, show colored confidence meter
+function buildConfidenceMeter(confidence) {
+    const pct = Math.round(confidence * 100);
+    let band, color;
+    
+    if (pct < 40) {
+        band = "Low"; color = "#22c55e";      // green
+    } else if (pct < 70) {
+        band = "Medium"; color = "#eab308";   // yellow  
+    } else {
+        band = "High"; color = "#ef4444";     // red
+    }
+    // render progress bar + badge
+}
  
     // Sufficient data — let the rest of your existing rendering run.
     // This function intentionally does NOT replace your existing result HTML;

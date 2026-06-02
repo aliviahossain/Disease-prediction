@@ -7,7 +7,7 @@ FLASK_PID=$!
 
 # Start the Streamlit dashboard in the background
 echo "Starting Streamlit Dashboard..."
-streamlit run dashboard.py --server.port 8501 --server.address 0.0.0.0 &
+streamlit run dashboard.py --server.port 8501 --server.address 0.0.0.0 --browser.gatherUsageStats false &
 STREAMLIT_PID=$!
 
 # Function to handle shutdown

@@ -1,5 +1,7 @@
-from backend import db
 from flask_login import UserMixin
+
+from backend import db
+
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -18,6 +20,9 @@ class User(db.Model, UserMixin):
     bmi = db.Column(db.Float, nullable=True)
     allergies = db.Column(db.String(200), nullable=True)
     medical_notes = db.Column(db.Text, nullable=True)
+
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
 
     def __repr__(self):
         return f"User('{self.username}', '{self.email}')"
