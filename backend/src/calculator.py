@@ -1,14 +1,28 @@
 import pandas as pd
 
+def validate_probability(
+    value,
+    name="probability",
+    strict_validation=True
+):
+    if strict_validation:
+        if not 0.0 <= value <= 1.0:
+            raise ValueError(
+                f"{name} must be between 0 and 1. Received {value}"
+            )
+        return value
+
+    return max(0.0, min(1.0, value))
+
 
 def bayesian_survival(prior, sensitivity, specificity):
     """
     Calculate posterior probability using Bayes' Theorem.
 
     Args:
-        prior: Prior probability of disease (0-1)
-        sensitivity: True positive rate (0-1)
-        specificity: True negative rate (0-1)
+        prior: Prior probability
+        sensitivity: Test sensitivity
+        specificity: Test specificity
 
     Returns:
         Posterior probability of disease given positive test result
@@ -22,13 +36,15 @@ def bayesian_survival(prior, sensitivity, specificity):
             f"Non-numeric input: prior={prior}, sensitivity={sensitivity}, specificity={specificity}"
         )
 
-    prior = max(0.0, min(1.0, prior))
-    sensitivity = max(0.0, min(1.0, sensitivity))
-    specificity = max(0.0, min(1.0, specificity))
+    prior = validate_probability(prior, "prior")
+    sensitivity = validate_probability(sensitivity, "sensitivity")
+    specificity = validate_probability(specificity, "specificity")
 
     likelihood = (sensitivity * prior) + ((1 - specificity) * (1 - prior))
+
     if likelihood == 0:
         return 0.0
+
     return (sensitivity * prior) / likelihood
 
 
@@ -44,14 +60,6 @@ class BayesCalculator:
     def calculate_posterior(self, prior, likelihood, false_positive_rate=0.05):
         """
         Calculate posterior probability using Bayes' Theorem.
-
-        Args:
-            prior: Prior probability (0-1)
-            likelihood: P(symptoms|disease) - probability of symptoms given disease (0-1)
-            false_positive_rate: P(symptoms|no disease) - probability of symptoms without disease (0-1)
-
-        Returns:
-            Dictionary with prior, likelihood, posterior, and false_positive_rate
         """
         try:
             prior = float(prior)
@@ -60,13 +68,13 @@ class BayesCalculator:
         except (TypeError, ValueError):
             raise ValueError("Non-numeric input provided")
 
-        # Clamp values to [0, 1]
-        prior = max(0.0, min(1.0, prior))
-        likelihood = max(0.0, min(1.0, likelihood))
-        false_positive_rate = max(0.0, min(1.0, false_positive_rate))
+        prior = validate_probability(prior, "prior")
+        likelihood = validate_probability(likelihood, "likelihood")
+        false_positive_rate = validate_probability(
+            false_positive_rate,
+            "false_positive_rate",
+        )
 
-        # Bayes' Theorem: P(D|S) = P(S|D) * P(D) / P(S)
-        # P(S) = P(S|D) * P(D) + P(S|~D) * P(~D)
         numerator = likelihood * prior
         denominator = numerator + (false_positive_rate * (1 - prior))
 
@@ -87,15 +95,6 @@ class BayesCalculator:
     ):
         """
         Calculate posterior probability based on test result.
-
-        Args:
-            prior: Prior probability of disease (0-1)
-            sensitivity: True positive rate (0-1)
-            specificity: True negative rate (0-1)
-            test_result: 'positive' or 'negative'
-
-        Returns:
-            Dictionary with calculation results
         """
         try:
             prior = float(prior)
@@ -104,19 +103,16 @@ class BayesCalculator:
         except (TypeError, ValueError):
             raise ValueError("Non-numeric input provided")
 
-        # Clamp values
-        prior = max(0.0, min(1.0, prior))
-        sensitivity = max(0.0, min(1.0, sensitivity))
-        specificity = max(0.0, min(1.0, specificity))
+        prior = validate_probability(prior, "prior")
+        sensitivity = validate_probability(sensitivity, "sensitivity")
+        specificity = validate_probability(specificity, "specificity")
 
         false_positive_rate = 1 - specificity
 
         if test_result.lower() == "positive":
-            # P(D|+) = P(+|D) * P(D) / [P(+|D) * P(D) + P(+|~D) * P(~D)]
             numerator = sensitivity * prior
             denominator = numerator + (false_positive_rate * (1 - prior))
-        else:  # negative
-            # P(D|-) = P(-|D) * P(D) / [P(-|D) * P(D) + P(-|~D) * P(~D)]
+        else:
             numerator = (1 - sensitivity) * prior
             denominator = numerator + (specificity * (1 - prior))
 
