@@ -247,3 +247,11 @@ def test_profile_rejects_incomplete_dropdown_dob(client):
 
     assert response.status_code == 200
     assert b"Date of birth requires day, month, and year" in response.data
+
+def test_logout_post_succeeds(client, logged_in_user):
+    response = client.post(
+        "/logout",
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
