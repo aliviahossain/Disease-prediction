@@ -41,4 +41,6 @@ def survival_chance(prior, sensitivity, specificity, test_result):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    import os
+    debug = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    app.run(debug=debug)
