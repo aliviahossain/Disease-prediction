@@ -323,10 +323,15 @@ def update_profile():
         current_user.weight = weight
     
     # Recompute BMI if height or weight were sent/updated in this request
+    # Recompute BMI if height or weight were sent/updated in this request
     if _form_has_field("height") or _form_has_field("weight"):
         h = current_user.height
         w = current_user.weight
-        current_user.bmi = round(w / ((h / 100) ** 2), 2) if h and w else None
+
+        if h and h > 0 and w:
+            current_user.bmi = round(w / ((h / 100) ** 2), 2)
+        else:
+            current_user.bmi = None
 
     if _form_has_field("allergies"):
         current_user.allergies = allergies or None
