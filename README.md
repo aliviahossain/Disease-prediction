@@ -338,3 +338,17 @@ The dashboard now includes a Prediction History Timeline system that allows user
 
 ### 🔒 Privacy
 All prediction history is stored locally on the user's machine using JSON-based storage.
+## Logging
+
+The application uses Python's logging module.
+
+Supported log levels:
+
+- DEBUG
+- INFO
+- WARNING
+- ERROR
+
+Example:
+
+LOG_LEVEL=DEBUG python app.py

@@ -1,5 +1,7 @@
 import pandas as pd
 
+from backend.middleware import logger
+
 
 def bayesian_survival(prior, sensitivity, specificity):
     """
@@ -169,9 +171,12 @@ def clean_data(df, strict=False):
     else:
         dropped_count = nan_mask.sum()
         if dropped_count > 0:
-            print(
-                f"Warning: Dropped {dropped_count} invalid row(s) due to non-numeric values."
-            )
+            from backend.utils.logger import logger
+
+            logger.warning(
+                "Dropped %s invalid row(s) due to non-numeric values.",
+                dropped_count,
+)
         return df[~nan_mask]
 
 
@@ -223,4 +228,4 @@ if __name__ == "__main__":
         results = load_data(data_file)
         display_results(results)
     except Exception as e:
-        print(f"Error: {e}")
+        logger.error("Application error: %s", e)
