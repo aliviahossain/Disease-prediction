@@ -4,7 +4,6 @@ import os
 from datetime import datetime
 
 import numpy as np
-from keras.utils import load_img, img_to_array
 from backend import db
 from sqlalchemy import CheckConstraint
 
@@ -17,6 +16,7 @@ CLASS_NAMES = ["Cataract", "Diabetic Retinopathy", "Glaucoma", "Normal"]
 
 def predict_disease(model, img_path, target_size=(224, 224)):
     try:
+        from keras.utils import load_img, img_to_array
         # Load image
         img = load_img(img_path, target_size=target_size)
         img_array = img_to_array(img)
