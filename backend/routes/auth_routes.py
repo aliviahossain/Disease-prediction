@@ -9,6 +9,12 @@ from sqlalchemy.exc import OperationalError
 
 from backend import bcrypt, db
 from backend.models.user import User
+from collections import defaultdict
+from time import time
+
+LOGIN_ATTEMPTS = defaultdict(list)
+MAX_LOGIN_ATTEMPTS = 5
+LOCKOUT_SECONDS = 300
 
 auth_bp = Blueprint("auth", __name__)
 
