@@ -9,6 +9,12 @@ from sqlalchemy.exc import OperationalError
 
 from backend import bcrypt, db
 from backend.models.user import User
+from collections import defaultdict
+from time import time
+
+LOGIN_ATTEMPTS = defaultdict(list)
+MAX_LOGIN_ATTEMPTS = 5
+LOCKOUT_SECONDS = 300
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -240,7 +246,13 @@ def profile():
         weight_options=range(1, 636),
     )
 
-
+def update_if_provided(obj, field_name, validated_value, raw_value):
+    """
+    Update a model field only when the user actually provided
+    a non-empty value. Prevents accidental overwriting with None.
+    """
+    if raw_value and raw_value.strip():
+        setattr(obj, field_name, validated_value)
 @auth_bp.route("/profile/update", methods=["POST"])
 @login_required
 def update_profile():
@@ -303,35 +315,54 @@ def update_profile():
             flash(error, "danger")
         return redirect(url_for("auth.profile"))
 
-    if _form_has_field("phone"):
-        current_user.phone = phone
-    if _form_has_field("address"):
-        current_user.address = address
-    if _form_has_field("emergency_name"):
-        current_user.emergency_name = emergency_name
-    if _form_has_field("emergency_relation"):
-        current_user.emergency_relation = emergency_relation
-    if _form_has_field("emergency_phone"):
-        current_user.emergency_phone = emergency_phone
-    if any(_form_has_field(name) for name in ("dob_day", "dob_month", "dob_year", "dob")):
-        current_user.dob = dob
-    if _form_has_field("gender"):
-        current_user.gender = gender or None
-    if _form_has_field("height"):
-        current_user.height = height
-    if _form_has_field("weight"):
-        current_user.weight = weight
-    
-    # Recompute BMI if height or weight were sent/updated in this request
-    if _form_has_field("height") or _form_has_field("weight"):
-        h = current_user.height
-        w = current_user.weight
-        current_user.bmi = round(w / ((h / 100) ** 2), 2) if h and w else None
+    update_if_provided(
+    current_user,
+    "phone",
+    phone,
+    _clean_form_value("phone"),
+)
 
-    if _form_has_field("allergies"):
-        current_user.allergies = allergies or None
-    if _form_has_field("medical_notes"):
-        current_user.medical_notes = medical_notes or None
+    update_if_provided(
+        current_user,
+        "address",
+        address,
+        _clean_form_value("address"),
+    )
+
+    update_if_provided(
+        current_user,
+        "emergency_name",
+        emergency_name,
+        _clean_form_value("emergency_name"),
+    )
+
+    update_if_provided(
+        current_user,
+        "emergency_relation",
+        emergency_relation,
+        _clean_form_value("emergency_relation"),
+    )
+
+    update_if_provided(
+        current_user,
+        "emergency_phone",
+        emergency_phone,
+        _clean_form_value("emergency_phone"),
+    )
+
+    update_if_provided(
+        current_user,
+        "allergies",
+        allergies,
+        _clean_form_value("allergies"),
+    )
+
+    update_if_provided(
+        current_user,
+        "medical_notes",
+        medical_notes,
+        _clean_form_value("medical_notes"),
+    )
     try:
         db.session.commit()
     except OperationalError as error:

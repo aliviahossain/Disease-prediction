@@ -247,3 +247,21 @@ def test_profile_rejects_incomplete_dropdown_dob(client):
 
     assert response.status_code == 200
     assert b"Date of birth requires day, month, and year" in response.data
+def test_empty_phone_does_not_clear_existing_value(
+    client,
+    app,
+    db_session,
+    test_user,
+):
+    test_user.phone = "+12345678901"
+    db_session.commit()
+
+    client.post(
+        "/profile/update",
+        data={"phone": ""},
+        follow_redirects=True,
+    )
+
+    db_session.refresh(test_user)
+
+    assert test_user.phone == "+12345678901"
