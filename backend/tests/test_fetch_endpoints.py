@@ -7,7 +7,7 @@ import json
 
 import pytest
 
-from app import app
+from run import app
 from backend import db
 
 
