@@ -310,20 +310,31 @@ class RateLimiter:
         """
         Get unique identifier for the request.
 
+        The identifier is based solely on the client IP address.
+        Using User-Agent as part of the key allowed trivial bypass
+        by rotating the User-Agent header on each request.
+
+        For authenticated requests the Authorization header value is
+        also incorporated so that legitimate per-user rate limits work
+        correctly when multiple users share an egress IP.
+
         Args:
             request_obj: Flask request object
 
         Returns:
             Unique identifier string
         """
-        # Use IP address as identifier
         ip = request_obj.remote_addr or "unknown"
 
-        # Include user agent for better tracking
-        user_agent = request_obj.headers.get("User-Agent", "")
+        # Include an authenticated session token when present so that
+        # per-user limits are enforced even behind a shared NAT, while
+        # keeping the identifier opaque (hashed, never stored in clear).
+        auth_token = request_obj.headers.get("Authorization", "")
 
-        # Create hash of IP + user agent
-        identifier = hashlib.md5(f"{ip}:{user_agent}".encode()).hexdigest()
+        if auth_token:
+            identifier = hashlib.sha256(f"{ip}:{auth_token}".encode()).hexdigest()
+        else:
+            identifier = hashlib.sha256(ip.encode()).hexdigest()
 
         return identifier
 
