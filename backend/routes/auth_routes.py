@@ -182,47 +182,71 @@ MAX_USERNAME_LEN = 20
 @auth_bp.route('/signup', methods=['POST'])
 def signup():
     username = (request.form.get('username') or '').strip()
-    email    = (request.form.get('email')    or '').strip()
-    password =  request.form.get('password') or ''
+    email = (request.form.get('email') or '').strip()
+    password = request.form.get('password') or ''
 
-    # 1. Reject empty fields
+    # Reject empty fields
     if not username or not email or not password:
         flash("All fields are required.", "danger")
         return redirect(url_for("auth.login", tab="register"))
 
-    # 2. Validate username length (DB column is String(20))
+    # Username length validation
+    MIN_USERNAME_LEN = 3
+
+    if len(username) < MIN_USERNAME_LEN:
+        flash(
+            f"Username must be at least {MIN_USERNAME_LEN} characters long.",
+            "danger"
+        )
+        return redirect(url_for("auth.login", tab="register"))
+
     if len(username) > MAX_USERNAME_LEN:
-        flash(f'Username must be {MAX_USERNAME_LEN} characters or fewer.', 'danger')
-        return redirect(url_for('auth.login', tab='register'))
+        flash(
+            f"Username must be {MAX_USERNAME_LEN} characters or fewer.",
+            "danger"
+        )
+        return redirect(url_for("auth.login", tab="register"))
 
-    # 2. Validate email format
+    # Validate email format
     if not EMAIL_RE.fullmatch(email):
-        flash('Invalid email address format.', 'danger')
-        return redirect(url_for('auth.login', tab='register'))
+        flash("Invalid email address format.", "danger")
+        return redirect(url_for("auth.login", tab="register"))
 
-    # 3. Validate password strength
-    if len(password) < 8 or not re.search(r"\d", password) or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-        flash('Password must be at least 8 characters long, contain at least one number and one special character.', 'danger')
-        return redirect(url_for('auth.login', tab='register'))
+    # Validate password strength
+    if (
+        len(password) < MIN_PASSWORD_LEN
+        or not re.search(r"\d", password)
+        or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password)
+    ):
+        flash(
+            "Password must be at least 8 characters long, contain at least one number and one special character.",
+            "danger",
+        )
+        return redirect(url_for("auth.login", tab="register"))
 
-    # 2. Check for existing user (split for better internal logging if needed, but flash user-friendly)
+    # Check existing users
     if User.query.filter_by(email=email).first():
-        flash('Email already registered.', 'danger')
-        return redirect(url_for('auth.login', tab='register'))
+        flash("Email already registered.", "danger")
+        return redirect(url_for("auth.login", tab="register"))
 
     if User.query.filter_by(username=username).first():
         flash("Username already taken.", "danger")
         return redirect(url_for("auth.login", tab="register"))
 
-    # Hash password and create user
-    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+    # Create user
+    hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
-    new_user = User(username=username, email=email, password_hash=hashed_password)
+    new_user = User(
+        username=username,
+        email=email,
+        password_hash=hashed_password,
+    )
+
     db.session.add(new_user)
     db.session.commit()
 
-    flash('Account Created Successfully. Please Sign In.', 'success')
-    return redirect(url_for('auth.login', tab='signin'))
+    flash("Account Created Successfully. Please Sign In.", "success")
+    return redirect(url_for("auth.login", tab="signin"))
 
 @auth_bp.route("/profile")
 @login_required
