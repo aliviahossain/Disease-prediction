@@ -140,25 +140,58 @@ def read_data(filepath):
     try:
         df = pd.read_csv(filepath)
     except pd.errors.EmptyDataError:
-        return pd.DataFrame(columns=["prior", "sensitivity", "specificity"])
-    expected_cols = {"prior", "sensitivity", "specificity"}
-    if not expected_cols.issubset(df.columns):
-        raise ValueError(
-            f"CSV must contain columns: {expected_cols}, found {df.columns.tolist()}"
+        return pd.DataFrame(
+            columns=["prior", "sensitivity", "specificity", "test_result"]
         )
+
+    required_cols = {"prior", "sensitivity", "specificity"}
+
+    if not required_cols.issubset(df.columns):
+        raise ValueError(
+            f"CSV must contain columns: {required_cols}, found {df.columns.tolist()}"
+        )
+
+    if "test_result" not in df.columns:
+        df["test_result"] = "positive"
+
     return df
 
 
 def clean_data(df, strict=False):
     """Clean and validate data"""
     df = df.copy()
+
+    # Convert probability columns to numeric
     df[["prior", "sensitivity", "specificity"]] = df[
         ["prior", "sensitivity", "specificity"]
     ].apply(pd.to_numeric, errors="coerce")
+
+    # Clamp probability values to [0,1]
     df[["prior", "sensitivity", "specificity"]] = df[
         ["prior", "sensitivity", "specificity"]
     ].clip(0, 1)
 
+    # Handle test_result column
+    if "test_result" not in df.columns:
+        df["test_result"] = "positive"
+
+    df["test_result"] = (
+        df["test_result"]
+        .fillna("positive")
+        .astype(str)
+        .str.lower()
+    )
+
+    valid_results = {"positive", "negative"}
+
+    invalid_test_results = ~df["test_result"].isin(valid_results)
+
+    if invalid_test_results.any():
+        raise ValueError(
+            "test_result must be either 'positive' or 'negative'"
+        )
+
+    # Check for NaN values in probability columns
     nan_mask = df[["prior", "sensitivity", "specificity"]].isna().any(axis=1)
 
     if strict:
@@ -168,10 +201,12 @@ def clean_data(df, strict=False):
         return df
     else:
         dropped_count = nan_mask.sum()
+
         if dropped_count > 0:
             print(
                 f"Warning: Dropped {dropped_count} invalid row(s) due to non-numeric values."
             )
+
         return df[~nan_mask]
 
 
@@ -179,12 +214,21 @@ def add_posterior_column(df):
     """Add posterior probability column to dataframe"""
     df = df.copy()
 
-    numerator = df["sensitivity"] * df["prior"]
-    denominator = numerator + ((1 - df["specificity"]) * (1 - df["prior"]))
+    calculator = BayesCalculator()
 
-    # Avoid division by zero: where denominator == 0, set posterior = 0
-    df["posterior"] = numerator / denominator
-    df.loc[denominator == 0, "posterior"] = 0.0
+    posteriors = []
+
+    for _, row in df.iterrows():
+        result = calculator.calculate_with_test_result(
+            row["prior"],
+            row["sensitivity"],
+            row["specificity"],
+            row["test_result"],
+        )
+
+        posteriors.append(result["posterior"])
+
+    df["posterior"] = posteriors
 
     return df
 
