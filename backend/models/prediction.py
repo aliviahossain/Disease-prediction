@@ -7,6 +7,8 @@ import numpy as np
 from backend import db
 from sqlalchemy import CheckConstraint
 
+from backend import db
+
 # Configurable confidence threshold
 CONFIDENCE_THRESHOLD = float(os.getenv("PREDICTION_CONFIDENCE_THRESHOLD", 0.65))
 
