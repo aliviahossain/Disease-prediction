@@ -5,10 +5,11 @@ Gemini API helper for generating recommendations based on disease probability re
 import os
 from typing import Optional
 from google.genai import types
-
+import logging
 # Global client variable to keep configuration simple
 client = None
-
+token_limit = 2000
+logger = logging.getLogger(__name__)
 
 def configure_gemini():
     """Configure Gemini API with the API key from environment variables."""
@@ -53,20 +54,8 @@ def generate_recommendations(
     try:
         configure_gemini()
 
-        # Create the model - use the latest available flash model
         # Try newer models first, fall back to older ones if needed
         model_names = ["gemini-2.5-flash", "gemini-2.5-pro"]
-        chosen_model = None
-
-        for model_name in model_names:
-            try:
-                chosen_model = model_name
-                break
-            except Exception:
-                continue
-
-        if chosen_model is None:
-            chosen_model = "gemini-2.5-flash"
 
         # Construct the prompt
         disease_context = (
@@ -111,15 +100,29 @@ Structure your response in the following format:
 Keep your response concise (under 200 words), professional, educational, and emphasize that this is a probabilistic tool, not a definitive diagnosis. The recommendations should be general guidance that would apply to most cases.
 """
 
-        # Generate response using the new client format
-        response = client.models.generate_content(model=chosen_model, contents=prompt)
+        # Attempt each model in order; move to next if one fails
+        last_exception = None
+        result = None
 
-        return {
-            "success": True,
-            "recommendations": response.text,
-            "prior_probability": prior_probability,
-            "posterior_probability": posterior_probability,
-        }
+        for model_name in model_names:
+            try:
+                response = client.models.generate_content(model=model_name, contents=prompt)
+                result = {
+                    "success": True,
+                    "recommendations": response.text,
+                    "prior_probability": prior_probability,
+                    "posterior_probability": posterior_probability,
+                }
+                break
+            except Exception as e:
+                logger.warning(f"Model {model_name} failed: {e}. Trying next model...")
+                last_exception = e
+                continue
+
+        if result is None:
+            raise last_exception
+
+        return result
 
     except ValueError as ve:
         return {
@@ -135,7 +138,28 @@ Keep your response concise (under 200 words), professional, educational, and emp
         }
 
 
-def generate_chat_response(message: str, history: list = None) -> dict:
+def process_history(messages):
+    try:
+        tokens = 0  # Considering 1 word ~ 1 token
+
+        formatted_history = []
+        for turn in messages[-2::-1]:
+            if formatted_history and tokens + len(turn['text']) >= token_limit:
+                break
+            tokens += len(turn['text'])
+            formatted_history.append(
+                types.Content(
+                    role=turn["role"],  # Must be 'user' or 'model'
+                    parts=[types.Part.from_text(text=turn["text"])]  # Wrapped properly
+                )
+            )
+        return formatted_history
+    except Exception as e:
+        logger.error(str(e))
+        return []
+
+
+def generate_chat_response(messages: str, history: list = None) -> dict:
     """
     Generate a chat response using Gemini API, restricted to medical/health domain.
 
@@ -166,12 +190,15 @@ def generate_chat_response(message: str, history: list = None) -> dict:
         4. Keep answers concise (under 150 words) unless detailed explanation is requested.
         5. Be empathetic and professional.
         """
+        formatted_history = process_history(messages=messages)
 
         # Use the modern chats utility instance configuration passing system instruction
         chat = client.chats.create(
             model="gemini-2.5-flash",
             config=types.GenerateContentConfig(system_instruction=system_instruction),
+            history=formatted_history
         )
+        message = messages[-1].get('text')
 
         response = chat.send_message(message)
 
