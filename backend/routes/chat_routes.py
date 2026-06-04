@@ -12,7 +12,7 @@ def chat():
 
     Expected JSON payload:
     {
-        "message": "User's question here"
+        "messages": "History of chat"
     }
     """
     try:
@@ -21,13 +21,13 @@ def chat():
         if not data:
             return jsonify({"error": "No data provided"}), 400
 
-        message = data.get("message")
+        messages = data.get("messages")
 
-        if not message:
+        if not messages:
             return jsonify({"error": "Message cannot be empty"}), 400
 
         # Get AI response
-        ai_result = generate_chat_response(message)
+        ai_result = generate_chat_response(messages)
 
         if ai_result["success"]:
             return jsonify({"success": True, "response": ai_result["response"]}), 200

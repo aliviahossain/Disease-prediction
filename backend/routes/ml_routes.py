@@ -11,6 +11,7 @@ from backend.models.prediction import PredictionHistory
 from backend.preprocessing import PreprocessingError, clean_prediction_payload
 from backend.services.history_service import save_history
 from backend.utils.calculator import BayesCalculator
+from backend.utils.cache_utils import make_user_cache_key  # noqa: F401 — imported so callers can use it with @cache.cached
 from backend.utils.uncertainty_handler import uncertainty_handler  # NEW
 
 ml_bp = Blueprint("ml", __name__)
@@ -188,29 +189,35 @@ def predict_disease():
                 trend_factor=trend_factor,
             )
 
-            prediction_record = PredictionHistory(
-                user_id=current_user.id if current_user.is_authenticated else None,
-                disease=disease,
-                symptoms=json.dumps(symptoms),
-                patient_age=age,
-                ml_probability=ml_prediction["raw_probability"],
-                bayesian_posterior=bayesian_result["posterior"],
-                confidence_score=confidence_score,
-                survival_probability=survival_prob,
-                heart_rate=cleaned.heart_rate,
-                blood_pressure_systolic=cleaned.blood_pressure_systolic,
-                blood_pressure_diastolic=cleaned.blood_pressure_diastolic,
-                blood_glucose=cleaned.blood_glucose,
-                temperature=cleaned.temperature,
-                risk_level=risk_level_db,
-            )
-            db.session.add(prediction_record)
-            db.session.commit()
-            print(
-                f"✅ Prediction saved: disease={disease}, risk_level={risk_level_db}, survival_prob={survival_prob}%"
-            )
+            # Only persist history for authenticated users.
+            # Storing records with user_id=None leaks sensitive health data
+            # (vitals, diagnoses) with no data subject linkage, making it
+            # impossible to honour deletion requests and causing the table
+            # to grow unboundedly with orphaned rows.
+            if current_user.is_authenticated:
+                prediction_record = PredictionHistory(
+                    user_id=current_user.id,
+                    disease=disease,
+                    symptoms=json.dumps(symptoms),
+                    patient_age=age,
+                    ml_probability=ml_prediction["raw_probability"],
+                    bayesian_posterior=bayesian_result["posterior"],
+                    confidence_score=confidence_score,
+                    survival_probability=survival_prob,
+                    heart_rate=cleaned.heart_rate,
+                    blood_pressure_systolic=cleaned.blood_pressure_systolic,
+                    blood_pressure_diastolic=cleaned.blood_pressure_diastolic,
+                    blood_glucose=cleaned.blood_glucose,
+                    temperature=cleaned.temperature,
+                    risk_level=risk_level_db,
+                )
+                db.session.add(prediction_record)
+                db.session.commit()
+                print(
+                    f"Prediction saved: disease={disease}, risk_level={risk_level_db}, survival_prob={survival_prob}%"
+                )
         except Exception as db_error:
-            print(f"⚠️ Failed to save prediction to database: {db_error}")
+            print(f"Failed to save prediction to database: {db_error}")
             traceback.print_exc()
             db.session.rollback()
 
@@ -271,28 +278,29 @@ def predict_disease():
             "risk_assessment": risk_assessment,
         }
 
-        # Issue #230: also persist via the unified history service so the
-        # new History page (PatientHistory) shows this prediction. The
-        # existing PredictionHistory save above is left untouched.
-        save_history(
-            user_id=current_user.id if current_user.is_authenticated else None,
-            prediction_type="symptom",
-            disease=disease.replace("_", " ").title(),
-            inputs={
-                "symptoms": symptoms,
-                "age": age,
-                "height_cm": height,
-                "weight_kg": weight,
-            },
-            results={
-                "ml_probability": ml_prediction["raw_probability"],
-                "bayesian_posterior": bayesian_result["posterior"],
-                "confidence_score": confidence_score,
-                "survival_probability": survival_prob,
-            },
-            probability=bayesian_result["posterior"],
-            risk_level=risk_level_db,
-        )
+        # Persist via the unified history service so the History page
+        # (PatientHistory) shows this prediction. Only written for
+        # authenticated users to avoid orphaned anonymous health records.
+        if current_user.is_authenticated:
+            save_history(
+                user_id=current_user.id,
+                prediction_type="symptom",
+                disease=disease.replace("_", " ").title(),
+                inputs={
+                    "symptoms": symptoms,
+                    "age": age,
+                    "height_cm": height,
+                    "weight_kg": weight,
+                },
+                results={
+                    "ml_probability": ml_prediction["raw_probability"],
+                    "bayesian_posterior": bayesian_result["posterior"],
+                    "confidence_score": confidence_score,
+                    "survival_probability": survival_prob,
+                },
+                probability=bayesian_result["posterior"],
+                risk_level=risk_level_db,
+            )
 
         return jsonify(result), 200
 
@@ -384,6 +392,9 @@ def predict_multiple_diseases():
             top_prediction = {
                 "disease": pred["disease"].replace("_", " ").title(),
                 "probability": round(pred["raw_probability"] * 100, 2),
+                "calibrated_probability":round(pred["calibrated_probability"] * 100, 2),
+                "calibration_gap":round(pred["calibration_gap"] * 100, 2),
+                "calibration_score":round(pred["calibration_score"] * 100, 2),
                 "prior": round(bayesian["prior"] * 100, 2),
                 "likelihood": round(bayesian["likelihood"] * 100, 2),
                 "posterior": round(bayesian["posterior"] * 100, 2),
@@ -500,11 +511,11 @@ def predict_multiple_diseases():
          # Issue #230: also persist the top prediction via the unified
         # history service so the PatientHistory-backed History page
         # reflects this differential diagnosis run.
-        if top_predictions:
+        if top_predictions and current_user.is_authenticated:
             top_pred = top_predictions[0]
             top_risk = top_pred.get("risk_level") or {}
             save_history(
-                user_id=current_user.id if current_user.is_authenticated else None,
+                user_id=current_user.id,
                 prediction_type="symptom",
                 disease=top_pred["disease"],
                 inputs={
