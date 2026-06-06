@@ -153,13 +153,14 @@ def process_history(messages):
         logger.error(str(e))
         return []
 
-def generate_chat_response(messages: str, history: list = None) -> dict:
+def generate_chat_response(messages: list) -> dict:
     """
     Generate a chat response using Gemini API, restricted to medical/health domain.
 
     Args:
-        message: The user's query
-        history: Optional list of previous chat messages for context
+        messages: Full conversation history as a list of dicts with 'role' and 'text'
+                  keys. The last item is the current user message; all preceding items
+                  are passed as history to the model.
 
     Returns:
         dict: Contains 'success', 'response', and optional 'error' keys

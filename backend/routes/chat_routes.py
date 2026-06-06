@@ -8,12 +8,18 @@ chat_bp = Blueprint("chat", __name__)
 @chat_bp.route("/api/chat", methods=["POST"])
 def chat():
     """
-    API endpoint to handle chatbot messages.
+    API endpoint to handle chatbot messages with conversation history.
 
     Expected JSON payload:
     {
-        "messages": "History of chat"
+        "messages": [
+            {"role": "user", "text": "My name is Alex"},
+            {"role": "model", "text": "Hello Alex! How can I help?"},
+            {"role": "user", "text": "What is my name?"}
+        ]
     }
+    The last item is the current user message.
+    All preceding items form the conversation history passed to the model.
     """
     try:
         data = request.get_json()
@@ -23,10 +29,10 @@ def chat():
 
         messages = data.get("messages")
 
-        if not messages:
-            return jsonify({"error": "Message cannot be empty"}), 400
+        if not messages or not isinstance(messages, list):
+            return jsonify({"error": "messages must be a non-empty list"}), 400
 
-        # Get AI response
+        # Get AI response with full conversation history
         ai_result = generate_chat_response(messages)
 
         if ai_result["success"]:
