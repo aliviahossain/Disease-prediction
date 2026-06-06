@@ -20,3 +20,4 @@ pillow
 psycopg2-binary
 gTTS
 Flask-Caching
+flask-wtf

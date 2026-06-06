@@ -43,6 +43,7 @@
     </div>
 
     <form id="profile-form" method="POST" action="{{ url_for('auth.update_profile') }}" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         <div id="overview" class="tab-content active" role="tabpanel">
             <div class="profile-grid">

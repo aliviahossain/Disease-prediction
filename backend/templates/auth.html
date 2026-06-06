@@ -170,6 +170,7 @@
             <!-- Sign In Form -->
             <div id="form-signin" class="auth-form {{ 'active' if active_tab == 'signin' else '' }}">
                 <form method="POST" action="{{ url_for('auth.login') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Email</label>
                         <input type="email" class="form-control" name="email" required>
@@ -188,6 +189,7 @@
             <!-- Register Form -->
             <div id="form-register" class="auth-form {{ 'active' if active_tab == 'register' else '' }}">
                 <form method="POST" action="{{ url_for('auth.signup') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Name</label>
                         <input type="text" class="form-control" name="username" required>
