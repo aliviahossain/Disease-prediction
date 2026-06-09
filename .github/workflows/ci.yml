@@ -22,7 +22,6 @@ jobs:
           python run.py > server.log 2>&1 &
           server_pid=$!
           echo "Server started with PID: $server_pid"
-
           for i in {1..15}; do
             if curl -fs http://127.0.0.1:5001 > /dev/null; then
               echo "Server is up!"
@@ -33,8 +32,29 @@ jobs:
             echo "Waiting for server... (attempt $i/15)"
             sleep 2
           done
-
           echo "Server failed to start. Printing logs:"
           cat server.log
           kill $server_pid
           exit 1
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run pytest
+        env:
+          SECRET_KEY: test_secret_key_for_ci_only_not_for_production
+          FLASK_ENV: testing
+          DATABASE_URL: ""
+          GEMINI_API_KEY: ""
+        run: pytest backend/tests/ -v --tb=short
