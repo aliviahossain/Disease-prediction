@@ -11,6 +11,7 @@ from sqlalchemy.exc import OperationalError
 
 from backend import bcrypt, db
 from backend.models.user import User
+from backend.middleware import rate_limit
 
 LOGIN_ATTEMPTS = defaultdict(list)
 
@@ -156,6 +157,7 @@ def auth():
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
+@rate_limit("default")
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("auth.profile"))
@@ -211,6 +213,7 @@ MIN_PASSWORD_LEN = 8
 MAX_USERNAME_LEN = 20  
 
 @auth_bp.route('/signup', methods=['POST'])
+@rate_limit("default")
 def signup():
     username = (request.form.get('username') or '').strip()
     email = (request.form.get('email') or '').strip()

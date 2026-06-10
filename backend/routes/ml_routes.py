@@ -13,6 +13,7 @@ from backend.services.history_service import save_history
 from backend.utils.calculator import BayesCalculator
 from backend.utils.cache_utils import make_user_cache_key  # noqa: F401 — imported so callers can use it with @cache.cached
 from backend.utils.uncertainty_handler import uncertainty_handler  # NEW
+from backend.middleware import rate_limit
 
 ml_bp = Blueprint("ml", __name__)
 
@@ -40,6 +41,7 @@ def ml_prediction_page():
 
 
 @ml_bp.route("/api/ml/predict", methods=["POST"])
+@rate_limit("prediction")
 def predict_disease():
     """
     API endpoint for ML disease prediction.
@@ -311,6 +313,7 @@ def predict_disease():
 
 
 @ml_bp.route("/api/ml/predict-multiple", methods=["POST"])
+@rate_limit("ml_analysis")
 def predict_multiple_diseases():
     """
     API endpoint for differential diagnosis (predict multiple diseases).

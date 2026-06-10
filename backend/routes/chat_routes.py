@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from backend.middleware import rate_limit
 
 from backend.utils.gemini_helper import generate_chat_response
 
@@ -6,6 +7,7 @@ chat_bp = Blueprint("chat", __name__)
 
 
 @chat_bp.route("/api/chat", methods=["POST"])
+@rate_limit("default")
 def chat():
     """
     API endpoint to handle chatbot messages.
