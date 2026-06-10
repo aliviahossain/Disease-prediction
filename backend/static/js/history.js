@@ -48,7 +48,7 @@
     pages: 1,
     total: 0,
   };
-
+  let lastFocusedElement = null;
   // ----- Utilities ----------------------------------------------------- //
 
   /** Escape user-controlled strings before putting them in HTML. */
@@ -211,11 +211,19 @@
         <pre>${escapeHTML(results)}</pre>
       </details>
     `;
+    lastFocusedElement = document.activeElement;
     $modal.hidden = false;
     $modal.setAttribute("aria-hidden", "false");
   }
 
   function closeModal() {
+    if (
+      lastFocusedElement &&
+      document.contains(lastFocusedElement)
+    ) {
+      lastFocusedElement.focus();
+    }
+
     $modal.hidden = true;
     $modal.setAttribute("aria-hidden", "true");
     $modalBody.innerHTML = "";
