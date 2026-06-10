@@ -199,6 +199,8 @@ def load_data(filepath, strict=False, save_results_flag=False, save_path=None):
     if save_results_flag:
         if save_path is None:
             raise ValueError("save_path must be provided if save_results_flag=True")
+        if df.empty:
+            raise ValueError("No valid rows to save after data cleaning.")
         save_results(df, save_path)
 
     return df.to_dict(orient="records")
