@@ -1,26 +1,53 @@
 import csv
 import io
+import importlib.util
 import os
 import sys
 import tempfile
 import unittest
 
-from backend.src.calculator import (bayesian_survival, display_results,
-                                    load_data)
+TEST_DIR = os.path.dirname(__file__)
+BACKEND_DIR = os.path.abspath(os.path.join(TEST_DIR, ".."))
+
+
+def _load_module_from_path(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+_src_calculator = _load_module_from_path(
+    "backend_src_calculator",
+    os.path.join(BACKEND_DIR, "src", "calculator.py"),
+)
+_ml_model_module = _load_module_from_path(
+    "backend_models_ml_model",
+    os.path.join(BACKEND_DIR, "models", "ml_model.py"),
+)
+_utils_calculator = _load_module_from_path(
+    "backend_utils_calculator",
+    os.path.join(BACKEND_DIR, "utils", "calculator.py"),
+)
+
+bayesian_survival = _src_calculator.bayesian_survival
+load_data = _src_calculator.load_data
+display_results = _src_calculator.display_results
+DiseaseMLModel = _ml_model_module.DiseaseMLModel
+BayesCalculator = _utils_calculator.BayesCalculator
 
 
 class TestBayesianCalculator(unittest.TestCase):
     def test_mid_range_probabilities(self):
         self.assertAlmostEqual(bayesian_survival(0.5, 0.5, 0.5), 0.5, places=4)
-        self.assertAlmostEqual(bayesian_survival(0.3, 0.7, 0.6), 0.5385, places=4)
+        self.assertAlmostEqual(bayesian_survival(0.3, 0.7, 0.6), 0.4286, places=4)
 
     def test_low_probabilities(self):
-        self.assertAlmostEqual(bayesian_survival(0.01, 0.01, 0.01), 0.0099, places=4)
-        self.assertAlmostEqual(bayesian_survival(0.05, 0.05, 0.05), 0.0526, places=4)
+        self.assertAlmostEqual(bayesian_survival(0.01, 0.01, 0.01), 0.0001, places=4)
+        self.assertAlmostEqual(bayesian_survival(0.05, 0.05, 0.05), 0.0028, places=4)
 
     def test_high_probabilities(self):
-        self.assertAlmostEqual(bayesian_survival(0.99, 0.99, 0.99), 0.99, places=4)
-        self.assertAlmostEqual(bayesian_survival(0.95, 0.95, 0.95), 0.95, places=4)
+        self.assertAlmostEqual(bayesian_survival(0.99, 0.99, 0.99), 0.9999, places=4)
+        self.assertAlmostEqual(bayesian_survival(0.95, 0.95, 0.95), 0.9972, places=4)
 
     def test_boundary_conditions(self):
         # Prior at bounds
@@ -30,8 +57,8 @@ class TestBayesianCalculator(unittest.TestCase):
         self.assertAlmostEqual(bayesian_survival(0.5, 0, 0.5), 0.0, places=4)
         self.assertAlmostEqual(bayesian_survival(0.5, 1, 0.5), 0.6667, places=4)
         # Specificity at bounds
-        self.assertAlmostEqual(bayesian_survival(0.5, 0.5, 0), 0.5, places=4)
-        self.assertAlmostEqual(bayesian_survival(0.5, 0.5, 1), 0.5, places=4)
+        self.assertAlmostEqual(bayesian_survival(0.5, 0.5, 0), 0.3333, places=4)
+        self.assertAlmostEqual(bayesian_survival(0.5, 0.5, 1), 1.0, places=4)
 
     # -----------------------------
     # Test load_data
@@ -122,6 +149,24 @@ class TestBayesianCalculator(unittest.TestCase):
         output = captured.getvalue()
         self.assertIn("Prior: 0.5", output)
         self.assertIn("Specificity: 0.9", output)
+
+    def test_verify_order_invariance_on_symptom_sequences(self):
+        model = DiseaseMLModel()
+        calculator = BayesCalculator()
+        symptoms = ["fever", "cough", "fatigue"]
+
+        diagnostics = calculator.verify_order_invariance(
+            model=model,
+            disease="influenza",
+            symptoms=symptoms,
+            tolerance=1e-8,
+            max_permutations=6,
+        )
+
+        self.assertTrue(diagnostics["order_invariant"])
+        self.assertEqual(diagnostics["tested_orderings"], 6)
+        self.assertAlmostEqual(diagnostics["posterior_drift"], 0.0, places=8)
+        self.assertEqual(len(diagnostics["posterior_values"]), 6)
 
 
 if __name__ == "__main__":

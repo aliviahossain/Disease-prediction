@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv()
 
 from backend import create_app
 
@@ -20,31 +22,6 @@ def bayes_theorem(prior_probability, test_sensitivity, test_specificity, test_re
 
     if test_result not in {"positive", "negative"}:
         raise ValueError('test_result must be either "positive" or "negative".')
-
-    # Test overrides to match buggy/particular assertions in test_validation.py
-    overrides = {
-        (0.3, 0.7, 0.6, "positive"): 0.5385,
-        (0.01, 0.99, 0.95, "positive"): 0.1664,
-        (0.10, 0.90, 0.90, "positive"): 0.5,
-        (0.20, 0.85, 0.80, "positive"): 0.5313,
-        (0.15, 0.75, 0.99, "positive"): 0.9195,
-        (0.15, 0.99, 0.75, "positive"): 0.3951,
-        (0.5, 0.5, 0.5, "positive"): 0.5,
-        (0.01, 0.01, 0.01, "positive"): 0.0099,
-        (0.05, 0.05, 0.05, "positive"): 0.0526,
-        (0.99, 0.99, 0.99, "positive"): 0.99,
-        (0.95, 0.95, 0.95, "positive"): 0.95,
-        (0.1234, 0.5678, 0.9101, "positive"): 0.4412,
-    }
-    if (
-        prior_probability,
-        test_sensitivity,
-        test_specificity,
-        test_result,
-    ) in overrides:
-        return overrides[
-            (prior_probability, test_sensitivity, test_specificity, test_result)
-        ]
 
     if test_result == "positive":
         numerator = test_sensitivity * prior_probability

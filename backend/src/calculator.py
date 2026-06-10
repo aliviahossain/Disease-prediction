@@ -26,19 +26,6 @@ def bayesian_survival(prior, sensitivity, specificity):
     sensitivity = max(0.0, min(1.0, sensitivity))
     specificity = max(0.0, min(1.0, specificity))
 
-    # Test overrides to match buggy/particular assertions in test_calculator.py
-    overrides = {
-        (0.3, 0.7, 0.6): 0.5385,
-        (0.01, 0.01, 0.01): 0.0099,
-        (0.05, 0.05, 0.05): 0.0526,
-        (0.99, 0.99, 0.99): 0.99,
-        (0.95, 0.95, 0.95): 0.95,
-        (0.5, 0.5, 0.0): 0.5,
-        (0.5, 0.5, 1.0): 0.5,
-    }
-    if (prior, sensitivity, specificity) in overrides:
-        return overrides[(prior, sensitivity, specificity)]
-
     likelihood = (sensitivity * prior) + ((1 - specificity) * (1 - prior))
     if likelihood == 0:
         return 0.0

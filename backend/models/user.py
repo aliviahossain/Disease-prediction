@@ -21,5 +21,8 @@ class User(db.Model, UserMixin):
     allergies = db.Column(db.String(200), nullable=True)
     medical_notes = db.Column(db.Text, nullable=True)
 
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+
     def __repr__(self):
         return f"User('{self.username}', '{self.email}')"

@@ -227,6 +227,15 @@
                                 </h3>
                                 <p class="small text-muted mb-3">How each feature influenced the prediction, including both positive and negative impacts.</p>
                                 <div id="explanation-summary" class="text-muted small mb-3">The prediction explanation will appear here.</div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <strong class="small text-uppercase text-muted">Symptom Contributions</strong>
+                                        <small class="text-muted">Higher bars mean stronger influence</small>
+                                    </div>
+                                    <div class="ratio ratio-16x9 bg-white border rounded-3 p-2 shadow-sm">
+                                        <canvas id="symptom-contributions-chart"></canvas>
+                                    </div>
+                                </div>
                                 <div id="symptom-contributions-list" class="list-group list-group-flush bg-transparent">
                                     <!-- Dynamically populated -->
                                 </div>
@@ -285,8 +294,10 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
     let selectedSymptoms = [];
+    let symptomContributionChart = null;
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function () {
@@ -403,6 +414,137 @@
         document.getElementById('error-message').textContent = message;
         document.getElementById('error-container').style.display = 'block';
         document.getElementById('no-results').style.display = 'block';
+    }
+
+    function destroySymptomContributionChart() {
+        if (symptomContributionChart) {
+            symptomContributionChart.destroy();
+            symptomContributionChart = null;
+        }
+    }
+
+    function normalizeContributionEntries(pred) {
+        const raw = (pred.explanations && pred.explanations.symptom_contributions)
+            ? pred.explanations.symptom_contributions
+            : (pred.symptom_contributions || {});
+
+        if (Array.isArray(raw)) {
+            return raw.map(item => ({
+                name: item.name || item.symptom || 'Unknown',
+                value: Number(item.contribution ?? item.weight ?? 0),
+                direction: item.direction || (Number(item.contribution ?? item.weight ?? 0) >= 0 ? 'positive' : 'negative'),
+                display_name: item.display_name || item.name || item.symptom || 'Unknown'
+            }));
+        }
+
+        return Object.entries(raw).map(([name, item]) => {
+            const value = Number(item?.contribution ?? item?.weight ?? item ?? 0);
+            return {
+                name,
+                value,
+                direction: item?.direction || (value >= 0 ? 'positive' : 'negative'),
+                display_name: item?.display_name || name.replace(/_/g, ' ')
+            };
+        });
+    }
+
+    function renderSymptomContributionVisualization(pred) {
+        const chartCanvas = document.getElementById('symptom-contributions-chart');
+        const contributionsList = document.getElementById('symptom-contributions-list');
+        const entries = normalizeContributionEntries(pred)
+            .filter(item => Number.isFinite(item.value) && item.value !== 0)
+            .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
+            .slice(0, 8);
+
+        destroySymptomContributionChart();
+
+        if (!entries.length) {
+            contributionsList.innerHTML = '<div class="list-group-item small py-2">No symptom contributions available.</div>';
+            if (chartCanvas) {
+                const parent = chartCanvas.closest('.ratio');
+                if (parent) parent.innerHTML = '<div class="d-flex align-items-center justify-content-center h-100 text-muted small">No symptom contribution data available for this prediction.</div>';
+            }
+            return;
+        }
+
+        const highest = Math.max(...entries.map(item => Math.abs(item.value))) || 1;
+
+        contributionsList.innerHTML = entries.map((item, index) => {
+            const magnitude = Math.abs(item.value);
+            const pct = Math.max(4, (magnitude / highest) * 100);
+            const barClass = item.direction === 'positive' ? 'bg-success' : 'bg-danger';
+            const sign = item.direction === 'positive' ? '+' : '−';
+            const influenceLabel = index < 3 ? 'Major contributor' : 'Contributor';
+
+            return `
+                <div class="list-group-item bg-transparent px-0 py-2 border-0" title="${item.display_name} contributed ${sign}${magnitude.toFixed(2)} to the prediction">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div>
+                            <span class="fw-semibold">${item.display_name}</span>
+                            <span class="badge bg-light text-dark border ms-2">${influenceLabel}</span>
+                        </div>
+                        <span class="badge ${barClass} rounded-pill">${sign}${magnitude.toFixed(2)}</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar ${barClass}" style="width: ${pct}%" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"
+                             title="${item.display_name}: ${sign}${magnitude.toFixed(2)} influence"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        const ctx = chartCanvas?.getContext('2d');
+        if (!ctx) return;
+
+        symptomContributionChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: entries.map(item => item.display_name),
+                datasets: [{
+                    label: 'Contribution Score',
+                    data: entries.map(item => item.value),
+                    backgroundColor: entries.map(item => item.direction === 'positive'
+                        ? 'rgba(34, 197, 94, 0.75)'
+                        : 'rgba(239, 68, 68, 0.75)'),
+                    borderColor: entries.map(item => item.direction === 'positive'
+                        ? 'rgba(22, 163, 74, 1)'
+                        : 'rgba(220, 38, 38, 1)'),
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const value = context.parsed.x;
+                                const prefix = value >= 0 ? '+' : '−';
+                                return ` ${prefix}${Math.abs(value).toFixed(2)} influence`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(148, 163, 184, 0.2)' },
+                        ticks: {
+                            callback: function (value) {
+                                return value.toFixed ? value.toFixed(1) : value;
+                            }
+                        }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
     }
 
     async function predictDisease() {
@@ -600,32 +742,15 @@
 
         const explanations = pred.explanations || {
             feature_impacts: pred.feature_impacts || [],
+            symptom_contributions: pred.symptom_contributions || {},
             summary: pred.explanation_summary || '',
             bias: pred.bias,
             bmi_effect: pred.bmi_effect
         };
         const contributionsList = document.getElementById('symptom-contributions-list');
         const explanationSummary = document.getElementById('explanation-summary');
-        const contributions = explanations.feature_impacts && explanations.feature_impacts.length > 0
-            ? explanations.feature_impacts
-            : (pred.feature_impacts || []);
 
-        if (contributions.length > 0) {
-            let html = '';
-            contributions.forEach(item => {
-                const badgeClass = item.direction === 'positive' ? 'bg-success' : 'bg-danger';
-                const sign = item.direction === 'positive' ? '+' : '';
-                html += `
-                    <div class="list-group-item d-flex justify-content-between align-items-center small py-2 px-0">
-                        <span>${item.name}</span>
-                        <span class="badge ${badgeClass} rounded-pill">${sign}${item.contribution.toFixed(2)}</span>
-                    </div>
-                `;
-            });
-            contributionsList.innerHTML = html;
-        } else {
-            contributionsList.innerHTML = '<div class="list-group-item small py-2">No feature contributions available.</div>';
-        }
+        renderSymptomContributionVisualization(pred);
 
         const summaryText = explanations.summary || pred.explanation_summary || '';
         explanationSummary.textContent = summaryText || 'No explanation summary available for this result.';

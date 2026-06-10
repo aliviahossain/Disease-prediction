@@ -15,15 +15,33 @@ from backend.models.user import User
 
 @pytest.fixture
 def app():
-    """Create and configure a test application instance."""
+    """Create and configure a test application instance with an isolated SQLite DB."""
+    import os
+    import tempfile
+    import time
+
+    db_fd, db_path = tempfile.mkstemp(suffix=".sqlite")
+    os.close(db_fd)
+
+    os.environ["SECRET_KEY"] = "test-secret-key-not-for-prod"
+    os.environ["DATABASE_URL"] = f"sqlite:///{db_path}"
+
     app = create_app()
-    app.config["TESTING"] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+    app.config.update(TESTING=True, WTF_CSRF_ENABLED=False)
 
     with app.app_context():
         db.create_all()
         yield app
+        db.session.remove()
         db.drop_all()
+        db.engine.dispose()
+
+    for attempt in range(10):
+        try:
+            os.unlink(db_path)
+            break
+        except PermissionError:
+            time.sleep(0.1)
 
 
 @pytest.fixture
@@ -232,11 +250,7 @@ class TestPredictionPersistence:
         """Test that symptoms are stored as JSON string."""
         payload = {
             "disease": "diabetes",
-            "symptoms": [
-                "increased_thirst",
-                "frequent_urination",
-                "fatigue",
-            ],
+            "symptoms": ["increased_thirst", "frequent_urination", "fatigue"],
             "age": 40,
         }
 
