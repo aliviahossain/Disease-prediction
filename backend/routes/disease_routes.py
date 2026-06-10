@@ -1,12 +1,12 @@
 import csv
 import io
 import os
+import re
 from datetime import datetime
 
 from flask import Blueprint, jsonify, render_template, request, send_file
 from flask_login import current_user
 from reportlab.lib import colors
-# pdf generation imports
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
@@ -21,15 +21,30 @@ from backend.utils.tts_helper import generate_tts_audio
 
 disease_bp = Blueprint("disease", __name__)
 
+# ---------------------------------------------------------------------------
+# Security constants
+# ---------------------------------------------------------------------------
+MAX_DISEASE_NAME_LENGTH = 100
+MAX_TTS_LENGTH = 2000
+ALLOWED_LANGUAGES = {"english", "hindi", "gujarati", "tamil"}
+ALLOWED_TEST_RESULTS = {"positive", "negative"}
+ALLOWED_PREDICTION_TYPES = {"bayes", "ml"}
+_PRINTABLE_RE = re.compile(r"[^\x20-\x7E]")
+
+
+def _sanitize_name(value: str) -> str:
+    """Strip non-printable characters and enforce length limit."""
+    if not isinstance(value, str):
+        return ""
+    value = _PRINTABLE_RE.sub("", value).strip()
+    return value[:MAX_DISEASE_NAME_LENGTH]
+
 
 def get_project_root():
-    """Helper function to get the project root directory"""
-    # Go up from backend/routes/ to project root
     return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def load_diseases():
-    """Helper function to load diseases from CSV"""
     csv_path = os.path.join(get_project_root(), "hospital_data.csv")
     diseases = []
     try:
@@ -46,9 +61,6 @@ def load_diseases():
 
 @disease_bp.route("/")
 def home():
-    """Render the home page with ML Prediction"""
-    # diseases = load_diseases() # OLD: Loaded from CSV
-    # NEW: Load only diseases supported by the ML model
     ml_diseases = ml_model.get_available_diseases()
     diseases = [d.replace("_", " ").title() for d in ml_diseases]
     return render_template("home.html", diseases=diseases)
@@ -56,18 +68,20 @@ def home():
 
 @disease_bp.route("/calculator")
 def calculator():
-    """Render the calculator page (Bayesian calculator)"""
     diseases = load_diseases()
     return render_template("calculator.html", diseases=diseases)
 
 
 @disease_bp.route("/preset", methods=["POST"])
 def preset():
-    """Handle preset disease selection"""
     disease_name = request.json.get("disease")
 
     if not disease_name:
         return jsonify({"error": "Disease name is required"}), 400
+
+    disease_name = _sanitize_name(disease_name)
+    if not disease_name:
+        return jsonify({"error": "Invalid disease name"}), 400
 
     try:
         csv_path = os.path.join(get_project_root(), "hospital_data.csv")
@@ -80,7 +94,6 @@ def preset():
                     sensitivity = float(row["Sensitivity"])
                     false_pos = float(row["FalsePositive"])
 
-                    # Bayes' Theorem calculation (using utility)
                     try:
                         p_d_given_pos = bayesian_survival(p_d, sensitivity, false_pos)
                     except ValueError as e:
@@ -105,16 +118,13 @@ def preset():
 
 @disease_bp.route("/disease", methods=["POST"])
 def disease():
-    """Calculate disease probability based on test results"""
     data = request.json
     try:
-        # Input extraction
         p_d = float(data.get("pD"))
         sensitivity = float(data.get("sensitivity"))
         false_pos = float(data.get("falsePositive"))
         test_result = data.get("testResult", "positive").lower()
 
-        # Input validation
         for name, value in [
             ("Prevalence", p_d),
             ("Sensitivity", sensitivity),
@@ -125,16 +135,15 @@ def disease():
                     f"{name} must be between 0 and 1 (inclusive). Got {value}."
                 )
 
-        if test_result not in {"positive", "negative"}:
+        if test_result not in ALLOWED_TEST_RESULTS:
             raise ValueError('testResult must be either "positive" or "negative".')
 
         specificity = 1 - false_pos
 
-        # Bayes' Theorem calculation for both positive and negative results
         if test_result == "positive":
             numerator = sensitivity * p_d
             denominator = numerator + (1 - specificity) * (1 - p_d)
-        else:  # negative
+        else:
             numerator = (1 - sensitivity) * p_d
             denominator = numerator + specificity * (1 - p_d)
 
@@ -150,11 +159,6 @@ def disease():
 
         p_d_given_result = numerator / denominator
 
-        # Issue #230: persist the calculation so the History page can
-        # show it. save_history silently no-ops for anonymous users and
-        # never raises, so this can't break the response below. An
-        # optional "disease_name" / "disease" field in the request body
-        # gives history rows a human-readable label.
         save_history(
             user_id=current_user.id if current_user.is_authenticated else None,
             prediction_type="bayes",
@@ -185,26 +189,27 @@ def disease():
 
 @disease_bp.route("/contact")
 def contact():
-    """Render the Contact page"""
     return render_template("contact.html")
 
 
 @disease_bp.route("/gemini-recommendations", methods=["POST"])
 def gemini_recommendations():
-    """
-    Generate AI-powered recommendations using Gemini API based on the calculation results.
-    """
     data = request.json
     try:
-        disease_name = data.get("disease_name")  # Optional, can be None
+        disease_name = _sanitize_name(data.get("disease_name") or "")
         prior_probability = float(data.get("prior_probability"))
         posterior_probability = float(data.get("posterior_probability"))
-        test_result = data.get("test_result", "positive")
-        language = data.get("language", "english")  # Default to English
 
-        # Call Gemini API
+        test_result = str(data.get("test_result", "positive")).lower()
+        if test_result not in ALLOWED_TEST_RESULTS:
+            return jsonify({"success": False, "error": "Invalid test_result value. Must be 'positive' or 'negative'."}), 400
+
+        language = str(data.get("language", "english")).lower()
+        if language not in ALLOWED_LANGUAGES:
+            return jsonify({"success": False, "error": f"Invalid language. Allowed: {', '.join(sorted(ALLOWED_LANGUAGES))}"}), 400
+
         result = generate_recommendations(
-            disease_name=disease_name,
+            disease_name=disease_name or None,
             prior_probability=prior_probability,
             posterior_probability=posterior_probability,
             test_result=test_result,
@@ -237,22 +242,18 @@ def gemini_recommendations():
         )
 
 
-# PDF generation route
 @disease_bp.route("/download-results", methods=["POST"])
 def download_results():
-    """Download calculation results as PDF only"""
     data = request.json
 
     try:
-        # Extract calculation data
         prior = float(data.get("prior_probability", 0))
         posterior = float(data.get("posterior_probability", 0))
-        disease_name = data.get("disease_name", "Custom Disease")
+        disease_name = _sanitize_name(data.get("disease_name") or "Custom Disease") or "Custom Disease"
         test_result = str(data.get("test_result", "positive")).capitalize()
         sensitivity = float(data.get("sensitivity", 0))
         false_positive = float(data.get("false_positive", 0))
 
-        # Create PDF
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(
             buffer, pagesize=letter, topMargin=0.5 * inch, bottomMargin=0.5 * inch
@@ -269,12 +270,8 @@ def download_results():
         )
 
         story = []
-
-        # Title
         story.append(Paragraph("Possibility Report", title_style))
         story.append(Spacer(1, 0.3 * inch))
-
-        # Timestamp
         story.append(
             Paragraph(
                 f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
@@ -283,7 +280,6 @@ def download_results():
         )
         story.append(Spacer(1, 0.2 * inch))
 
-        # Results table
         table_data = [
             ["Parameter", "Value"],
             ["Disease Name", disease_name],
@@ -316,7 +312,6 @@ def download_results():
         story.append(table)
         story.append(Spacer(1, 0.3 * inch))
 
-        # Risk assessment
         risk_level = (
             "High Risk"
             if posterior > 0.7
@@ -327,8 +322,6 @@ def download_results():
             Paragraph(f"<b>Risk Assessment:</b> {risk_level}", styles["Normal"])
         )
         story.append(Spacer(1, 0.2 * inch))
-
-        # Disclaimer
         story.append(
             Paragraph(
                 "<i>This report is for educational purposes only. "
@@ -337,9 +330,8 @@ def download_results():
             )
         )
         doc.title = "Possibility Report"
-        doc.build(story)  #  browser tab title / filename
+        doc.build(story)
         buffer.seek(0)
-        # dowload pdf name
         return send_file(
             buffer,
             mimetype="application/pdf",
@@ -353,11 +345,10 @@ def download_results():
 
 @disease_bp.route("/download-ml-results", methods=["POST"])
 def download_ml_results():
-    """Download ML prediction results as PDF"""
     data = request.json
 
     try:
-        disease_name = data.get("disease_name", "Unknown Disease")
+        disease_name = _sanitize_name(data.get("disease_name") or "Unknown Disease") or "Unknown Disease"
         ml_probability = float(data.get("ml_probability", 0))
         prior_probability = float(data.get("prior_probability", 0))
         likelihood = float(data.get("likelihood", 0))
@@ -365,7 +356,6 @@ def download_ml_results():
         risk_level = data.get("risk_level", "Low Risk")
         missing_symptoms = data.get("missing_symptoms", [])
 
-        # Create PDF
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(
             buffer, pagesize=letter, topMargin=0.5 * inch, bottomMargin=0.5 * inch
@@ -386,12 +376,10 @@ def download_ml_results():
         )
         story.append(Spacer(1, 0.3 * inch))
 
-        # Add timestamp
         timestamp_text = f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         story.append(Paragraph(timestamp_text, styles["Normal"]))
         story.append(Spacer(1, 0.2 * inch))
 
-        # Disease and ML Prediction
         story.append(Paragraph(f"<b>Disease:</b> {disease_name}", styles["Normal"]))
         story.append(Spacer(1, 0.1 * inch))
         story.append(
@@ -402,7 +390,6 @@ def download_ml_results():
         )
         story.append(Spacer(1, 0.2 * inch))
 
-        # Create Bayesian Analysis table
         data_table = [
             ["Bayesian Analysis", "Value"],
             ["Prior Probability", f"{prior_probability:.4f}"],
@@ -436,7 +423,6 @@ def download_ml_results():
         story.append(table)
         story.append(Spacer(1, 0.3 * inch))
 
-        # Add Missing Symptoms Table if present
         if missing_symptoms:
             story.append(Paragraph("<b>Missing Key Symptoms</b>", styles["Normal"]))
             story.append(Spacer(1, 0.1 * inch))
@@ -460,7 +446,6 @@ def download_ml_results():
             story.append(ms_table)
             story.append(Spacer(1, 0.3 * inch))
 
-        # Add risk color coding
         risk_color = (
             "#27ae60"
             if risk_level == "Low Risk"
@@ -474,7 +459,6 @@ def download_ml_results():
         )
         story.append(Spacer(1, 0.2 * inch))
 
-        # Add disclaimer
         disclaimer = "<i>Note: This report is for educational purposes only. Always consult with healthcare professionals for medical advice.</i>"
         story.append(Paragraph(disclaimer, styles["Normal"]))
 
@@ -497,25 +481,28 @@ def download_ml_results():
 
 @disease_bp.route("/disease-detection-dashboard")
 def disease_detection_dashboard():
-    """Render the disease detection dashboard page"""
-    # The types include the list of disease detection types available (Only "Eyes" for now)
     types = ["Eyes", "Skin"]
     return render_template("disease_detection_dashboard.html", types=types)
 
 
 @disease_bp.route("/text-to-speech", methods=["POST"])
 def text_to_speech():
-    """
-    Convert AI recommendation text to speech audio (MP3).
-    Accepts JSON with 'text' and 'language' fields.
-    Returns an MP3 audio file stream.
-    """
     data = request.json
     if not data or not data.get("text"):
         return jsonify({"error": "No text provided for TTS."}), 400
 
     text = data.get("text", "")
-    language = data.get("language", "english")
+
+    if not isinstance(text, str) or len(text) > MAX_TTS_LENGTH:
+        return jsonify(
+            {"error": f"Text exceeds maximum allowed length of {MAX_TTS_LENGTH} characters."}
+        ), 400
+
+    language = str(data.get("language", "english")).lower()
+    if language not in ALLOWED_LANGUAGES:
+        return jsonify(
+            {"error": f"Invalid language. Allowed: {', '.join(sorted(ALLOWED_LANGUAGES))}"}
+        ), 400
 
     try:
         audio_buffer = generate_tts_audio(text, language)
