@@ -1,6 +1,8 @@
 import re
 from datetime import date, datetime
 from urllib.parse import urljoin, urlparse
+from collections import defaultdict
+from time import time
 
 from flask import (Blueprint, flash, redirect, render_template, request,
                    session, url_for)
@@ -9,6 +11,11 @@ from sqlalchemy.exc import OperationalError
 
 from backend import bcrypt, db
 from backend.models.user import User
+
+LOGIN_ATTEMPTS = defaultdict(list)
+
+MAX_LOGIN_ATTEMPTS = 5
+LOCKOUT_SECONDS = 300  # 5 minutes
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -154,23 +161,47 @@ def login():
         return redirect(url_for("auth.profile"))
 
     if request.method == "POST":
+        ip = request.remote_addr
+
+        # Remove expired attempts
+        LOGIN_ATTEMPTS[ip] = [
+            t for t in LOGIN_ATTEMPTS[ip]
+            if time() - t < LOCKOUT_SECONDS
+        ]
+
+        # Check lockout
+        if len(LOGIN_ATTEMPTS[ip]) >= MAX_LOGIN_ATTEMPTS:
+            flash(
+                "Too many failed login attempts. Please try again in 5 minutes.",
+                "danger",
+            )
+            return redirect(url_for("auth.login", tab="signin"))
+
         email = request.form.get("email")
         password = request.form.get("password")
 
         user = User.query.filter_by(email=email).first()
 
         if user and bcrypt.check_password_hash(user.password_hash, password):
+            # Reset failed attempts on success
+            LOGIN_ATTEMPTS.pop(ip, None)
+
             login_user(user)
             flash("Login successful!", "success")
+
             next_page = request.args.get("next")
+
             if not next_page or not is_safe_url(next_page):
                 next_page = url_for("auth.profile")
-            return redirect(next_page)
-        else:
-            flash("Invalid email or password", "danger")
-            return redirect(url_for("auth.login", tab="signin"))  # Keep on login page
 
-    # GET request: render auth template
+            return redirect(next_page)
+
+        # Failed login
+        LOGIN_ATTEMPTS[ip].append(time())
+
+        flash("Invalid email or password", "danger")
+        return redirect(url_for("auth.login", tab="signin"))
+
     active_tab = request.args.get("tab", "signin")
     return render_template("auth.html", active_tab=active_tab)
 
@@ -182,47 +213,71 @@ MAX_USERNAME_LEN = 20
 @auth_bp.route('/signup', methods=['POST'])
 def signup():
     username = (request.form.get('username') or '').strip()
-    email    = (request.form.get('email')    or '').strip()
-    password =  request.form.get('password') or ''
+    email = (request.form.get('email') or '').strip()
+    password = request.form.get('password') or ''
 
-    # 1. Reject empty fields
+    # Reject empty fields
     if not username or not email or not password:
         flash("All fields are required.", "danger")
         return redirect(url_for("auth.login", tab="register"))
 
-    # 2. Validate username length (DB column is String(20))
+    # Username length validation
+    MIN_USERNAME_LEN = 3
+
+    if len(username) < MIN_USERNAME_LEN:
+        flash(
+            f"Username must be at least {MIN_USERNAME_LEN} characters long.",
+            "danger"
+        )
+        return redirect(url_for("auth.login", tab="register"))
+
     if len(username) > MAX_USERNAME_LEN:
-        flash(f'Username must be {MAX_USERNAME_LEN} characters or fewer.', 'danger')
-        return redirect(url_for('auth.login', tab='register'))
+        flash(
+            f"Username must be {MAX_USERNAME_LEN} characters or fewer.",
+            "danger"
+        )
+        return redirect(url_for("auth.login", tab="register"))
 
-    # 2. Validate email format
+    # Validate email format
     if not EMAIL_RE.fullmatch(email):
-        flash('Invalid email address format.', 'danger')
-        return redirect(url_for('auth.login', tab='register'))
+        flash("Invalid email address format.", "danger")
+        return redirect(url_for("auth.login", tab="register"))
 
-    # 3. Validate password strength
-    if len(password) < 8 or not re.search(r"\d", password) or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-        flash('Password must be at least 8 characters long, contain at least one number and one special character.', 'danger')
-        return redirect(url_for('auth.login', tab='register'))
+    # Validate password strength
+    if (
+        len(password) < MIN_PASSWORD_LEN
+        or not re.search(r"\d", password)
+        or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password)
+    ):
+        flash(
+            "Password must be at least 8 characters long, contain at least one number and one special character.",
+            "danger",
+        )
+        return redirect(url_for("auth.login", tab="register"))
 
-    # 2. Check for existing user (split for better internal logging if needed, but flash user-friendly)
+    # Check existing users
     if User.query.filter_by(email=email).first():
-        flash('Email already registered.', 'danger')
-        return redirect(url_for('auth.login', tab='register'))
+        flash("Email already registered.", "danger")
+        return redirect(url_for("auth.login", tab="register"))
 
     if User.query.filter_by(username=username).first():
         flash("Username already taken.", "danger")
         return redirect(url_for("auth.login", tab="register"))
 
-    # Hash password and create user
-    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+    # Create user
+    hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
-    new_user = User(username=username, email=email, password_hash=hashed_password)
+    new_user = User(
+        username=username,
+        email=email,
+        password_hash=hashed_password,
+    )
+
     db.session.add(new_user)
     db.session.commit()
 
-    flash('Account Created Successfully. Please Sign In.', 'success')
-    return redirect(url_for('auth.login', tab='signin'))
+    flash("Account Created Successfully. Please Sign In.", "success")
+    return redirect(url_for("auth.login", tab="signin"))
 
 @auth_bp.route("/profile")
 @login_required
@@ -356,3 +411,25 @@ def logout():
     session.clear()
     flash("You have been logged out.", "info")
     return redirect(url_for("auth.login"))
+
+def test_login_rate_limit(client):
+    for _ in range(6):
+        client.post(
+            "/login",
+            data={
+                "email": "invalid@test.com",
+                "password": "wrongpassword"
+            },
+            follow_redirects=True,
+        )
+
+    response = client.post(
+        "/login",
+        data={
+            "email": "invalid@test.com",
+            "password": "wrongpassword"
+        },
+        follow_redirects=True,
+    )
+
+    assert b"Too many failed login attempts" in response.data
