@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import inspect, text
 
@@ -17,6 +18,7 @@ db = SQLAlchemy()
 bcrypt = Bcrypt()
 from flask_caching import Cache
 cache = Cache()
+csrf = CSRFProtect()
 
 
 login_manager = LoginManager()
@@ -129,6 +131,11 @@ def create_app():
     bcrypt.init_app(app)
     login_manager.init_app(app)
     cache.init_app(app)
+    csrf.init_app(app)
+
+    # Disable CSRF in test mode so existing tests don't break
+    if app.config.get("TESTING"):
+        app.config["WTF_CSRF_ENABLED"] = False
     
     # --- Models -------------------------------------------------------
     # Import the models so SQLAlchemy registers them with `db` before create_all() is called below.
