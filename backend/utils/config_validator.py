@@ -23,12 +23,12 @@ def validate_startup_config(app):
     if is_production:
         if not secret_key:
             raise ValueError(
-                "\n❌ CRITICAL ERROR: SECRET_KEY environment variable is required in production!\n"
+                "\n[ERROR] CRITICAL ERROR: SECRET_KEY environment variable is required in production!\n"
                 "   Please set SECRET_KEY in your .env file or environment settings.\n"
             )
         if len(secret_key) < 16:
             raise ValueError(
-                f"\n❌ CRITICAL ERROR: SECRET_KEY is too weak! Got length {len(secret_key)}, expected at least 16 characters.\n"
+                f"\n[ERROR] CRITICAL ERROR: SECRET_KEY is too weak! Got length {len(secret_key)}, expected at least 16 characters.\n"
                 "   Please generate a strong random key for production.\n"
             )
 
@@ -37,12 +37,12 @@ def validate_startup_config(app):
     if not gemini_key:
         if is_production:
             raise ValueError(
-                "\n❌ CRITICAL ERROR: GEMINI_API_KEY environment variable is required in production!\n"
+                "\n[ERROR] CRITICAL ERROR: GEMINI_API_KEY environment variable is required in production!\n"
                 "   Please set GEMINI_API_KEY in your environment/Render configuration.\n"
             )
         else:
             print("\n=======================================================")
-            print("⚠️  WARNING: GEMINI_API_KEY is not set in development!")
+            print("[WARN] WARNING: GEMINI_API_KEY is not set in development!")
             print("   AI-powered recommendations & chatbot widgets will")
             print("   fail at runtime with a Configuration Error.")
             print("=======================================================\n")
@@ -72,13 +72,13 @@ def validate_startup_config(app):
         if not os.path.exists(model_path):
             if is_production:
                 raise FileNotFoundError(
-                    f"\n❌ CRITICAL ERROR: Required ML model file '{info['name']}' not found at:\n"
+                    f"\n[ERROR] CRITICAL ERROR: Required ML model file '{info['name']}' not found at:\n"
                     f"   {model_path}\n"
                     f"   Please ensure all models are committed or pulled before starting in production.\n"
                 )
             else:
                 print("\n=======================================================")
-                print(f"⚠️  WARNING: ML model file '{info['name']}' not found!")
+                print(f"[WARN] WARNING: ML model file '{info['name']}' not found!")
                 print(f"   Path checked: {model_path}")
                 print(
                     f"   Image-based predictions for '{model_type}' will fail at runtime."

@@ -34,6 +34,7 @@ def test_secret_key_missing_in_production(monkeypatch):
     # Setup
     monkeypatch.delenv("SECRET_KEY", raising=False)
     monkeypatch.setenv("FLASK_ENV", "production")
+    monkeypatch.delenv("FLASK_DEBUG", raising=False)
     monkeypatch.setenv("DATABASE_URL", "")
 
     # Import after setting env vars
