@@ -21,3 +21,4 @@ psycopg2-binary
 gTTS
 Flask-Caching
 flask-wtf
+opencv-python-headless

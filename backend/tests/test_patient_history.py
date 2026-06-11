@@ -99,11 +99,8 @@ def make_user(app):
         email = email or f"user{counter['n']}@example.com"
         pw_hash = bcrypt.generate_password_hash(password).decode("utf-8")
 
-        # TODO: replace with the actual kwargs your User accepts.
-        # Common variants:
-        #   u = User(email=email, password_hash=pw_hash)
-        #   u = User(username=email.split("@")[0], email=email, password_hash=pw_hash)
-        u = User(email=email, password_hash=pw_hash)
+        # Setup kwargs to match User model columns
+        u = User(username=email.split("@")[0], email=email, password_hash=pw_hash)
 
         db.session.add(u)
         db.session.commit()
@@ -244,11 +241,6 @@ class TestHistoryAPIStandalone:
 # --------------------------------------------------------------------- #
 # Tier 2: full integration — gated until the User model is wired up
 # --------------------------------------------------------------------- #
-@pytest.mark.skip(
-    reason="Update the make_user fixture to match your User model's "
-    "kwargs (likely password_hash, plus any other NOT NULL "
-    "fields like username), then remove this skip."
-)
 class TestHistoryAPI:
     def test_list_returns_only_own_entries(self, app, client, make_user):
         with app.app_context():
@@ -292,7 +284,7 @@ class TestHistoryAPI:
         assert data["pages"] == 3
         assert len(data["items"]) == 10
 
-    def test_delete_only_allows_owner(self, app, client, make_user):
+    def test_delete_another_user_entry_fails(self, app, client, make_user):
         with app.app_context():
             owner_id, _, _ = make_user()
             other_id, _, _ = make_user()
@@ -310,8 +302,17 @@ class TestHistoryAPI:
         with app.app_context():
             assert PatientHistory.query.get(owned_id) is not None
 
-        with client.session_transaction() as sess:
-            sess.clear()
+    def test_delete_own_entry_succeeds(self, app, client, make_user):
+        with app.app_context():
+            owner_id, _, _ = make_user()
+            owned = save_history(
+                user_id=owner_id,
+                prediction_type="bayes",
+                disease="Owned",
+                probability=0.5,
+            )
+            owned_id = owned.id
+
         login_session(client, owner_id)
         resp = client.delete(f"/api/history/{owned_id}")
         assert resp.status_code == 200
