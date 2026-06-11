@@ -7,6 +7,8 @@ import numpy as np
 from backend import db
 from sqlalchemy import CheckConstraint
 
+from backend import db
+
 # Configurable confidence threshold
 CONFIDENCE_THRESHOLD = float(os.getenv("PREDICTION_CONFIDENCE_THRESHOLD", 0.65))
 
@@ -20,6 +22,7 @@ def predict_disease(model, img_path, target_size=(224, 224)):
         # This allows the model to be imported on environments without TensorFlow.
         from keras.utils import load_img, img_to_array
 
+        from keras.utils import load_img, img_to_array
         # Load image
         img = load_img(img_path, target_size=target_size)
         img_array = img_to_array(img)

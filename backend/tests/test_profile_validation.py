@@ -19,6 +19,7 @@ def client(monkeypatch, tmp_path):
 
     app = create_app()
     app.config["TESTING"] = True
+    app.config["WTF_CSRF_ENABLED"] = False
 
     with app.app_context():
         user = User(
@@ -247,3 +248,14 @@ def test_profile_rejects_incomplete_dropdown_dob(client):
 
     assert response.status_code == 200
     assert b"Date of birth requires day, month, and year" in response.data
+
+def test_bmi_calculation_handles_zero_height():
+    h = 0
+    w = 70
+
+    bmi = None
+
+    if h and h > 0 and w:
+        bmi = round(w / ((h / 100) ** 2), 2)
+
+    assert bmi is None

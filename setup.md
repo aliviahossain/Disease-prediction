@@ -104,13 +104,7 @@ pip install flask numpy pandas scikit-learn matplotlib seaborn
 Run the main application file using one of the following commands:
 
 ```bash
-python app.py
-```
-
-or
-
-```bash
-python main.py
+python run.py
 ```
 
 If the project uses Flask CLI, run:
@@ -126,7 +120,7 @@ flask run
 After starting the application, open your browser and visit:
 
 ```
-http://127.0.0.1:5000/
+http://127.0.0.1:5001/
 ```
 
 You should now see the Disease Prediction web application running locally.
@@ -146,7 +140,7 @@ pip install -r requirements.txt
 
 ### Port Already in Use
 
-- Stop any other service using port 5000
+- Stop any other service using port 5001
 - Or change the port number in the Flask app
 
 ### Virtual Environment Activation Issues (Windows)

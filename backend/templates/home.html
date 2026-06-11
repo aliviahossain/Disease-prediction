@@ -343,6 +343,9 @@
                                 <button class="btn btn-danger" onclick="downloadMLResults()">
                                     <i class="fas fa-file-pdf me-2"></i>Download Detailed PDF Report
                                 </button>
+                                <button class="btn btn-success" id="predictionToPromptButton" onclick="predictionToPromptButton()">
+                                    <i class="fas fa-file-pdf me-2"></i>Ask Disease Expert AI
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1056,6 +1059,42 @@
     function hideResults() {
         document.getElementById('differential-diagnosis-container').style.display = 'none';
         document.getElementById('no-results').style.display = 'block';
+    }
+   
+    function predictionToPromptButton(){
+        const chatbotToggler = document.querySelector(".chatbot-toggler");
+        if(localStorage.getItem("is-chat-open") == "false") chatbotToggler.click();
+        const chatInput = document.querySelector(".chat-input textarea");
+        if (!window.allPredictions || window.selectedPredictionIndex === undefined) {
+            alert('Please select a prediction.');
+            return;
+        }
+        const pred = window.allPredictions[window.selectedPredictionIndex];
+
+        const age  = document.getElementById('age-input').value;
+        const h    = document.getElementById('height-input').value;
+        const w    = document.getElementById('weight-input').value;
+        const bmi  = (w / (h * h)).toFixed(1);
+
+        const missingSymptoms = pred.missing_symptoms.map(el => el.name);
+        chatInput.value = `I need you to give me further explanation on these findings
+Here are my details: 
+Age: ${age}
+Height: ${h}
+Weight: ${w}
+BMI: ${bmi}
+Symptoms: ${selectedSymptoms.join(',') || []}
+Here are the ml predictions: 
+Predicted Disease Name: ${pred.disease},
+ML Probability: ${pred.probability / 100},
+Prior Probability: ${pred.prior / 100},
+Likelihood: ${pred.likelihood / 100},
+Posterior Probability: ${pred.posterior / 100},
+Risk Level: ${pred.risk_level.level + ' Risk'},
+Missing Symptoms: ${missingSymptoms?.join(',') || []}
+AI Explanation: ${pred.explanation_summary}`
+        const sendBtn = document.getElementById('send-btn');
+        sendBtn.click();
     }
 </script>
 {% endblock %}

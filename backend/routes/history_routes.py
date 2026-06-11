@@ -42,12 +42,16 @@ history_bp = Blueprint(
     template_folder="../templates",
 )
 
+# ---------------------------------------------------------------------------
+# Security constants
+# ---------------------------------------------------------------------------
+ALLOWED_PREDICTION_TYPES = {"bayes", "ml"}
+
 
 # --------------------------------------------------------------------- #
 # Helpers
 # --------------------------------------------------------------------- #
 def _require_user_id() -> int:
-    """Return the current authenticated user's id, or raise UnauthorizedError."""
     if not current_user.is_authenticated:
         raise UnauthorizedError("You must be logged in to view history.")
     return current_user.id
@@ -66,7 +70,6 @@ def _get_or_404(entry_id: int) -> PatientHistory:
 @history_bp.route("/history", methods=["GET"])
 @login_required
 def history_page():
-    """Render the History page. The list itself is fetched async by JS."""
     return render_template("history.html")
 
 
@@ -75,13 +78,6 @@ def history_page():
 # --------------------------------------------------------------------- #
 @history_bp.route("/api/history", methods=["GET"])
 def list_history():
-    """Return current user's history, newest first, with pagination.
-
-    Query params:
-        page  (int, default 1)
-        per_page (int, default 20, capped at 100)
-        type  (optional: filter by prediction_type)
-    """
     user_id = _require_user_id()
 
     try:
@@ -114,19 +110,17 @@ def list_history():
 
 @history_bp.route("/api/history/<int:entry_id>", methods=["GET"])
 def get_history_entry(entry_id: int):
-    """Return one entry, 404 if it belongs to someone else."""
     entry = _get_or_404(entry_id)
     return jsonify(entry.to_dict())
 
 
 @history_bp.route("/api/history/<int:entry_id>", methods=["DELETE"])
 def delete_history_entry(entry_id: int):
-    """Delete a single entry owned by the current user."""
     entry = _get_or_404(entry_id)
     try:
         db.session.delete(entry)
         db.session.commit()
-    except Exception:  # pragma: no cover - defensive
+    except Exception:
         logger.exception("Failed to delete history entry %s", entry_id)
         db.session.rollback()
         return jsonify(error="delete_failed"), 500
@@ -135,14 +129,13 @@ def delete_history_entry(entry_id: int):
 
 @history_bp.route("/api/history", methods=["DELETE"])
 def clear_history():
-    """Delete ALL of the current user's history. Irreversible."""
     user_id = _require_user_id()
     deleted = PatientHistory.query.filter_by(user_id=user_id).delete(
         synchronize_session=False
     )
     try:
         db.session.commit()
-    except Exception:  # pragma: no cover
+    except Exception:
         logger.exception("Failed to clear history for user %s", user_id)
         db.session.rollback()
         return jsonify(error="clear_failed"), 500
@@ -151,21 +144,18 @@ def clear_history():
 
 @history_bp.route("/api/history", methods=["POST"])
 def add_history_entry():
-    """
-    Manual save endpoint.
-
-    The recommended path is for prediction routes to call
-    `save_history(...)` directly (see backend/services/history_service.py).
-    This POST endpoint exists so older frontend code that explicitly
-    POSTs after rendering a result keeps working — it's the second half
-    of fixing the "not being recorded" bug.
-    """
     user_id = _require_user_id()
     payload = request.get_json(silent=True) or {}
 
+    prediction_type = payload.get("prediction_type", "bayes")
+    if prediction_type not in ALLOWED_PREDICTION_TYPES:
+        return jsonify(
+            error=f"Invalid prediction_type. Allowed values: {', '.join(sorted(ALLOWED_PREDICTION_TYPES))}"
+        ), 400
+
     entry = save_history(
         user_id=user_id,
-        prediction_type=payload.get("prediction_type", "bayes"),
+        prediction_type=prediction_type,
         disease=payload.get("disease"),
         inputs=payload.get("inputs"),
         results=payload.get("results"),

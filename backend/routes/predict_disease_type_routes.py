@@ -8,6 +8,7 @@ import tensorflow as tf
 from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
 from PIL import Image
+from backend.middleware import rate_limit
 
 from backend.services.history_service import save_history
 from backend.utils.gradcam import generate_gradcam_overlay  # NEW
@@ -175,6 +176,7 @@ def _validate_image_magic(stream) -> bool:
 
 #  Main prediction route
 @predict_disease_type_bp.route("/predict", methods=["POST"])
+@rate_limit("prediction")
 @login_required
 def predict():
     # Accept file as "image" or "file"

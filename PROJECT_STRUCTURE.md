@@ -14,10 +14,10 @@ Let's break it down file by file.
 
 ### The Core Logic
 
-#### 📄 `app.py`
-* **WHAT**: This is the main brain of our web application. It's a Python script that uses the Flask framework to run a web server.
-* **WHY**: It acts as the traffic controller. It listens for requests from a user's web browser (like when you click "Calculate") and connects the user interface (the website) with our powerful calculator logic in the backend.
-* **HOW**: When you run `python app.py`, it starts a local web server. It loads the `index.html` file to show you the webpage. When you submit data through the form, this script catches that data, sends it to `calculator.py` for processing, gets the result back, and then reloads the webpage to display the answer.
+#### 📄 `run.py`
+* **WHAT**: This is the application entry point. It's a Python script that uses the Flask framework to start our web server.
+* **WHY**: It serves as the launchpad for the application, initializing the server so it can listen for requests from a user's web browser.
+* **HOW**: When you run `python run.py`, it starts the local web server. The backend routing logic then takes over to load `index.html` and process incoming data.
 
 #### 📁 `src/`
 This folder is where we keep the core, essential logic of our application.
@@ -25,7 +25,7 @@ This folder is where we keep the core, essential logic of our application.
 #### 📄 `src/calculator.py`
 * **WHAT**: A Python script that contains the pure mathematical logic for Bayes' Theorem.
 * **WHY**: By separating the math from the web server code, our project becomes much cleaner and easier to manage. This principle is called **"Separation of Concerns."** It allows us to test our calculator's accuracy without needing to run the whole website.
-* **HOW**: This file likely contains a function that takes numbers as input (like prior probability, sensitivity, etc.), performs the Bayes' Theorem calculation, and returns the final probability. The `app.py` file calls this function whenever it needs to do the math.
+* **HOW**: This file likely contains a function that takes numbers as input (like prior probability, sensitivity, etc.), performs the Bayes' Theorem calculation, and returns the final probability. The `run.py` file (via backend routes) calls this function whenever it needs to do the math.
 
 ---
 
