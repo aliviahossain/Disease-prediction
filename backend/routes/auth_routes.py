@@ -189,6 +189,7 @@ def login():
             LOGIN_ATTEMPTS.pop(ip, None)
 
             login_user(user)
+            session.permanent = True  # Enforce PERMANENT_SESSION_LIFETIME (2h)
             flash("Login successful!", "success")
 
             next_page = request.args.get("next")
@@ -197,6 +198,10 @@ def login():
                 next_page = url_for("auth.profile")
 
             return redirect(next_page)
+
+        else:
+            flash("Invalid email or password", "danger")
+            return redirect(url_for("auth.login", tab="signin"))  # Keep on login page
 
         # Failed login
         LOGIN_ATTEMPTS[ip].append(time())
