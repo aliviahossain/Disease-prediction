@@ -18,5 +18,5 @@ if __name__ == "__main__":
     print("\n" + "=" * 50)
     print("Starting Flask Development Server")
     print("=" * 50 + "\n")
-    debug = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    debug = os.environ.get("FLASK_DEBUG", "").lower() in ("1", "true", "yes")
     app.run(debug=debug, host="0.0.0.0", port=5001, use_reloader=False)
