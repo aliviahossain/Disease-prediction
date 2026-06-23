@@ -189,4 +189,4 @@ def test_error_message_contains_parameter_name():
     with pytest.raises(ValueError) as context:
         bayesian_survival(1.5, 0.5, 0.5)
 
-    self.assertIn("prior", str(context.exception))
+    assert "prior" in str(context.exception)
