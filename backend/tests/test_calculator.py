@@ -5,6 +5,7 @@ import os
 import sys
 import tempfile
 import unittest
+import pytest
 
 TEST_DIR = os.path.dirname(__file__)
 BACKEND_DIR = os.path.abspath(os.path.join(TEST_DIR, ".."))
@@ -172,20 +173,20 @@ class TestBayesianCalculator(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 
-def test_invalid_prior_raises(self):
-    with self.assertRaises(ValueError):
+def test_invalid_prior_raises():
+    with pytest.raises(ValueError):
         bayesian_survival(-0.1, 0.5, 0.5)
 
-def test_invalid_sensitivity_raises(self):
-    with self.assertRaises(ValueError):
+def test_invalid_sensitivity_raises():
+    with pytest.raises(ValueError):
         bayesian_survival(0.5, 1.2, 0.5)
 
-def test_invalid_specificity_raises(self):
-    with self.assertRaises(ValueError):
+def test_invalid_specificity_raises():
+    with pytest.raises(ValueError):
         bayesian_survival(0.5, 0.5, -0.3)
 
-def test_error_message_contains_parameter_name(self):
-    with self.assertRaises(ValueError) as context:
+def test_error_message_contains_parameter_name():
+    with pytest.raises(ValueError) as context:
         bayesian_survival(1.5, 0.5, 0.5)
 
     self.assertIn("prior", str(context.exception))
