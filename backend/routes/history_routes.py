@@ -65,6 +65,18 @@ def _get_or_404(entry_id: int) -> PatientHistory:
 
 
 # --------------------------------------------------------------------- #
+# CSV sanitisation helper (prevents formula injection)
+# --------------------------------------------------------------------- #
+def _sanitize_csv_value(value: str) -> str:
+    """If *value* starts with a character that spreadsheet applications
+    might interpret as a formula trigger (=, +, -, @, tab, CR), prefix it
+    with a single quote so it is always treated as literal text."""
+    if value and value[0] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + value
+    return value
+
+
+# --------------------------------------------------------------------- #
 # HTML page
 # --------------------------------------------------------------------- #
 @history_bp.route("/history", methods=["GET"])
@@ -174,7 +186,10 @@ def add_history_entry():
 @history_bp.route("/history/export/csv", methods=["GET"])
 @login_required
 def export_history_csv():
-    """Export the current user's full prediction history as a CSV file."""
+    """Export the current user's full prediction history as a CSV file.
+    
+    User-supplied free‑text fields (disease, notes) are sanitised to
+    prevent CSV/Formula Injection (issue #510)."""
     user_id = _require_user_id()
 
     entries = (
@@ -203,12 +218,12 @@ def export_history_csv():
         writer.writerow([
             entry.id,
             entry.prediction_type or "",
-            entry.disease or "",
+            _sanitize_csv_value(entry.disease or ""),          # sanitised
             round(entry.probability * 100, 2) if entry.probability is not None else "",
             entry.risk_level or "",
             entry.inputs_json or "",
             entry.results_json or "",
-            entry.notes or "",
+            _sanitize_csv_value(entry.notes or ""),            # sanitised
             entry.created_at.strftime("%Y-%m-%d %H:%M:%S") if entry.created_at else "",
         ])
 
