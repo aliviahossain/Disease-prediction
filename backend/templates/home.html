@@ -41,8 +41,16 @@
                     <input type="range" id="height-input" class="form-range form-range-lg"
                         placeholder="Enter height (e.g. 154)" value="170" min="50" max="280" step="1"
                         oninput="updateHeight(this.value)">
+                    <input
+                        type="number"
+                        id="height-number"
+                        class="form-control mt-2"
+                        min="50"
+                        max="280"
+                        value="170"
+                        oninput="updateHeight(this.value)">
                     <div class="text-muted">
-                        <span id="height-value">170</span>cm
+                        <span id="height-value"></span>
                     </div>
                 </div>
 
@@ -53,8 +61,16 @@
                     <input type="range" id="weight-input" class="form-range form-range-lg"
                         placeholder="Enter weight (e.g. 67 kg)" value="60" min="2" max="170" step="1"
                         oninput="updateWeight(this.value)">
+                        <input
+                        type="number"
+                        id="weight-number"
+                        class="form-control mt-2"
+                        min="2"
+                        max="170"
+                        value="60"
+                        oninput="updateWeight(this.value)">
                     <div class="text-muted">
-                        <span id="weight-value">60</span>kg
+                        <span id="weight-value"></span>
                     </div>
                 </div>
 
@@ -698,12 +714,14 @@
     // HEIGHT / WEIGHT / BMI
     // =========================================================
     function updateHeight(val) {
-        document.getElementById("height-value").innerText = val;
+        document.getElementById("height-input").value = val;
+        document.getElementById("height-number").value = val;
         calculateBMI();
     }
 
     function updateWeight(val) {
-        document.getElementById("weight-value").innerText = val;
+        document.getElementById("weight-input").value = val;
+        document.getElementById("weight-number").value = val;
         calculateBMI();
     }
 
