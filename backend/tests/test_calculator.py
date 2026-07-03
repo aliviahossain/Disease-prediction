@@ -5,6 +5,7 @@ import os
 import sys
 import tempfile
 import unittest
+import pytest
 
 TEST_DIR = os.path.dirname(__file__)
 BACKEND_DIR = os.path.abspath(os.path.join(TEST_DIR, ".."))
