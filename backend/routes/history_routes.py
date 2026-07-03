@@ -47,6 +47,10 @@ history_bp = Blueprint(
 # ---------------------------------------------------------------------------
 ALLOWED_PREDICTION_TYPES = {"bayes", "ml"}
 
+# Characters that spreadsheet apps (Excel, Google Sheets, LibreOffice Calc)
+# treat as the start of a formula when a cell is opened.
+_CSV_FORMULA_TRIGGERS = ("=", "+", "-", "@", "\t", "\r")
+
 
 # --------------------------------------------------------------------- #
 # Helpers
@@ -62,6 +66,28 @@ def _get_or_404(entry_id: int) -> PatientHistory:
     if entry is None or entry.user_id != _require_user_id():
         abort(404)
     return entry
+
+
+def _sanitize_csv_field(value):
+    """
+    Neutralize CSV/Formula Injection (CWE-1236).
+
+    User-controlled free-text fields (e.g. disease, notes) are written
+    into exported CSVs as-is today. If such a value begins with a
+    formula-trigger character, spreadsheet apps interpret it as a
+    formula instead of literal text when the file is opened, which can
+    lead to data exfiltration or unwanted code execution for whoever
+    opens the export (e.g. a doctor the file is shared with).
+
+    Prefixing the value with a single quote forces spreadsheet apps to
+    always render it as plain text.
+    """
+    if value is None:
+        return ""
+    text = str(value)
+    if text.startswith(_CSV_FORMULA_TRIGGERS):
+        return "'" + text
+    return text
 
 
 # --------------------------------------------------------------------- #
@@ -203,12 +229,12 @@ def export_history_csv():
         writer.writerow([
             entry.id,
             entry.prediction_type or "",
-            entry.disease or "",
+            _sanitize_csv_field(entry.disease),
             round(entry.probability * 100, 2) if entry.probability is not None else "",
             entry.risk_level or "",
             entry.inputs_json or "",
             entry.results_json or "",
-            entry.notes or "",
+            _sanitize_csv_field(entry.notes),
             entry.created_at.strftime("%Y-%m-%d %H:%M:%S") if entry.created_at else "",
         ])
 
