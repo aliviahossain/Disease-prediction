@@ -1,6 +1,6 @@
 import os
 import secrets
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from dotenv import load_dotenv
 from flask import Flask, render_template
@@ -115,6 +115,22 @@ def create_app():
             )
 
     app.config["SECRET_KEY"] = secret_key
+
+    # --- Session & Cookie Security (Issue 5) --------------------------------
+    # Sessions expire after 2 hours of inactivity.
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=2)
+    # Prevent JavaScript from reading the session cookie (XSS mitigation).
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    # Block the cookie from being sent on cross-site navigations (CSRF mitigation).
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    # Only send the cookie over HTTPS in non-development environments.
+    _is_dev = os.getenv("FLASK_ENV") == "development" or os.getenv("FLASK_DEBUG") == "1"
+    app.config["SESSION_COOKIE_SECURE"] = not _is_dev
+    # Apply the same hardening to Flask-Login's "remember me" cookie.
+    app.config["REMEMBER_COOKIE_HTTPONLY"] = True
+    app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=7)
+    app.config["REMEMBER_COOKIE_SECURE"] = not _is_dev
+    # -------------------------------------------------------------------------
 
     # Validate startup configuration (environment variables and model files)
     from backend.utils.config_validator import validate_startup_config
@@ -234,6 +250,13 @@ def create_app():
 
     # Keep centralized error handler (from register-error-handler branch)
     ErrorHandler(app)
+
+    # Mark every session as permanent so Flask applies PERMANENT_SESSION_LIFETIME.
+    # Without this, sessions use the browser-session lifetime (close = expire).
+    @app.before_request
+    def _make_session_permanent():
+        from flask import session as _session
+        _session.permanent = True
 
     @app.context_processor
     def inject_current_year():
