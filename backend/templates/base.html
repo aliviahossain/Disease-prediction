@@ -24,6 +24,67 @@
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
 
+    <!-- Global Error Boundary -->
+    <script>
+        window.onerror = function (message, source, lineno, colno, error) {
+            console.error('Global Error Captured:', { message, source, lineno, colno, error });
+            showGlobalErrorToast('An unexpected error occurred. Please try again or refresh the page.');
+            return false;
+        };
+
+        window.addEventListener('unhandledrejection', function (event) {
+            console.error('Unhandled Promise Rejection Captured:', event.reason);
+            showGlobalErrorToast('A background task failed. Please try again.');
+        });
+
+        function showGlobalErrorToast(message) {
+            // Check if DOM is ready enough to append a toast
+            if (!document.body) return;
+            
+            let toastContainer = document.getElementById('global-toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'global-toast-container';
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                document.body.appendChild(toastContainer);
+            }
+
+            const toastId = 'toast-' + Math.random().toString(36).substr(2, 9);
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-exclamation-triangle me-2"></i> ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            
+            // If Bootstrap is loaded, use it to show the toast
+            if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+                const toastElement = document.getElementById(toastId);
+                const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
+                toast.show();
+                
+                toastElement.addEventListener('hidden.bs.toast', () => {
+                    toastElement.remove();
+                });
+            } else {
+                // Fallback if Bootstrap JS isn't loaded yet
+                const toastElement = document.getElementById(toastId);
+                toastElement.classList.add('show');
+                setTimeout(() => {
+                    toastElement.classList.remove('show');
+                    setTimeout(() => toastElement.remove(), 300);
+                }, 5000);
+            }
+        }
+    </script>
+
     <style>
         /* Mobile-specific navbar adjustments */
         @media (max-width: 991.98px) {
