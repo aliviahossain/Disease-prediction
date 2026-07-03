@@ -56,11 +56,18 @@ from typing import Optional
 
 import cv2
 import numpy as np
-import tensorflow as tf
 from PIL import Image
-from tensorflow.keras.models import Model
+try:
+    import tensorflow as tf
+    from tensorflow.keras.models import Model
+    _TF_AVAILABLE = True
+except (ImportError, ModuleNotFoundError):
+    tf = None  # type: ignore[assignment]
+    Model = object  # type: ignore[assignment,misc]
+    _TF_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
+
 
 # ---------------------------------------------------------------------------
 # Internal helpers

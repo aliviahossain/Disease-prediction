@@ -18,10 +18,15 @@ CLASS_NAMES = ["Cataract", "Diabetic Retinopathy", "Glaucoma", "Normal"]
 
 def predict_disease(model, img_path, target_size=(224, 224)):
     try:
+        # Lazy import: keras is only needed at inference time, not at import time.
+        # This allows the model to be imported on environments without TensorFlow.
+        from keras.utils import load_img, img_to_array
+
         from keras.utils import load_img, img_to_array
         # Load image
         img = load_img(img_path, target_size=target_size)
         img_array = img_to_array(img)
+
 
         # Normalize
         img_array = img_array / 255.0

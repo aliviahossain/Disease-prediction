@@ -169,7 +169,7 @@ class ErrorHandler:
         # Register generic exception handler
         app.errorhandler(Exception)(self.handle_generic_error)
 
-        print("✅ ErrorHandler initialized")
+        print("[OK] ErrorHandler initialized")
 
     def handle_app_error(self, error):
         """
