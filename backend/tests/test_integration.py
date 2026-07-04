@@ -2,8 +2,10 @@ import json
 
 import pytest
 from backend import create_app
+
 app = create_app()
 import json
+
 
 @pytest.fixture
 def client():
@@ -19,12 +21,12 @@ def test_home_page(client):
     assert rv.status_code == 200
     assert b"Probability Calculator" in rv.data
 
+
 @pytest.mark.xfail(
     reason="pre-existing: /preset route returns 500 due to a bug in the "
-        "route handler; tracked separately, not introduced by this PR",
+    "route handler; tracked separately, not introduced by this PR",
     strict=True,
 )
-
 def test_preset_disease_calculation(client):
     """Test preset disease endpoint with valid data"""
     data = {"disease": "Influenza"}
@@ -34,12 +36,12 @@ def test_preset_disease_calculation(client):
     assert "p_d_given_pos" in response
     assert isinstance(response["p_d_given_pos"], float)
 
+
 @pytest.mark.xfail(
     reason="pre-existing: /preset route returns 500 instead of 404 for "
-        "unknown disease; same root cause as test_preset_disease_calculation",
+    "unknown disease; same root cause as test_preset_disease_calculation",
     strict=True,
 )
-
 def test_preset_invalid_disease(client):
     """Test preset disease endpoint with invalid disease"""
     data = {"disease": "NonExistentDisease"}

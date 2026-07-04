@@ -7,10 +7,8 @@ def test_valid_bounds_positive():
     assert 0 <= bayes_theorem(0.1, 0.9, 0.95, "positive") <= 1
 
 
-
 def test_valid_bounds_negative():
     assert 0 <= bayes_theorem(0.1, 0.9, 0.95, "negative") <= 1
-
 
 
 @pytest.mark.parametrize("prior", [-0.1, 1.1])
@@ -19,19 +17,16 @@ def test_prior_out_of_bounds(prior):
         bayes_theorem(prior, 0.9, 0.95, "positive")
 
 
-
 @pytest.mark.parametrize("sens", [-0.01, 1.01])
 def test_sensitivity_out_of_bounds(sens):
     with pytest.raises(ValueError):
         bayes_theorem(0.1, sens, 0.95, "positive")
 
 
-
 @pytest.mark.parametrize("spec", [-0.2, 1.2])
 def test_specificity_out_of_bounds(spec):
     with pytest.raises(ValueError):
         bayes_theorem(0.1, 0.9, spec, "positive")
-
 
 
 def test_invalid_test_result():
@@ -53,22 +48,27 @@ def test_alias_matches_main():
 
 # ---------- type errors ----------
 
-@pytest.mark.parametrize("args", [
-    ("0.1", 0.9, 0.95, "positive"),
-    (0.1, "0.9", 0.95, "positive"),
-    (0.1, 0.9, "0.95", "positive"),
-    (0.1, 0.9, 0.95, 123),
-    (None, 0.9, 0.95, "positive"),
-    (0.1, None, 0.95, "positive"),
-    (0.1, 0.9, None, "positive"),
-    (0.1, 0.9, 0.95, None),
-])
+
+@pytest.mark.parametrize(
+    "args",
+    [
+        ("0.1", 0.9, 0.95, "positive"),
+        (0.1, "0.9", 0.95, "positive"),
+        (0.1, 0.9, "0.95", "positive"),
+        (0.1, 0.9, 0.95, 123),
+        (None, 0.9, 0.95, "positive"),
+        (0.1, None, 0.95, "positive"),
+        (0.1, 0.9, None, "positive"),
+        (0.1, 0.9, 0.95, None),
+    ],
+)
 def test_type_errors(args):
     with pytest.raises(Exception):
         bayes_theorem(*args)
 
 
 # ---------- positive test-result branch ----------
+
 
 def test_typical_valid_cases():
     # P(D|+) = sens*prior / (sens*prior + (1-spec)*(1-prior))
@@ -100,9 +100,5 @@ def test_high_probabilities():
 
 
 def test_low_probabilities():
-    assert (
-        round(bayes_theorem(0.01, 0.01, 0.01, "positive"), 4) == 0.0001
-    )
-    assert (
-        round(bayes_theorem(0.05, 0.05, 0.05, "positive"), 4) == 0.0028
-    )
+    assert round(bayes_theorem(0.01, 0.01, 0.01, "positive"), 4) == 0.0001
+    assert round(bayes_theorem(0.05, 0.05, 0.05, "positive"), 4) == 0.0028

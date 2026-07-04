@@ -16,6 +16,7 @@ def _load_module_from_path(name, path):
     spec.loader.exec_module(module)
     return module
 
+
 _src_calculator = _load_module_from_path(
     "backend_src_calculator",
     os.path.join(BACKEND_DIR, "src", "calculator.py"),

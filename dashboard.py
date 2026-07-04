@@ -7,6 +7,7 @@ import plotly.express as px
 import streamlit as st
 import re
 
+
 def highlight_text(text: str, query: str) -> str:
     if not query or not query.strip():
         return text
@@ -14,7 +15,7 @@ def highlight_text(text: str, query: str) -> str:
     pattern = re.compile(f"({re.escape(query)})", re.IGNORECASE)
     return pattern.sub(
         r"<mark style='background-color:#fffa65; color:black; padding:0 2px; border-radius:3px;'>\1</mark>",
-        text
+        text,
     )
 
 
@@ -29,6 +30,7 @@ from backend.models.ml_model import ml_model
 
 # Import history manager
 from backend.utils.history_manager import load_history, save_history
+
 # =========================
 # PAGE CONFIG
 # =========================
@@ -64,7 +66,7 @@ if app_mode == "Prediction":
         format_func=lambda x: x.replace("_", " ").title(),
     )
 
- # Disease info
+    # Disease info
     if selected_disease in DISEASE_INFO:
         st.info(DISEASE_INFO[selected_disease])
 
@@ -81,13 +83,14 @@ if app_mode == "Prediction":
     search_query = st.text_input(
         "🔍 Search Symptoms",
         placeholder="Type to filter symptoms...",
-        key="symptom_search"
+        key="symptom_search",
     )
 
     # 🔎 SUGGESTIONS
     if search_query:
         suggestions = [
-            label for label in symptoms_map.values()
+            label
+            for label in symptoms_map.values()
             if search_query.lower() in label.lower()
         ][:5]
 
@@ -96,9 +99,9 @@ if app_mode == "Prediction":
             for s in suggestions:
                 st.markdown(
                     f"<div>👉 {highlight_text(s, search_query)}</div>",
-                    unsafe_allow_html=True
+                    unsafe_allow_html=True,
                 )
-# 🔎 Apply filtering
+    # 🔎 Apply filtering
     if search_query:
         filtered_symptoms = {
             key: label
@@ -224,47 +227,57 @@ if app_mode == "Prediction":
 
                 st.subheader("Bayesian Probability Concept")
 
-                st.write("""
+                st.write(
+                    """
                 This prediction system uses
                 probabilistic reasoning inspired by
                 Bayes' Theorem to estimate disease
                 likelihood based on symptoms.
-                """)
+                """
+                )
 
                 # Formula
                 st.latex(r"P(D \mid S)=\frac{P(S \mid D)\cdot P(D)}{P(S)}")
 
-                st.caption("""
+                st.caption(
+                    """
                     D = Disease
                     | S = Symptoms
-                    """)
+                    """
+                )
 
                 # Explanation Cards
                 col1, col2, col3 = st.columns(3)
 
                 with col1:
-                    st.info("""
+                    st.info(
+                        """
                     **P(D)**
 
                     Prior probability
                     of disease
-                    """)
+                    """
+                    )
 
                 with col2:
-                    st.info("""
+                    st.info(
+                        """
                     **P(S|D)**
 
                     Probability of symptoms
                     given disease
-                    """)
+                    """
+                    )
 
                 with col3:
-                    st.info("""
+                    st.info(
+                        """
                     **P(D|S)**
 
                     Updated disease
                     probability
-                    """)
+                    """
+                    )
 
                 # =========================
                 # PREDICTION HISTORY

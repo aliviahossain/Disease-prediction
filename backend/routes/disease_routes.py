@@ -10,8 +10,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
-from reportlab.platypus import (Paragraph, SimpleDocTemplate, Spacer, Table,
-                                TableStyle)
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from backend.models.ml_model import ml_model
 from backend.services.history_service import save_history
@@ -202,11 +201,27 @@ def gemini_recommendations():
 
         test_result = str(data.get("test_result", "positive")).lower()
         if test_result not in ALLOWED_TEST_RESULTS:
-            return jsonify({"success": False, "error": "Invalid test_result value. Must be 'positive' or 'negative'."}), 400
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Invalid test_result value. Must be 'positive' or 'negative'.",
+                    }
+                ),
+                400,
+            )
 
         language = str(data.get("language", "english")).lower()
         if language not in ALLOWED_LANGUAGES:
-            return jsonify({"success": False, "error": f"Invalid language. Allowed: {', '.join(sorted(ALLOWED_LANGUAGES))}"}), 400
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": f"Invalid language. Allowed: {', '.join(sorted(ALLOWED_LANGUAGES))}",
+                    }
+                ),
+                400,
+            )
 
         result = generate_recommendations(
             disease_name=disease_name or None,
@@ -249,7 +264,10 @@ def download_results():
     try:
         prior = float(data.get("prior_probability", 0))
         posterior = float(data.get("posterior_probability", 0))
-        disease_name = _sanitize_name(data.get("disease_name") or "Custom Disease") or "Custom Disease"
+        disease_name = (
+            _sanitize_name(data.get("disease_name") or "Custom Disease")
+            or "Custom Disease"
+        )
         test_result = str(data.get("test_result", "positive")).capitalize()
         sensitivity = float(data.get("sensitivity", 0))
         false_positive = float(data.get("false_positive", 0))
@@ -348,7 +366,10 @@ def download_ml_results():
     data = request.json
 
     try:
-        disease_name = _sanitize_name(data.get("disease_name") or "Unknown Disease") or "Unknown Disease"
+        disease_name = (
+            _sanitize_name(data.get("disease_name") or "Unknown Disease")
+            or "Unknown Disease"
+        )
         ml_probability = float(data.get("ml_probability", 0))
         prior_probability = float(data.get("prior_probability", 0))
         likelihood = float(data.get("likelihood", 0))
@@ -494,15 +515,25 @@ def text_to_speech():
     text = data.get("text", "")
 
     if not isinstance(text, str) or len(text) > MAX_TTS_LENGTH:
-        return jsonify(
-            {"error": f"Text exceeds maximum allowed length of {MAX_TTS_LENGTH} characters."}
-        ), 400
+        return (
+            jsonify(
+                {
+                    "error": f"Text exceeds maximum allowed length of {MAX_TTS_LENGTH} characters."
+                }
+            ),
+            400,
+        )
 
     language = str(data.get("language", "english")).lower()
     if language not in ALLOWED_LANGUAGES:
-        return jsonify(
-            {"error": f"Invalid language. Allowed: {', '.join(sorted(ALLOWED_LANGUAGES))}"}
-        ), 400
+        return (
+            jsonify(
+                {
+                    "error": f"Invalid language. Allowed: {', '.join(sorted(ALLOWED_LANGUAGES))}"
+                }
+            ),
+            400,
+        )
 
     try:
         audio_buffer = generate_tts_audio(text, language)
