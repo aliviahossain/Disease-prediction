@@ -181,15 +181,13 @@ class SQLiteBackend:
     def _init_db(self):
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         with self._get_connection() as conn:
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS rate_limits (
                     identifier TEXT,
                     endpoint_type TEXT,
                     timestamp REAL
                 )
-            """
-            )
+            """)
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_rate_limits "
                 "ON rate_limits (identifier, endpoint_type, timestamp)"

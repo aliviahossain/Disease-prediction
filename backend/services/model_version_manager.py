@@ -1,7 +1,7 @@
 """
 Model versioning and management for continuous improvement.
 
-Enables tracking model versions, retraining with latest research, 
+Enables tracking model versions, retraining with latest research,
 and rollback on performance degradation.
 """
 

@@ -227,57 +227,47 @@ if app_mode == "Prediction":
 
                 st.subheader("Bayesian Probability Concept")
 
-                st.write(
-                    """
+                st.write("""
                 This prediction system uses
                 probabilistic reasoning inspired by
                 Bayes' Theorem to estimate disease
                 likelihood based on symptoms.
-                """
-                )
+                """)
 
                 # Formula
                 st.latex(r"P(D \mid S)=\frac{P(S \mid D)\cdot P(D)}{P(S)}")
 
-                st.caption(
-                    """
+                st.caption("""
                     D = Disease
                     | S = Symptoms
-                    """
-                )
+                    """)
 
                 # Explanation Cards
                 col1, col2, col3 = st.columns(3)
 
                 with col1:
-                    st.info(
-                        """
+                    st.info("""
                     **P(D)**
 
                     Prior probability
                     of disease
-                    """
-                    )
+                    """)
 
                 with col2:
-                    st.info(
-                        """
+                    st.info("""
                     **P(S|D)**
 
                     Probability of symptoms
                     given disease
-                    """
-                    )
+                    """)
 
                 with col3:
-                    st.info(
-                        """
+                    st.info("""
                     **P(D|S)**
 
                     Updated disease
                     probability
-                    """
-                    )
+                    """)
 
                 # =========================
                 # PREDICTION HISTORY

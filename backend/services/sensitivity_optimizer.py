@@ -1,7 +1,7 @@
 """
 Threshold adjustment for reducing false negatives in disease prediction.
 
-Clinical safety requires high sensitivity: better to over-predict and let 
+Clinical safety requires high sensitivity: better to over-predict and let
 the doctor rule out than to miss a serious disease.
 """
 
