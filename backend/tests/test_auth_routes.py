@@ -1,5 +1,6 @@
 import pytest
 
+
 def test_logout_post_succeeds(client):
     # login first
     client.post(
