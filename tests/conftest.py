@@ -1,6 +1,7 @@
 import io
 import pytest
 from unittest.mock import patch, MagicMock
+from run import app as flask_app
 
 
 @pytest.fixture(autouse=True)
