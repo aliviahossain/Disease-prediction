@@ -5,3 +5,12 @@ __pycache__/
 .git/
 .github/
 .vscode/
+.env
+.env.*
+.git
+.gitignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
