@@ -18,5 +18,6 @@ def test_logout_post_succeeds(client):
         follow_redirects=True,
     )
 
+    # Verify the request succeeds and redirects to the login page
     assert response.status_code == 200
-    assert b"logged out" in response.data.lower()
+    assert b"sign in / register" in response.data.lower()

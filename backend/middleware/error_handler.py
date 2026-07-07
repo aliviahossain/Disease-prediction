@@ -258,7 +258,13 @@ class ErrorHandler:
         self._log_error(error, 500)
 
         if not self._wants_json():
-            return render_template("error.html", error="An internal server error occurred. Please try again later."), 500
+            return (
+                render_template(
+                    "error.html",
+                    error="An internal server error occurred. Please try again later.",
+                ),
+                500,
+            )
 
         return (
             jsonify(
@@ -285,7 +291,13 @@ class ErrorHandler:
         self._log_error(error, 500, include_traceback=True)
 
         if not self._wants_json():
-            return render_template("error.html", error="An unexpected error occurred. Please try again later."), 500
+            return (
+                render_template(
+                    "error.html",
+                    error="An unexpected error occurred. Please try again later.",
+                ),
+                500,
+            )
 
         # Return generic error response (don't expose internal details)
         return (
@@ -301,9 +313,11 @@ class ErrorHandler:
 
     def _wants_json(self):
         """Helper to determine if the client expects a JSON response."""
-        return request.accept_mimetypes.accept_json and \
-            not request.accept_mimetypes.accept_html or \
-            request.path.startswith('/api/')
+        return (
+            request.accept_mimetypes.accept_json
+            and not request.accept_mimetypes.accept_html
+            or request.path.startswith("/api/")
+        )
 
     def _log_error(self, error, status_code, include_traceback=False):
         """

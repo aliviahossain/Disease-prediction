@@ -17,6 +17,7 @@ load_dotenv()
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 from flask_caching import Cache
+
 cache = Cache()
 csrf = CSRFProtect()
 
@@ -137,10 +138,12 @@ def create_app():
 
     validate_startup_config(app)
 
-    app.config['CACHE_TYPE'] = os.environ.get('CACHE_TYPE', 'SimpleCache')
-    if app.config['CACHE_TYPE'] == 'RedisCache':
-        app.config['CACHE_REDIS_URL'] = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
-    app.config['CACHE_DEFAULT_TIMEOUT'] = 86400
+    app.config["CACHE_TYPE"] = os.environ.get("CACHE_TYPE", "SimpleCache")
+    if app.config["CACHE_TYPE"] == "RedisCache":
+        app.config["CACHE_REDIS_URL"] = os.environ.get(
+            "REDIS_URL", "redis://localhost:6379/0"
+        )
+    app.config["CACHE_DEFAULT_TIMEOUT"] = 86400
 
     # Initialize extensions with app
     db.init_app(app)
@@ -152,7 +155,7 @@ def create_app():
     # Disable CSRF in test mode so existing tests don't break
     if app.config.get("TESTING"):
         app.config["WTF_CSRF_ENABLED"] = False
-    
+
     # --- Models -------------------------------------------------------
     # Import the models so SQLAlchemy registers them with `db` before create_all() is called below.
     # Without this import the patient_history table is never created, which is one half of the bug where history is "not being recorded".
@@ -198,8 +201,7 @@ def create_app():
         print(f"[WARN] Warning: Could not import 'history_routes'. Error: {e}")
 
     try:
-        from backend.routes.predict_disease_type_routes import \
-            predict_disease_type_bp
+        from backend.routes.predict_disease_type_routes import predict_disease_type_bp
 
         app.register_blueprint(predict_disease_type_bp)
         print("'predict_disease_type_bp_routes' blueprint registered successfully")
@@ -256,6 +258,7 @@ def create_app():
     @app.before_request
     def _make_session_permanent():
         from flask import session as _session
+
         _session.permanent = True
 
     @app.context_processor

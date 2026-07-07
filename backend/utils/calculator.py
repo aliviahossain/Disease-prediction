@@ -108,7 +108,9 @@ class BayesCalculator:
             if not (0.0 <= value <= 1.0):
                 raise ValueError(f"{name} must be between 0 and 1. Got {value}")
 
-        posterior = self._compute_posterior_value(prior, likelihood, false_positive_rate)
+        posterior = self._compute_posterior_value(
+            prior, likelihood, false_positive_rate
+        )
 
         if posterior < 0.35:
             risk_category = "Low"
@@ -209,6 +211,7 @@ class BayesCalculator:
             "tolerance": tolerance,
             "drift_records": drift_records,
         }
+
     def calculate_with_test_result(
         self,
         prior: float,

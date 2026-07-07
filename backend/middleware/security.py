@@ -137,8 +137,7 @@ class RedisBackend:
         current_time = time.time()
 
         allowed, retry_after, remaining = self._lua_script(
-            keys=[key],
-            args=[current_time, window, max_requests, endpoint_type]
+            keys=[key], args=[current_time, window, max_requests, endpoint_type]
         )
 
         return bool(allowed), int(retry_after), int(remaining)
@@ -217,14 +216,14 @@ class SQLiteBackend:
             # Clean old records for this identifier
             cursor.execute(
                 "DELETE FROM rate_limits WHERE identifier = ? AND timestamp < ?",
-                (identifier, cutoff_time)
+                (identifier, cutoff_time),
             )
 
             # Count requests in window
             cursor.execute(
                 "SELECT COUNT(*) FROM rate_limits "
                 "WHERE identifier = ? AND endpoint_type = ? AND timestamp > ?",
-                (identifier, endpoint_type, cutoff_time)
+                (identifier, endpoint_type, cutoff_time),
             )
             current_requests = cursor.fetchone()[0]
 
@@ -232,7 +231,7 @@ class SQLiteBackend:
                 cursor.execute(
                     "SELECT MIN(timestamp) FROM rate_limits "
                     "WHERE identifier = ? AND endpoint_type = ? AND timestamp > ?",
-                    (identifier, endpoint_type, cutoff_time)
+                    (identifier, endpoint_type, cutoff_time),
                 )
                 oldest_timestamp = cursor.fetchone()[0]
                 if oldest_timestamp:
@@ -245,7 +244,7 @@ class SQLiteBackend:
             cursor.execute(
                 "INSERT INTO rate_limits (identifier, endpoint_type, timestamp) "
                 "VALUES (?, ?, ?)",
-                (identifier, endpoint_type, current_time)
+                (identifier, endpoint_type, current_time),
             )
             conn.commit()
 
@@ -294,7 +293,9 @@ class RateLimiter:
                 self.backend = RedisBackend(redis_url=redis_url)
                 print(f"[OK] RateLimiter using Redis backend ({redis_url})")
             except Exception as e:
-                print(f"[WARN] Failed to initialize Redis backend: {e}. Falling back to in_memory.")
+                print(
+                    f"[WARN] Failed to initialize Redis backend: {e}. Falling back to in_memory."
+                )
                 self.backend = InMemoryBackend()
         elif backend_type == "sqlite":
             db_path = os.getenv("RATE_LIMIT_DB_PATH", "backend/rate_limit.db")

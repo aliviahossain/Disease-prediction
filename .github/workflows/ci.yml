@@ -1,19 +1,54 @@
 name: CI
 on: [push, pull_request]
+
 jobs:
+  linting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Check code formatting with Black
+        run: black --check backend/ data/ run.py dashboard.py
+
+      - name: Lint with Flake8
+        run: |
+          flake8 backend/ data/ run.py dashboard.py --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 backend/ data/ run.py dashboard.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
   CI_HEALTH_CHECK:
+    needs: linting
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           path: .
+          
       - name: Setting Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: 'pip'
+
       - name: Install dependencies
         run: pip install -r requirements.txt
+        
+      - name: Streamlit Dashboard Health Check
+        run: python -m py_compile dashboard.py
+
       - name: Run and check
         env:
           SECRET_KEY: test_secret_key_for_ci_only_not_for_production
@@ -38,6 +73,7 @@ jobs:
           exit 1
 
   tests:
+    needs: linting
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -47,6 +83,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: 'pip'
 
       - name: Install dependencies
         run: pip install -r requirements.txt

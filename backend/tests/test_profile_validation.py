@@ -249,6 +249,7 @@ def test_profile_rejects_incomplete_dropdown_dob(client):
     assert response.status_code == 200
     assert b"Date of birth requires day, month, and year" in response.data
 
+
 def test_bmi_calculation_handles_zero_height():
     h = 0
     w = 70

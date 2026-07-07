@@ -175,9 +175,12 @@ def add_history_entry():
 
     prediction_type = payload.get("prediction_type", "bayes")
     if prediction_type not in ALLOWED_PREDICTION_TYPES:
-        return jsonify(
-            error=f"Invalid prediction_type. Allowed values: {', '.join(sorted(ALLOWED_PREDICTION_TYPES))}"
-        ), 400
+        return (
+            jsonify(
+                error=f"Invalid prediction_type. Allowed values: {', '.join(sorted(ALLOWED_PREDICTION_TYPES))}"
+            ),
+            400,
+        )
 
     entry = save_history(
         user_id=user_id,
@@ -204,8 +207,7 @@ def export_history_csv():
     user_id = _require_user_id()
 
     entries = (
-        PatientHistory.query
-        .filter_by(user_id=user_id)
+        PatientHistory.query.filter_by(user_id=user_id)
         .order_by(PatientHistory.created_at.desc())
         .all()
     )
@@ -213,32 +215,46 @@ def export_history_csv():
     output = io.StringIO()
     writer = csv.writer(output)
 
-    writer.writerow([
-        "Prediction ID",
-        "Prediction Type",
-        "Disease",
-        "Probability (%)",
-        "Risk Level",
-        "Inputs",
-        "Results",
-        "Notes",
-        "Created At",
-    ])
+    writer.writerow(
+        [
+            "Prediction ID",
+            "Prediction Type",
+            "Disease",
+            "Probability (%)",
+            "Risk Level",
+            "Inputs",
+            "Results",
+            "Notes",
+            "Created At",
+        ]
+    )
 
     for entry in entries:
-        writer.writerow([
-            entry.id,
-            entry.prediction_type or "",
-            _sanitize_csv_field(entry.disease),
-            round(entry.probability * 100, 2) if entry.probability is not None else "",
-            entry.risk_level or "",
-            entry.inputs_json or "",
-            entry.results_json or "",
-            _sanitize_csv_field(entry.notes),
-            entry.created_at.strftime("%Y-%m-%d %H:%M:%S") if entry.created_at else "",
-        ])
+        writer.writerow(
+            [
+                entry.id,
+                entry.prediction_type or "",
+                _sanitize_csv_field(entry.disease),
+                (
+                    round(entry.probability * 100, 2)
+                    if entry.probability is not None
+                    else ""
+                ),
+                entry.risk_level or "",
+                entry.inputs_json or "",
+                entry.results_json or "",
+                _sanitize_csv_field(entry.notes),
+                (
+                    entry.created_at.strftime("%Y-%m-%d %H:%M:%S")
+                    if entry.created_at
+                    else ""
+                ),
+            ]
+        )
 
     response = make_response(output.getvalue())
-    response.headers["Content-Disposition"] = "attachment; filename=prediction_history.csv"
+    response.headers["Content-Disposition"] = (
+        "attachment; filename=prediction_history.csv"
+    )
     response.headers["Content-Type"] = "text/csv"
     return response

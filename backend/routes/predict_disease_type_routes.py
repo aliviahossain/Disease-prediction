@@ -75,6 +75,7 @@ TFLITE_MODEL_CACHE = {}
 # Confidence threshold for eliminating low-confidence predictions (can be adjusted or made dynamic)
 CONFIDENCE_THRESHOLD = 0.60
 
+
 # loads keras model in the KERAS_MODEL_CACHE (for eye disease prediction)
 def load_keras_model(model_type):
     if model_type not in KERAS_MODEL_CACHE:
@@ -195,7 +196,14 @@ def predict():
     # Validate the file magic bytes before using the filename extension.
     # Extension-only checks are trivially bypassed by renaming any file to .jpg.
     if not _validate_image_magic(image_file.stream):
-        return jsonify({"error": "Uploaded file is not a recognised image (JPEG, PNG, or WebP)."}), 400
+        return (
+            jsonify(
+                {
+                    "error": "Uploaded file is not a recognised image (JPEG, PNG, or WebP)."
+                }
+            ),
+            400,
+        )
 
     # Accept type from form or JSON
     model_type = (
@@ -241,21 +249,22 @@ def predict():
             confidence = float(preds[idx])
             predicted_class = MODEL_CONFIG[model_type]["class_names"][idx]
 
-
-            print(
-                f"Prediction: {predicted_class}, "
-                f"Confidence: {confidence:.4f}"
-            )
+            print(f"Prediction: {predicted_class}, " f"Confidence: {confidence:.4f}")
 
             if confidence < CONFIDENCE_THRESHOLD:
-                return jsonify({
-                    "error": (
-                        f"The uploaded image does not appear to be a valid "
-                        f"{model_type} disease image. "
-                        "Please upload a clear medical image."
+                return (
+                    jsonify(
+                        {
+                            "error": (
+                                f"The uploaded image does not appear to be a valid "
+                                f"{model_type} disease image. "
+                                "Please upload a clear medical image."
+                            ),
+                            "confidence": round(confidence * 100, 2),
+                        }
                     ),
-                    "confidence": round(confidence * 100, 2)
-                }), 400
+                    400,
+                )
 
             # 4. NEW: Generate Grad-CAM / Score-CAM heatmap
             gradcam_overlay = None

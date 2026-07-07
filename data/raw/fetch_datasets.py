@@ -16,7 +16,8 @@ print("✅ Heart Disease downloaded:", heart_df.shape)
 # ── 2. Pima Diabetes ── use sklearn built-in alternative ─────
 # Pima is blocked on ucimlrepo; load from sklearn's bundled copy
 from sklearn.datasets import fetch_openml
-pima = fetch_openml(name='diabetes', version=1, as_frame=True)
+
+pima = fetch_openml(name="diabetes", version=1, as_frame=True)
 diabetes_df = pima.frame
 diabetes_df.to_csv("data/raw/diabetes_raw.csv", index=False)
 print("✅ Diabetes downloaded:", diabetes_df.shape)
