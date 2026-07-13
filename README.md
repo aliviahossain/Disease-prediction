@@ -147,9 +147,6 @@ python run.py
 
 The application can be deployed to Google Cloud Run.
 
-See:
-docs/deployment/gcp-cloud-run.md
-
 See [docs/deployment/gcp-cloud-run.md](docs/deployment/gcp-cloud-run.md) for deployment instructions.
 
 ---
