@@ -15,8 +15,7 @@ import sys
 
 import pytest
 
-from backend.utils.uncertainty_handler import (CONFIDENCE_THRESHOLD,
-                                               UncertaintyHandler)
+from backend.utils.uncertainty_handler import CONFIDENCE_THRESHOLD, UncertaintyHandler
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 

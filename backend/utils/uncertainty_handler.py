@@ -95,10 +95,8 @@ class UncertaintyHandler:
                 f"confidence_score must be in [0.0, 1.0], got {confidence_score}"
             )
         if top2_score is not None and not (0.0 <= top2_score <= 1.0):
-            raise ValueError(
-                f"top2_score must be in [0.0, 1.0], got {top2_score}"
-            )
-        
+            raise ValueError(f"top2_score must be in [0.0, 1.0], got {top2_score}")
+
         # Check 1 — absolute confidence
         if confidence_score < self.confidence_threshold:
             return {

@@ -4,8 +4,7 @@ from urllib.parse import urljoin, urlparse
 from collections import defaultdict
 from time import time
 
-from flask import (Blueprint, flash, redirect, render_template, request,
-                   session, url_for)
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy.exc import OperationalError
 
@@ -167,8 +166,7 @@ def login():
 
         # Remove expired attempts
         LOGIN_ATTEMPTS[ip] = [
-            t for t in LOGIN_ATTEMPTS[ip]
-            if time() - t < LOCKOUT_SECONDS
+            t for t in LOGIN_ATTEMPTS[ip] if time() - t < LOCKOUT_SECONDS
         ]
 
         # Check lockout
@@ -213,16 +211,16 @@ def login():
     return render_template("auth.html", active_tab=active_tab)
 
 
-
 MIN_PASSWORD_LEN = 8
-MAX_USERNAME_LEN = 20  
+MAX_USERNAME_LEN = 20
 
-@auth_bp.route('/signup', methods=['POST'])
+
+@auth_bp.route("/signup", methods=["POST"])
 @rate_limit("default")
 def signup():
-    username = (request.form.get('username') or '').strip()
-    email = (request.form.get('email') or '').strip()
-    password = request.form.get('password') or ''
+    username = (request.form.get("username") or "").strip()
+    email = (request.form.get("email") or "").strip()
+    password = request.form.get("password") or ""
 
     # Reject empty fields
     if not username or not email or not password:
@@ -234,16 +232,12 @@ def signup():
 
     if len(username) < MIN_USERNAME_LEN:
         flash(
-            f"Username must be at least {MIN_USERNAME_LEN} characters long.",
-            "danger"
+            f"Username must be at least {MIN_USERNAME_LEN} characters long.", "danger"
         )
         return redirect(url_for("auth.login", tab="register"))
 
     if len(username) > MAX_USERNAME_LEN:
-        flash(
-            f"Username must be {MAX_USERNAME_LEN} characters or fewer.",
-            "danger"
-        )
+        flash(f"Username must be {MAX_USERNAME_LEN} characters or fewer.", "danger")
         return redirect(url_for("auth.login", tab="register"))
 
     # Validate email format
@@ -286,6 +280,7 @@ def signup():
 
     flash("Account Created Successfully. Please Sign In.", "success")
     return redirect(url_for("auth.login", tab="signin"))
+
 
 @auth_bp.route("/profile")
 @login_required
@@ -342,7 +337,9 @@ def update_profile():
             errors,
             "must contain only letters, spaces, apostrophes, periods, or hyphens.",
         )
-    if any(_form_has_field(name) for name in ("dob_day", "dob_month", "dob_year", "dob")):
+    if any(
+        _form_has_field(name) for name in ("dob_day", "dob_month", "dob_year", "dob")
+    ):
         dob = _validate_dob(_clean_form_value("dob"), errors)
     if _form_has_field("gender"):
         gender = _clean_form_value("gender")
@@ -376,7 +373,9 @@ def update_profile():
         current_user.emergency_relation = emergency_relation
     if _form_has_field("emergency_phone"):
         current_user.emergency_phone = emergency_phone
-    if any(_form_has_field(name) for name in ("dob_day", "dob_month", "dob_year", "dob")):
+    if any(
+        _form_has_field(name) for name in ("dob_day", "dob_month", "dob_year", "dob")
+    ):
         current_user.dob = dob
     if _form_has_field("gender"):
         current_user.gender = gender or None
@@ -384,7 +383,7 @@ def update_profile():
         current_user.height = height
     if _form_has_field("weight"):
         current_user.weight = weight
-    
+
     # Recompute BMI if height or weight were sent/updated in this request
     # Recompute BMI if height or weight were sent/updated in this request
     if _form_has_field("height") or _form_has_field("weight"):
@@ -417,7 +416,7 @@ def update_profile():
     return redirect(url_for("auth.profile"))
 
 
-@auth_bp.route("/logout")
+@auth_bp.route("/logout", methods=["POST"])
 @login_required
 def logout():
     logout_user()
@@ -425,23 +424,18 @@ def logout():
     flash("You have been logged out.", "info")
     return redirect(url_for("auth.login"))
 
+
 def test_login_rate_limit(client):
     for _ in range(6):
         client.post(
             "/login",
-            data={
-                "email": "invalid@test.com",
-                "password": "wrongpassword"
-            },
+            data={"email": "invalid@test.com", "password": "wrongpassword"},
             follow_redirects=True,
         )
 
     response = client.post(
         "/login",
-        data={
-            "email": "invalid@test.com",
-            "password": "wrongpassword"
-        },
+        data={"email": "invalid@test.com", "password": "wrongpassword"},
         follow_redirects=True,
     )
 

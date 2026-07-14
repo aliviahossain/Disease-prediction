@@ -28,4 +28,5 @@ EXPOSE 5001
 
 # Command to run the application
 # We use only 1 worker to save memory on Render Free Tier
-CMD ["gunicorn", "--bind", "0.0.0.0:5001", "run:app"]
+# If PORT exists use it Otherwise use 5001
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-5001} run:app"]

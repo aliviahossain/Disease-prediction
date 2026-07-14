@@ -1,6 +1,7 @@
 from flask import Flask
 from backend.routes.ml_routes import ml_bp
 
+
 def create_app():
     app = Flask(__name__)
 

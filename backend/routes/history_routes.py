@@ -47,6 +47,10 @@ history_bp = Blueprint(
 # ---------------------------------------------------------------------------
 ALLOWED_PREDICTION_TYPES = {"bayes", "ml"}
 
+# Characters that spreadsheet apps (Excel, Google Sheets, LibreOffice Calc)
+# treat as the start of a formula when a cell is opened.
+_CSV_FORMULA_TRIGGERS = ("=", "+", "-", "@", "\t", "\r")
+
 
 # --------------------------------------------------------------------- #
 # Helpers
@@ -62,6 +66,28 @@ def _get_or_404(entry_id: int) -> PatientHistory:
     if entry is None or entry.user_id != _require_user_id():
         abort(404)
     return entry
+
+
+def _sanitize_csv_field(value):
+    """
+    Neutralize CSV/Formula Injection (CWE-1236).
+
+    User-controlled free-text fields (e.g. disease, notes) are written
+    into exported CSVs as-is today. If such a value begins with a
+    formula-trigger character, spreadsheet apps interpret it as a
+    formula instead of literal text when the file is opened, which can
+    lead to data exfiltration or unwanted code execution for whoever
+    opens the export (e.g. a doctor the file is shared with).
+
+    Prefixing the value with a single quote forces spreadsheet apps to
+    always render it as plain text.
+    """
+    if value is None:
+        return ""
+    text = str(value)
+    if text.startswith(_CSV_FORMULA_TRIGGERS):
+        return "'" + text
+    return text
 
 
 # --------------------------------------------------------------------- #
@@ -149,9 +175,12 @@ def add_history_entry():
 
     prediction_type = payload.get("prediction_type", "bayes")
     if prediction_type not in ALLOWED_PREDICTION_TYPES:
-        return jsonify(
-            error=f"Invalid prediction_type. Allowed values: {', '.join(sorted(ALLOWED_PREDICTION_TYPES))}"
-        ), 400
+        return (
+            jsonify(
+                error=f"Invalid prediction_type. Allowed values: {', '.join(sorted(ALLOWED_PREDICTION_TYPES))}"
+            ),
+            400,
+        )
 
     entry = save_history(
         user_id=user_id,
@@ -178,8 +207,7 @@ def export_history_csv():
     user_id = _require_user_id()
 
     entries = (
-        PatientHistory.query
-        .filter_by(user_id=user_id)
+        PatientHistory.query.filter_by(user_id=user_id)
         .order_by(PatientHistory.created_at.desc())
         .all()
     )
@@ -187,32 +215,46 @@ def export_history_csv():
     output = io.StringIO()
     writer = csv.writer(output)
 
-    writer.writerow([
-        "Prediction ID",
-        "Prediction Type",
-        "Disease",
-        "Probability (%)",
-        "Risk Level",
-        "Inputs",
-        "Results",
-        "Notes",
-        "Created At",
-    ])
+    writer.writerow(
+        [
+            "Prediction ID",
+            "Prediction Type",
+            "Disease",
+            "Probability (%)",
+            "Risk Level",
+            "Inputs",
+            "Results",
+            "Notes",
+            "Created At",
+        ]
+    )
 
     for entry in entries:
-        writer.writerow([
-            entry.id,
-            entry.prediction_type or "",
-            entry.disease or "",
-            round(entry.probability * 100, 2) if entry.probability is not None else "",
-            entry.risk_level or "",
-            entry.inputs_json or "",
-            entry.results_json or "",
-            entry.notes or "",
-            entry.created_at.strftime("%Y-%m-%d %H:%M:%S") if entry.created_at else "",
-        ])
+        writer.writerow(
+            [
+                entry.id,
+                entry.prediction_type or "",
+                _sanitize_csv_field(entry.disease),
+                (
+                    round(entry.probability * 100, 2)
+                    if entry.probability is not None
+                    else ""
+                ),
+                entry.risk_level or "",
+                entry.inputs_json or "",
+                entry.results_json or "",
+                _sanitize_csv_field(entry.notes),
+                (
+                    entry.created_at.strftime("%Y-%m-%d %H:%M:%S")
+                    if entry.created_at
+                    else ""
+                ),
+            ]
+        )
 
     response = make_response(output.getvalue())
-    response.headers["Content-Disposition"] = "attachment; filename=prediction_history.csv"
+    response.headers["Content-Disposition"] = (
+        "attachment; filename=prediction_history.csv"
+    )
     response.headers["Content-Type"] = "text/csv"
     return response

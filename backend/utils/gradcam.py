@@ -57,9 +57,11 @@ from typing import Optional
 import cv2
 import numpy as np
 from PIL import Image
+
 try:
     import tensorflow as tf
     from tensorflow.keras.models import Model
+
     _TF_AVAILABLE = True
 except (ImportError, ModuleNotFoundError):
     tf = None  # type: ignore[assignment]

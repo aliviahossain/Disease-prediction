@@ -1,15 +1,10 @@
 import pandas as pd
 
-def validate_probability(
-    value,
-    name="probability",
-    strict_validation=True
-):
+
+def validate_probability(value, name="probability", strict_validation=True):
     if strict_validation:
         if not 0.0 <= value <= 1.0:
-            raise ValueError(
-                f"{name} must be between 0 and 1. Received {value}"
-            )
+            raise ValueError(f"{name} must be between 0 and 1. Received {value}")
         return value
 
     return max(0.0, min(1.0, value))

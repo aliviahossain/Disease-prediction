@@ -1237,14 +1237,9 @@ class DiseaseMLModel:
 
         raw_probability = self.sigmoid(z)
         calibrated_probability = self.calibrated_sigmoid(z)
-        calibration_gap = abs(
-            raw_probability - calibrated_probability
-        )
+        calibration_gap = abs(raw_probability - calibrated_probability)
 
-        calibration_score = max(
-            0,
-            1 - calibration_gap
-        )
+        calibration_score = max(0, 1 - calibration_gap)
 
         prior = min(0.95, max(0.05, raw_probability))
         likelihood = 0.75 + (raw_probability * 0.20)

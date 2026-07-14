@@ -11,7 +11,9 @@ from backend.models.prediction import PredictionHistory
 from backend.preprocessing import PreprocessingError, clean_prediction_payload
 from backend.services.history_service import save_history
 from backend.utils.calculator import BayesCalculator
-from backend.utils.cache_utils import make_user_cache_key  # noqa: F401 — imported so callers can use it with @cache.cached
+from backend.utils.cache_utils import (
+    make_user_cache_key,
+)  # noqa: F401 — imported so callers can use it with @cache.cached
 from backend.utils.uncertainty_handler import uncertainty_handler  # NEW
 from backend.middleware import rate_limit
 
@@ -263,7 +265,9 @@ def predict_disease():
                 "missing_symptoms": missing_symptoms,
                 "explanations": {
                     "feature_impacts": ml_prediction.get("feature_impacts", []),
-                    "symptom_contributions": ml_prediction.get("symptom_contributions", {}),
+                    "symptom_contributions": ml_prediction.get(
+                        "symptom_contributions", {}
+                    ),
                     "summary": ml_prediction.get("explanation_summary", ""),
                     "bias": ml_prediction.get("bias"),
                     "bmi_effect": ml_prediction.get("bmi_effect"),
@@ -395,9 +399,11 @@ def predict_multiple_diseases():
             top_prediction = {
                 "disease": pred["disease"].replace("_", " ").title(),
                 "probability": round(pred["raw_probability"] * 100, 2),
-                "calibrated_probability":round(pred["calibrated_probability"] * 100, 2),
-                "calibration_gap":round(pred["calibration_gap"] * 100, 2),
-                "calibration_score":round(pred["calibration_score"] * 100, 2),
+                "calibrated_probability": round(
+                    pred["calibrated_probability"] * 100, 2
+                ),
+                "calibration_gap": round(pred["calibration_gap"] * 100, 2),
+                "calibration_score": round(pred["calibration_score"] * 100, 2),
                 "prior": round(bayesian["prior"] * 100, 2),
                 "likelihood": round(bayesian["likelihood"] * 100, 2),
                 "posterior": round(bayesian["posterior"] * 100, 2),
@@ -433,8 +439,7 @@ def predict_multiple_diseases():
                 # Normalize disease key
                 disease_key = top_pred["disease"].lower().replace(" ", "_")
 
-                from backend.utils.temporal_analysis import \
-                    TemporalAnalysisEngine
+                from backend.utils.temporal_analysis import TemporalAnalysisEngine
 
                 # Analyze current vitals
                 vitals_analysis = TemporalAnalysisEngine.analyze_vitals(
@@ -511,7 +516,7 @@ def predict_multiple_diseases():
                 traceback.print_exc()
                 db.session.rollback()
 
-         # Issue #230: also persist the top prediction via the unified
+        # Issue #230: also persist the top prediction via the unified
         # history service so the PatientHistory-backed History page
         # reflects this differential diagnosis run.
         if top_predictions and current_user.is_authenticated:
@@ -608,6 +613,7 @@ def get_all_symptoms():
         )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @ml_bp.route("/api/ml/symptom-importance/<disease>", methods=["GET"])
 def get_symptom_importance(disease):
