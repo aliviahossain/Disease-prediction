@@ -21,7 +21,7 @@ class SyntheticPatientGenerator:
     ) -> Dict[str, Any]:
         """
         Generate single synthetic patient.
-        
+
         Args:
             disease: Disease name (random if None)
             symptom_intensity: 0.0-1.0 scaling for symptom probability
@@ -34,7 +34,7 @@ class SyntheticPatientGenerator:
             age = random.randint(20, 80)
 
         disease_lower = disease.lower()
-        
+
         # Get symptoms for disease
         if disease_lower not in self.ml_model.disease_weights:
             symptoms = []
@@ -49,7 +49,7 @@ class SyntheticPatientGenerator:
 
         # Generate vitals
         vitals = self._generate_vitals(disease_lower, age)
-        
+
         return {
             "disease": disease_lower,
             "symptoms": symptoms,
@@ -91,13 +91,13 @@ class SyntheticPatientGenerator:
         """Generate rare symptom combinations across diseases."""
         rare = []
         diseases = list(self.ml_model.disease_weights.keys())
-        
+
         for _ in range(count):
             primary = random.choice(diseases)
             secondary = random.choice([d for d in diseases if d != primary])
-            
+
             patient = self.generate_patient(disease=primary, symptom_intensity=0.3)
-            
+
             # Add rare symptoms from secondary disease
             if secondary in self.ml_model.disease_weights:
                 secondary_symptoms = list(
@@ -105,46 +105,46 @@ class SyntheticPatientGenerator:
                 )
                 if secondary_symptoms:
                     patient["symptoms"].append(random.choice(secondary_symptoms))
-            
+
             patient["rarity_note"] = f"Mixing {primary} with {secondary} symptoms"
             rare.append(patient)
-        
+
         return rare
 
     def generate_edge_cases(self) -> List[Dict[str, Any]]:
         """Generate edge cases for stress testing."""
         return [
             self.generate_patient(symptom_intensity=0.95),  # High confidence
-            self.generate_patient(symptom_intensity=0.1),   # Low confidence
-            self.generate_patient(age=5),                    # Pediatric
-            self.generate_patient(age=90),                   # Geriatric
+            self.generate_patient(symptom_intensity=0.1),  # Low confidence
+            self.generate_patient(age=5),  # Pediatric
+            self.generate_patient(age=90),  # Geriatric
         ]
 
     def calculate_ml_score(self, disease: str, symptoms: List[str]) -> float:
         """
         Calculate ML probability score for synthetic patient.
-        
+
         Args:
             disease: Disease name
             symptoms: List of symptom names
-            
+
         Returns:
             Probability score 0.0-1.0
         """
         disease_lower = disease.lower()
-        
+
         if disease_lower not in self.ml_model.disease_weights:
             return 0.5
-        
+
         config = self.ml_model.disease_weights[disease_lower]
         weights = config.get("symptoms", {})
         bias = config.get("bias", -2.5)
-        
+
         score = bias
         for symptom in symptoms:
             if symptom in weights:
                 score += weights[symptom]
-        
+
         # Sigmoid normalization
         prob = 1.0 / (1.0 + 2.71828 ** (-score))
         return round(max(0.0, min(1.0, prob)), 4)

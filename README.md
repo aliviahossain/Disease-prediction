@@ -143,7 +143,13 @@ python run.py
 ```
 
 ---
+## 📦 Deployment
 
+The application can be deployed to Google Cloud Run.
+
+See [docs/deployment/gcp-cloud-run.md](docs/deployment/gcp-cloud-run.md) for deployment instructions.
+
+---
 ## 🧮 How It Works
 
 ### Bayes' Theorem

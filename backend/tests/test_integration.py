@@ -2,8 +2,10 @@ import json
 
 import pytest
 from backend import create_app
+
 app = create_app()
 import json
+
 
 @pytest.fixture
 def client():
@@ -19,6 +21,7 @@ def test_home_page(client):
     assert rv.status_code == 200
     assert b"Probability Calculator" in rv.data
 
+
 def test_preset_disease_calculation(client):
     """Test preset disease endpoint with valid data"""
     data = {"disease": "Influenza"}
@@ -27,6 +30,7 @@ def test_preset_disease_calculation(client):
     response = json.loads(rv.data)
     assert "p_d_given_pos" in response
     assert isinstance(response["p_d_given_pos"], float)
+
 
 def test_preset_invalid_disease(client):
     """Test preset disease endpoint with invalid disease"""

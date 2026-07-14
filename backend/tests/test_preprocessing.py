@@ -1,7 +1,10 @@
 import pytest
 
-from backend.preprocessing import (PreprocessingError,
-                                   clean_prediction_payload, normalize_key)
+from backend.preprocessing import (
+    PreprocessingError,
+    clean_prediction_payload,
+    normalize_key,
+)
 
 VALID_SYMPTOMS = {
     "increased_thirst",
