@@ -313,7 +313,7 @@ def predict_disease():
 
 
 @ml_bp.route("/api/ml/predict-multiple", methods=["POST"])
-@rate_limit("ml_analysis")
+@rate_limit("prediction")
 def predict_multiple_diseases():
     """
     API endpoint for differential diagnosis (predict multiple diseases).
@@ -644,6 +644,7 @@ def get_uncertainty_config():
 
 
 @ml_bp.route("/api/ml/explain", methods=["POST"])
+@rate_limit("prediction")
 def explain_prediction():
     """SHAP-based prediction explainability endpoint."""
     try:
