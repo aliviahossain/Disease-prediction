@@ -101,6 +101,16 @@ def preset():
 def disease():
     """Calculate disease probability based on test results"""
     data = request.json
+
+    if not data:
+        return jsonify({"error": "No JSON payload provided"}), 400
+
+    required_keys = ["pD", "sensitivity", "falsePositive"]
+    missing_keys = [key for key in required_keys if data.get(key) is None or str(data.get(key)).strip() == ""]
+    
+    if missing_keys:
+        return jsonify({"error": f"Missing required fields: {', '.join(missing_keys)}"}), 400
+
     try:
         # Input extraction
         p_d = float(data.get("pD"))
