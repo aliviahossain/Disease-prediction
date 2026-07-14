@@ -107,7 +107,7 @@ def disease():
 
     required_keys = ["pD", "sensitivity", "falsePositive"]
     missing_keys = [
-        key for key in required_keys 
+        key for key in required_keys
         if data.get(key) is None or str(data.get(key)).strip() == ""
     ]
     
