@@ -1,257 +1,297 @@
 # 🧠 Disease Prediction System
-An **ML-powered, educational web application** that demonstrates how **machine learning, Bayesian probability, and AI** can be used to estimate disease likelihood based on symptoms and diagnostic test results.
 
-This project is designed to make **diagnostic reasoning transparent**, intuitive, and interactive - especially for students, researchers, and developers exploring medical ML concepts.
+<div align="center">
+
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python)
+![Flask](https://img.shields.io/badge/Flask-Backend-black?style=for-the-badge&logo=flask)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)
+![Educational](https://img.shields.io/badge/Purpose-Educational-orange?style=for-the-badge)
+
+**An ML-powered web app that uses Bayes' Theorem and machine learning to estimate disease likelihood from symptoms — built for students, researchers, and developers.**
+
+[🚀 Live Demo](https://disease-prediction-nwnu.onrender.com) · [🐛 Report a Bug](https://github.com/aliviahossain/Disease-prediction/issues) · [💡 Request a Feature](https://github.com/aliviahossain/Disease-prediction/issues)
+
+</div>
 
 ---
-## ⚠️ Disclaimer
 
-> **Educational Use Only**
-
-This project is intended strictly for **learning, research, and demonstration purposes**.  
-It is **not a medical tool** and must **not** be used for real-world diagnosis or treatment decisions.
-
-Always consult a qualified healthcare professional for medical advice.
+> ⚠️ **Disclaimer: Educational Use Only**
+> This project is for learning and demonstration purposes only. It is **not** a medical tool and must **not** be used for real-world diagnosis or treatment. Always consult a qualified healthcare professional.
 
 ---
-## ✨ Core Highlights
-- 🔬 Combines **Machine Learning + Bayesian Inference**
-- 📊 Visual comparison of **prior vs posterior probabilities**
-- 🤖 AI-powered explanations & next-step recommendations
-- 🌐 Multi-language support (English, Hindi, Gujarati, Tamil)
-- 🌙 Dark mode for better accessibility
-- 📘 Beginner-friendly educational explanations
-- 📜 Prediction History Timeline with stored analytics
-- 📈 Comparative probability trend visualization
-- ⚠️ Risk distribution insights dashboard
----
 
-## 📑 Table of Contents
-- [Quick Start (30 seconds)](#-quick-start-30-seconds)
+## 📋 Table of Contents
+
+- [About the Project](#-about-the-project)
 - [Key Features](#-key-features)
-  - [Educational Features](#-educational-features)
-  - [ML Features](#-ml-features)
-  - [AI Features](#-ai-features)
-  - [Project Structure](#project-structure)
-  - [Getting Started](#getting-started-detailed)
-- [Using AI-Powered Recommendations](#-using-ai-powered-recommendations)
-- [Bayes’ Theorem Explained](#-bayes-theorem-explained)
-- [Troubleshooting](#-troubleshooting)
-- [Privacy & Data Handling](#-privacy--data-handling)
+- [Tech Stack](#-tech-stack)
+- [Quick Start](#-quick-start)
+- [Detailed Setup](#️-detailed-setup)
+- [How It Works](#-how-it-works)
+- [Project Structure](#-project-structure)
 - [Dataset & Model](#-dataset--model)
+- [Privacy & Data Handling](#-privacy--data-handling)
+- [Contributing](#-contributing)
 - [License](#-license)
+
 ---
 
-## 🚀 Quick Start (30 seconds)
+## 🔍 About the Project
 
-### 🌐 View Online (Instant)
-Open in your browser:
-👉 **[https://disease-prediction-nwnu.onrender.com]**
+The Disease Prediction System makes **medical reasoning transparent and interactive**. It combines classical Bayesian probability with modern ML to show users not just *what* a prediction is, but *why* — step by step.
 
-### 💻 Run Locally
+It's designed to bridge the gap between complex statistical concepts and intuitive understanding, with visual charts, AI-powered explanations, and multi-language support.
+
+---
+
+## ✨ Key Features
+
+### 📘 Educational
+| Feature | Description |
+|---|---|
+| Bayes' Theorem Visualizer | Step-by-step breakdown of prior → posterior probability |
+| Interactive Sliders | Experiment with probability values in real time |
+| Built-in Glossary | Plain-English definitions of medical/statistical terms |
+
+### 🤖 ML & Prediction
+| Feature | Description |
+|---|---|
+| Symptom-Based Prediction | Select symptoms to get ML-generated probability scores |
+| BMI Integration | Height/weight inputs contribute to risk estimation |
+| Risk Categorization | Results classified as Low / Medium / High risk |
+| Prediction History | Stored timeline of past predictions with analytics |
+
+### 🧠 AI Features
+| Feature | Description |
+|---|---|
+| AI Explanations | Gemini-powered interpretation of results |
+| Next-Step Guidance | Suggests consultation, testing, or lifestyle review |
+| Multi-Language Output | English 🇬🇧 · Hindi 🇮🇳 · Gujarati 🇮🇳 · Tamil 🇮🇳 |
+
+### 📊 Analytics Dashboard
+- Comparative probability trend charts
+- Risk distribution graphs
+- Historical prediction tables
+
+---
+
+## 🛠 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Python, Flask |
+| Frontend | HTML, CSS, JavaScript |
+| ML / Math | Bayesian Inference, ResNet CNN |
+| AI | Google Gemini API |
+| Dashboard | Streamlit |
+| Data | CSV (hospital_data.csv) |
+
+---
+
+## 🚀 Quick Start
+
+**Option 1 — View Online (instant, no setup)**
+👉 [https://disease-prediction-nwnu.onrender.com](https://disease-prediction-nwnu.onrender.com)
+
+**Option 2 — Run Locally (30 seconds)**
+
 ```bash
 git clone https://github.com/aliviahossain/Disease-prediction.git
 cd Disease-prediction
 pip install -r requirements.txt
 python run.py
 ```
-Open in your browser:
-👉 http://127.0.0.1:5001/
 
-That’s it 🎉
+Then open your browser at: **http://127.0.0.1:5001/**
 
-## 📌 Key Features
-### 📘 Educational Features
-- Clear explanations of Prior, Likelihood, and Posterior Probability
-- Step-by-step visualization of Bayes’ Theorem
-- Interactive probability sliders for experimentation
-- Built-in glossary and help section
-## 🤖 ML Features
-- Symptom-based disease prediction
-- Disease selection with predefined symptom sets
-- ML-generated probability scores
-- Risk categorization (Low / Medium / High)
-- Prediction history storage & tracking
-- Comparative analytics dashboard
-- Disease probability timeline visualization
-## 🧠 AI Features
-- AI-powered interpretation of probability results
-- Suggested next steps (consultation, testing, lifestyle review)
-- Multi-language AI output:
-  - 🇬🇧 English
-  - 🇮🇳 Hindi
-  - 🇮🇳 Gujarati
-  - 🇮🇳 Tamil
+---
 
-Powered by Google Gemini API
+## 🛠️ Detailed Setup
 
-## 🗂️ Project Structure
-```bash
-Disease-prediction/
-├── run.py                      # Application entry point
-├── dashboard.py                # Streamlit interactive dashboard
-├── requirements.txt            # Python dependencies
-├── hospital_data.csv           # Sample statistical data
-├── backend/
-│   ├── routes/                 # Flask routes (auth, ML, calculator)
-│   ├── models/                 # Database & ML models
-│   ├── utils/                  # Bayesian calculator & AI helpers
-│   ├── static/                 # JS & CSS
-│   └── templates/              # HTML templates
-├── README.md
-├── LICENSE
-└── Scalability_report.txt
-```
-## 🛠️ Getting Started (Detailed)
-## 1️⃣ Create a Virtual Environment (Recommended)
+### 1. Create a Virtual Environment (Recommended)
 
 ```bash
 python -m venv venv
-source venv/bin/activate   # macOS/Linux
-venv\Scripts\activate      # Windows
+source venv/bin/activate      # macOS / Linux
+venv\Scripts\activate         # Windows
 ```
-## 2️⃣ Install Dependencies
+
+### 2. Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
-## 3️⃣ Run the Application
+
+### 3. (Optional) Enable AI Recommendations
+
+Get a free API key from [Google AI Studio](https://aistudio.google.com/), then set it:
+
+```bash
+# Option A: .env file (recommended)
+echo "GEMINI_API_KEY=your_key_here" > .env
+
+# Option B: Environment variable
+export GEMINI_API_KEY=your_key_here    # macOS / Linux
+set GEMINI_API_KEY=your_key_here       # Windows
+```
+
+### 4. Run the App
+
 ```bash
 python run.py
 ```
-## 🤖 Using AI-Powered Recommendations
-Enable Gemini AI (Optional but Recommended)
 
-**Step 1: Get an API Key**
+---
+## 📦 Deployment
 
-Get your free API key from Google AI Studio
+The application can be deployed to Google Cloud Run.
 
-**Step 2: Configure the API Key**
+See [docs/deployment/gcp-cloud-run.md](docs/deployment/gcp-cloud-run.md) for deployment instructions.
 
-Using `.env` file (recommended):
-```env
-GEMINI_API_KEY=your_api_key_here
+---
+## 🧮 How It Works
+
+### Bayes' Theorem
+
+The app updates disease probability after observing symptoms or test results using:
+
 ```
-**Or via environment variable:**
+P(Disease | Evidence) = [ P(Evidence | Disease) × P(Disease) ]
+                        ─────────────────────────────────────────────────────────
+                        [ P(Evidence | Disease) × P(Disease) + P(Evidence | No Disease) × P(No Disease) ]
+```
+
+| Term | Meaning |
+|---|---|
+| `P(Disease)` | Prior probability — baseline disease prevalence |
+| `P(Evidence\|Disease)` | Sensitivity — how often evidence appears given disease |
+| `P(Evidence\|No Disease)` | False positive rate |
+| `P(Disease\|Evidence)` | Posterior — updated probability after new evidence |
+
+### BMI Integration
+
+The system accepts height (cm) and weight (kg) to compute BMI, which adjusts risk estimates:
+
+```
+BMI = weight (kg) / (height in meters)²
+```
+
+| BMI Range | Category |
+|---|---|
+| Below 18.5 | Underweight |
+| 18.5 – 24.9 | Normal |
+| 25 – 29.9 | Overweight |
+| 30+ | Obese |
+
+---
+
+## 🗂️ Project Structure
+
+```
+Disease-prediction/
+├── run.py                         # App entry point
+├── dashboard.py                   # Streamlit analytics dashboard
+├── requirements.txt               # Python dependencies
+├── hospital_data.csv              # Bayesian stats (generated by pipeline)
+├── data/
+│   ├── raw/                       # Original datasets (git-ignored)
+│   ├── cleaned/
+│   │   └── hospital_data_cleaned.csv
+│   └── preprocess.py              # Data pipeline script
+├── backend/
+│   ├── routes/                    # Flask routes (auth, ML, calculator)
+│   ├── models/                    # Database & ML models
+│   ├── utils/                     # Bayesian calculator & AI helpers
+│   ├── static/                    # JS & CSS
+│   └── templates/                 # HTML templates
+├── README.md
+└── LICENSE
+```
+
+---
+
+## 📊 Dataset & Model
+
+### Bayesian Calculator Datasets
+
+| Disease | Dataset | Source |
+|---|---|---|
+| Heart Disease | UCI Heart Disease Dataset | [UCI Repository](https://archive.ics.uci.edu/dataset/45/heart+disease) |
+| Diabetes | Pima Indians Diabetes Dataset | [Kaggle](https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database) |
+| Breast Cancer | Breast Cancer Wisconsin | [UCI Repository](https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic) |
+
+To regenerate `hospital_data.csv` from raw datasets:
 ```bash
-export GEMINI_API_KEY=your_api_key_here   # macOS/Linux
+python data/preprocess.py
 ```
-## How It Works
-1) Calculate disease probability
-2) Choose a language 🌐
-3) Click “**Get AI Recommendations**”
-4) Receive:
-    - Probability interpretation
-    - Suggested next actions
-    - Medical disclaimers
-## 🧮 Bayes’ Theorem Explained
-Bayes’ Theorem updates the probability of a condition after observing new evidence, such as a test result.
-### **Formula:**
-```java
-P(A|B) = [P(B|A) × P(A)] / [P(B|A) × P(A) + P(B|¬A) × P(¬A)]
-```
-Where:
-- **P(A)** → Prior probability
-- **P(B|A)** → Sensitivity
-- **P(B|¬A)** → False positive rate
-- **P(A|B)** → Posterior probability
+> Raw dataset files are not committed to this repo. Download them from the links above and place them in `data/raw/`.
 
-This project visualizes this shift clearly using charts and explanations.
-## 🔧 Troubleshooting
-### AI Not Working?
-- Ensure `GEMINI_API_KEY` is set
-- Restart the application
-- Check internet connectivity
-- Verify API quota availability
-### App Not Starting?
-- Confirm Python ≥ 3.9
-- Reinstall dependencies
-- Activate virtual environment
+### Image Classification Datasets
+
+| Model | Dataset | Conditions |
+|---|---|---|
+| Eye Disease CNN | [Eye Diseases Classification (Kaggle)](https://www.kaggle.com/datasets/gunavenkatdoddi/eye-diseases-classification) | Glaucoma, Diabetic Retinopathy, Cataract, Normal |
+| Skin Disease CNN | [Skin Diseases Image Dataset (Kaggle)](https://www.kaggle.com/datasets/ismailpromus/skin-diseases-image-dataset) | Melanoma, Eczema, Psoriasis, and 7 others |
+
+The CNN architecture is based on ResNet, inspired by He et al. (2016) — *Deep Residual Learning for Image Recognition*.
+
+---
+
 ## 🔒 Privacy & Data Handling
 
-All image processing and probability calculations are performed **locally** on the user’s machine.  
-No images, symptoms, or personal data are uploaded, stored, or shared externally by default.
+- ✅ All calculations run **locally** on your machine
+- ✅ No symptoms, images, or personal data are uploaded or stored externally
+- ✅ AI requests only transmit probability values — never user identity
+- ✅ Prediction history is stored locally using JSON-based storage
 
+---
 
-## 🧠 Model Architecture
+## 🔧 Troubleshooting
 
-The eye-disease image classification model is based on a deep convolutional neural network using a ResNet architecture inspired by:
+<details>
+<summary><b>AI recommendations not working?</b></summary>
 
-He, K., Zhang, X., Ren, S., & Sun, J. (2016).  
-*Deep Residual Learning for Image Recognition*. Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
+- Make sure `GEMINI_API_KEY` is set correctly
+- Restart the application after setting the key
+- Check your internet connection
+- Verify your API quota at [Google AI Studio](https://aistudio.google.com/)
+</details>
 
+<details>
+<summary><b>App not starting?</b></summary>
 
-## 📊 Dataset Sources
+- Confirm Python version is **3.9 or higher**: `python --version`
+- Activate your virtual environment before running
+- Reinstall dependencies: `pip install -r requirements.txt`
+</details>
 
-The eye-disease image prediction model was trained using the following publicly available dataset from Kaggle:
+---
 
-- **Eye Diseases Classification Dataset**  
-  https://www.kaggle.com/datasets/gunavenkatdoddi/eye-diseases-classification
+## 🤝 Contributing
 
-This dataset includes labeled images for:
+Contributions are warmly welcome! Here's how to get started:
 
-- Normal eyes
-- Glaucoma
-- Diabetic Retinopathy
-- Cataract
+1. **Fork** the repository
+2. **Create** a new branch: `git checkout -b feature/your-feature-name`
+3. **Make** your changes and commit: `git commit -m "Add: your meaningful message"`
+4. **Push** to your fork: `git push origin feature/your-feature-name`
+5. **Open** a Pull Request
 
-The skin-disease image prediction model was trained using the following publicly available dataset from Kaggle:
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before contributing.
 
-- **Skin Diseases Image Dataset**
-  https://www.kaggle.com/datasets/ismailpromus/skin-diseases-image-dataset
-
-This dataset includes labeled images for the following conditions:
-
-- Atopic Dermatitis
-- Basal Cell Carcinoma
-- Benign Keratosis-like Lesions
-- Eczema
-- Melanocytic Nevi
-- Melanoma
-- Psoriasis
-- Seborrheic Keratoses and other Benign Tumors
-- Tinea Ringworm, Candidiasis, and other Fungal Infections
-- Warts, Molluscum, and other Viral Infections
-
-All dataset credits belong to their respective authors and contributors. 
-This project does not claim ownership of the dataset. Please refer to the dataset page for licensing and usage terms.
-
-- All computations run locally
-- No personal data is stored or transmitted
-- AI requests only include probability values (no user identity)
-## 📊 Dataset & Model
-###  Dataset
-- Eye Diseases Classification Dataset (Kaggle)
-   - Normal
-   - Glaucoma
-   - Diabetic Retinopathy
-   - Cataract
-### Model Architecture
-- CNN based on ResNet
-- Inspired by He et al., 2016 - Deep Residual Learning
+---
 
 ## 📜 License
-This project is licensed under the MIT License. See the [LICENSE](https://github.com/aliviahossain/Disease-prediction/blob/main/LICENSE) file for details.
-## 🙌 Acknowledgements
-Created and maintained by Alivia Hossain.
 
-Contributions are welcome, feel free to open issues or pull requests.
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
-**⭐ If you find this project useful, consider giving it a star!**
+---
 
-## 📜 Prediction History & Analytics
+<div align="center">
 
-The dashboard now includes a Prediction History Timeline system that allows users to monitor and analyze previous disease predictions interactively.
+Created and maintained by [Alivia Hossain](https://github.com/aliviahossain)
 
-### ✨ Features Included
-- 📌 Automatic prediction history storage
-- 📈 Comparative probability trend analytics
-- ⚠️ Risk distribution visualization
-- 🧠 Historical disease tracking
+⭐ If you find this project useful, consider giving it a star!
 
-### 📊 Visualization Support
-- Interactive line charts
-- Risk distribution graphs
-- Historical prediction tables
-
-### 🔒 Privacy
-All prediction history is stored locally on the user's machine using JSON-based storage.
+</div>

@@ -33,14 +33,15 @@
             justify-content: center;
             border-radius: 50%;
             background: var(--primary-cyan);
-            transition: all 0.2s ease;
+            transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
             z-index: 1000;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            will-change: transform;
         }
 
         .chatbot-toggler:hover {
             background: var(--dark-cyan);
-            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.3);
         }
 
         .chatbot-toggler span {
@@ -59,19 +60,21 @@
 
         .chatbot {
             position: fixed;
-            right: 35px;
-            bottom: 90px;
-            width: 420px;
+            right: 10px;
+            bottom: 80px;
+            max-height: calc(100vh - 160px);
+            width: min(420px, calc(100vw - 50px));
             background: var(--white);
             border-radius: 15px;
             overflow: hidden;
             opacity: 0;
             pointer-events: none;
-            transform: scale(0.5);
+            transform: scale(0.85) translateY(10px);
             transform-origin: bottom right;
             box-shadow: 0 0 128px 0 rgba(0,0,0,0.1), 0 32px 64px -48px rgba(0,0,0,0.5);
-            transition: all 0.15s ease;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 1000;
+            margin-bottom: 10px;
         }
 
         body.show-chatbot .chatbot {
@@ -98,7 +101,7 @@
             position: absolute;
             right: 15px;
             top: 50%;
-            display: none;
+            display: block;
             cursor: pointer;
             transform: translateY(-50%);
             color: var(--white);
@@ -106,7 +109,8 @@
 
         .chatbot .chatbox {
             overflow-y: auto;
-            height: 510px;
+            height: auto;
+            max-height: calc(100vh - 280px);
             padding: 30px 20px 100px;
             margin-bottom: 0;
             background: var(--bg-light);
@@ -226,6 +230,98 @@
                 display: block;
             }
         }
+
+        .clear-chat-btn {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .clear-chat-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .confirm-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .confirm-modal.show {
+            display: flex;
+        }
+
+        .confirm-box {
+            width: 90%;
+            max-width: 350px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            animation: popup 0.2s ease;
+        }
+
+        .confirm-box h3 {
+            margin: 0 0 10px;
+            color: #333;
+        }
+
+        .confirm-box p {
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .confirm-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .confirm-actions button {
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        #cancelClear {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        #confirmClear {
+            background: #00bcd4;
+            color: white;
+        }
+
+        #confirmClear:hover {
+            background: #008ba3;
+        }
+
+        @keyframes popup {
+            from {
+                opacity: 0;
+                transform: scale(0.85);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
     </style>
 </head>
 <body>
@@ -237,6 +333,11 @@
 <div class="chatbot">
     <header>
         <h2>Disease Expert AI</h2>
+
+        <button class="clear-chat-btn" title="Clear Chat">
+            Clear
+        </button>
+
         <span class="close-btn material-symbols-rounded">close</span>
     </header>
     <ul class="chatbox">
@@ -251,25 +352,61 @@
     </div>
 </div>
 
+<div class="confirm-modal" id="confirmModal">
+    <div class="confirm-box">
+        <h3>Clear Chat History</h3>
+        <p>Are you sure you want to clear the chat history?</p>
+
+        <div class="confirm-actions">
+            <button id="cancelClear">Cancel</button>
+            <button id="confirmClear">Clear</button>
+        </div>
+    </div>
+</div>
 <script>
+    class ChatBotMessage {
+        constructor(role, text) {
+            // Enforce the 'model' or 'user' rule dynamically in JS
+            if (role !== 'model' && role !== 'user') {
+                throw new Error("Role must be either 'model' or 'user'");
+            }
+            this.role = role;
+            this.text = text;
+        }
+    }
     document.addEventListener("DOMContentLoaded", () => {
         const chatbotToggler = document.querySelector(".chatbot-toggler");
         const closeBtn = document.querySelector(".close-btn");
         const chatbox = document.querySelector(".chatbox");
         const chatInput = document.querySelector(".chat-input textarea");
         const sendChatBtn = document.querySelector(".chat-input span");
+        const clearChatBtn = document.querySelector(".clear-chat-btn");
 
         if (!chatbotToggler || !closeBtn || !chatbox || !chatInput || !sendChatBtn) return;
 
         let userMessage = null;
         const inputInitHeight = chatInput.scrollHeight;
 
+        const welcomeTemplate = `
+            <li class="chat incoming">
+                <span class="material-symbols-rounded">smart_toy</span>
+                <p>Hi there! 👋<br>How can I help you with your health or this app today?</p>
+            </li>`;
+
         const loadChatHistory = () => {
             const savedChat = localStorage.getItem("chat-history");
             const isChatOpen = localStorage.getItem("is-chat-open") === "true";
-            if (savedChat) chatbox.innerHTML = savedChat;
+            if (savedChat && savedChat.trim() !== "") {
+                chatbox.innerHTML = savedChat;
+            } else {
+                chatbox.innerHTML = welcomeTemplate;
+            }
             if (isChatOpen) document.body.classList.add("show-chatbot");
         };
+
+        const clearChatHistory = () => {
+            localStorage.removeItem("chat-history");
+        }
 
         const saveChatHistory = () => {
             localStorage.setItem("chat-history", chatbox.innerHTML);
@@ -284,14 +421,14 @@
             return chatLi;
         };
 
-        const generateResponse = (chatElement) => {
+        const generateResponse = (chatElement, messages) => {
             const API_URL = "/api/chat"; // Ensure your backend endpoint is ready
             const messageElement = chatElement.querySelector("p");
 
             const requestOptions = {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: userMessage })
+                body: JSON.stringify({ messages: messages })
             };
 
             fetch(API_URL, requestOptions)
@@ -314,6 +451,17 @@
                 });
         };
 
+        const extractMessageHistory = () => {
+            const li = chatbox.querySelectorAll('li');
+            const formattedChats = [];
+            li.forEach((el)=>(
+                formattedChats.push(new ChatBotMessage(
+                    role=el.classList.contains('incoming')? 'model': 'user',
+                    text=el.querySelector('p').innerHTML
+                ))));
+            return formattedChats
+        }
+
         const handleChat = () => {
             userMessage = chatInput.value.trim();
             if (!userMessage) return;
@@ -324,12 +472,13 @@
             chatbox.appendChild(createChatLi(userMessage, "outgoing"));
             chatbox.scrollTo(0, chatbox.scrollHeight);
             saveChatHistory();
+            const formattedChats = extractMessageHistory()
 
             setTimeout(() => {
                 const incomingChatLi = createChatLi("Thinking...", "incoming");
                 chatbox.appendChild(incomingChatLi);
                 chatbox.scrollTo(0, chatbox.scrollHeight);
-                generateResponse(incomingChatLi);
+                generateResponse(incomingChatLi, formattedChats);
             }, 600);
         };
 
@@ -356,6 +505,26 @@
             document.body.classList.toggle("show-chatbot");
             const isOpen = document.body.classList.contains("show-chatbot");
             localStorage.setItem("is-chat-open", isOpen);
+        });
+
+        clearChatBtn.addEventListener("click", () => {
+            const confirmModal = document.getElementById("confirmModal");
+            const confirmClear = document.getElementById("confirmClear");
+            const cancelClear = document.getElementById("cancelClear");
+
+            clearChatBtn.addEventListener("click", () => {
+                confirmModal.classList.add("show");
+            });
+
+            cancelClear.addEventListener("click", () => {
+                confirmModal.classList.remove("show");
+            });
+
+            confirmClear.addEventListener("click", () => {
+                clearChatHistory();
+                confirmModal.classList.remove("show");
+                loadChatHistory();
+            });
         });
 
         loadChatHistory();

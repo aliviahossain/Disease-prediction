@@ -11,7 +11,7 @@
         position: relative !important;
         padding-left: 10px !important;
     }
- 
+
     .select2-container--default .select2-selection--single .select2-selection__arrow {
         height: 48px !important;
         position: absolute !important;
@@ -24,13 +24,13 @@
         align-items: center !important;
         justify-content: center !important;
     }
- 
+
     .select2-container--default .select2-selection--single .select2-selection__arrow b {
         transform: scale(0.7) !important;  
         margin: 0 !important;
         position: static !important;
     }
- 
+
     .select2-selection__rendered {
         line-height: 50px !important;
         padding-left: 5px !important;
@@ -54,9 +54,8 @@
         <div class="card h-100 shadow-sm card-hover">
             <div class="card-body p-4">
                 <h2 class="card-title h4 text-center mb-4">Use Pre-Loaded Hospital Data</h2>
-                <p class="text-center text-muted mb-4 small">The implementation of pre-loaded historical data enables clinicians to instantly retrieve a patient’s longitudinal medical history, such as prior surgical reports and baseline diagnostic tests, directly within the current EHR interface. By accessing these legacy records, medical staff can identify critical contraindications—like documented drug allergies or chronic comorbidities—even when the patient is unable to provide a history. This seamless integration eliminates the need for manual record requests, reduces redundant testing, and ensures that emergency interventions are informed by years of clinical context rather than just current symptoms.</p>
+                <p class="text-center text-muted mb-4 small">The implementation of pre-loaded historical data enables clinicians to instantly retrieve a patient's longitudinal medical history, such as prior surgical reports and baseline diagnostic tests, directly within the current EHR interface. By accessing these legacy records, medical staff can identify critical contraindications—like documented drug allergies or chronic comorbidities—even when the patient is unable to provide a history. This seamless integration eliminates the need for manual record requests, reduces redundant testing, and ensures that emergency interventions are informed by years of clinical context rather than just current symptoms.</p>
 
-                
                 <div class="dropdown-wrapper mb-5">
                     <label for="diseaseSelect" class="form-label fw-bold">Select Disease :</label>
                     <select id="diseaseSelect" class="form-select"
@@ -73,22 +72,19 @@
                         id="loadSampleBtn">
                         <i class="fas fa-file-import me-2"></i>Load Sample Data
                     </button>
-                    <!-- Pre-loaded Dataset Info -->
                     <div class="preloaded-info">
-                    <h4>Available Sample Data</h4>
-
-                    <div class="preloaded-scroll">
-                        <ul>
-                        <li>Migraine – Prior: 0.01</li>
-                        <li>Influenza – Prior: 0.03</li>
-                        <li>Diabetes – Prior: 0.12</li>
-                        <li>Hypertension – Prior: 0.18</li>
-                        <li>Heart Disease – Prior: 0.07</li>
-                        <li>Asthma – Prior: 0.05</li>
-                        </ul>
+                        <h4>Available Sample Data</h4>
+                        <div class="preloaded-scroll">
+                            <ul>
+                                <li>Migraine – Prior: 0.01</li>
+                                <li>Influenza – Prior: 0.03</li>
+                                <li>Diabetes – Prior: 0.12</li>
+                                <li>Hypertension – Prior: 0.18</li>
+                                <li>Heart Disease – Prior: 0.07</li>
+                                <li>Asthma – Prior: 0.05</li>
+                            </ul>
+                        </div>
                     </div>
-                    </div>
-
                     <small class="text-muted mt-3">Adjust details below, then click Check</small>
                 </div>
             </div>
@@ -164,7 +160,6 @@
                 </div>
 
                 <div class="d-grid mt-4 gap-2">
-                <!-- Check Result Button -->
                     <button
                         type="button"
                         class="btn btn-success btn-lg shadow-sm py-3 fw-bold"
@@ -174,8 +169,6 @@
                             <i class="fas fa-check-circle me-2"></i>Check Result
                         </span>
                     </button>
-
-                    <!-- Reset Button -->
                     <button
                         type="button"
                         class="btn btn-outline-danger"
@@ -195,6 +188,43 @@
         <h3 class="card-title text-center mb-3">Probability Comparison</h3>
         <div class="chart-wrapper" style="height: 300px;">
             <canvas id="probabilityChartCanvas"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- PRIOR SENSITIVITY ANALYSIS SECTION -->
+<div id="sensitivityContainer" class="card shadow-lg mt-4 result-container hidden" aria-live="polite">
+    <div class="card-body p-4">
+        <h3 class="card-title text-center mb-2">
+            📈 Prior Sensitivity Analysis
+        </h3>
+        <p class="text-center text-muted small mb-3">
+            How does posterior probability change as disease prevalence varies from 1% to 50%?
+            Your current prior is marked with a red dot.
+        </p>
+        <div class="alert alert-info py-2 px-3 mb-3">
+            <small>
+                <strong>Base Rate Fallacy:</strong>
+                The same test gives very different results depending on how common
+                the disease is in the population. This curve shows why prior probability matters.
+            </small>
+        </div>
+        <div class="chart-wrapper" style="height: 300px;">
+            <canvas id="sensitivityChartCanvas"></canvas>
+        </div>
+        <div class="row mt-3 text-center">
+            <div class="col-4">
+                <small class="text-muted">Fixed Sensitivity</small>
+                <div class="fw-bold text-success" id="fixedSensitivity">-</div>
+            </div>
+            <div class="col-4">
+                <small class="text-muted">Fixed False Positive Rate</small>
+                <div class="fw-bold text-warning" id="fixedFPR">-</div>
+            </div>
+            <div class="col-4">
+                <small class="text-muted">Your Current Prior</small>
+                <div class="fw-bold text-primary" id="currentPriorDisplay">-</div>
+            </div>
         </div>
     </div>
 </div>
@@ -239,54 +269,35 @@
         </div>
     </div>
 </div>
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-    $(document).ready(function () {
-        $(document).on('select2:open', function () {
-            let searchField = document.querySelector('.select2-container--open .select2-search__field');
-            if (searchField) {
-                searchField.focus();
-            }
-        });
-    });
-</script>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+const darkModeToggle = document.getElementById('darkModeToggle');
+const menuToggle = document.getElementById('dashboardMenuToggle');
+const dropdown = document.getElementById('dashboardDropdown');
 
-  const darkModeToggle = document.getElementById('darkModeToggle');
-  const menuToggle = document.getElementById('dashboardMenuToggle');
-  const dropdown = document.getElementById('dashboardDropdown');
-
-  // Rebind dark mode toggle
-  if (darkModeToggle) {
+if (darkModeToggle) {
     darkModeToggle.onclick = function () {
-      document.body.classList.toggle('dark-mode');
+    document.body.classList.toggle('dark-mode');
     };
-  }
-
-  // Rebind dashboard menu
-  if (menuToggle && dropdown) {
+}
+if (menuToggle && dropdown) {
     menuToggle.onclick = function (e) {
-      e.stopPropagation();
-      dropdown.classList.toggle('show');
+    e.stopPropagation();
+    dropdown.classList.toggle('show');
     };
-
     document.addEventListener('click', function (e) {
-      if (!menuToggle.contains(e.target) && !dropdown.contains(e.target)) {
+    if (!menuToggle.contains(e.target) && !dropdown.contains(e.target)) {
         dropdown.classList.remove('show');
-      }
+    }
     });
-  }
-
+}
 });
 </script>
-
 
 {% endblock %}

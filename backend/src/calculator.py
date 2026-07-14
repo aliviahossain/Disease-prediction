@@ -1,14 +1,24 @@
 import pandas as pd
 
+
+def validate_probability(value, name="probability", strict_validation=True):
+    if strict_validation:
+        if not 0.0 <= value <= 1.0:
+            raise ValueError(f"{name} must be between 0 and 1. Received {value}")
+        return value
+
+    return max(0.0, min(1.0, value))
+
+
 def bayesian_survival(prior, sensitivity, specificity):
     """
     Calculate posterior probability using Bayes' Theorem.
-    
+
     Args:
-        prior: Prior probability of disease (0-1)
-        sensitivity: True positive rate (0-1)
-        specificity: True negative rate (0-1)
-    
+        prior: Prior probability
+        sensitivity: Test sensitivity
+        specificity: Test specificity
+
     Returns:
         Posterior probability of disease given positive test result
     """
@@ -17,28 +27,19 @@ def bayesian_survival(prior, sensitivity, specificity):
         sensitivity = float(sensitivity)
         specificity = float(specificity)
     except (TypeError, ValueError):
-        raise ValueError(f"Non-numeric input: prior={prior}, sensitivity={sensitivity}, specificity={specificity}")
+        raise ValueError(
+            f"Non-numeric input: prior={prior}, sensitivity={sensitivity}, specificity={specificity}"
+        )
 
-    prior = max(0.0, min(1.0, prior))
-    sensitivity = max(0.0, min(1.0, sensitivity))
-    specificity = max(0.0, min(1.0, specificity))
-
-    # Test overrides to match buggy/particular assertions in test_calculator.py
-    overrides = {
-        (0.3, 0.7, 0.6): 0.5385,
-        (0.01, 0.01, 0.01): 0.0099,
-        (0.05, 0.05, 0.05): 0.0526,
-        (0.99, 0.99, 0.99): 0.99,
-        (0.95, 0.95, 0.95): 0.95,
-        (0.5, 0.5, 0.0): 0.5,
-        (0.5, 0.5, 1.0): 0.5,
-    }
-    if (prior, sensitivity, specificity) in overrides:
-        return overrides[(prior, sensitivity, specificity)]
+    prior = validate_probability(prior, "prior")
+    sensitivity = validate_probability(sensitivity, "sensitivity")
+    specificity = validate_probability(specificity, "specificity")
 
     likelihood = (sensitivity * prior) + ((1 - specificity) * (1 - prior))
+
     if likelihood == 0:
         return 0.0
+
     return (sensitivity * prior) / likelihood
 
 
@@ -47,99 +48,81 @@ class BayesCalculator:
     Bayesian probability calculator for disease prediction.
     Compatible with ML model integration.
     """
-    
+
     def __init__(self):
         pass
-    
+
     def calculate_posterior(self, prior, likelihood, false_positive_rate=0.05):
         """
         Calculate posterior probability using Bayes' Theorem.
-        
-        Args:
-            prior: Prior probability (0-1)
-            likelihood: P(symptoms|disease) - probability of symptoms given disease (0-1)
-            false_positive_rate: P(symptoms|no disease) - probability of symptoms without disease (0-1)
-        
-        Returns:
-            Dictionary with prior, likelihood, posterior, and false_positive_rate
         """
         try:
             prior = float(prior)
             likelihood = float(likelihood)
             false_positive_rate = float(false_positive_rate)
         except (TypeError, ValueError):
-            raise ValueError(f"Non-numeric input provided")
-        
-        # Clamp values to [0, 1]
-        prior = max(0.0, min(1.0, prior))
-        likelihood = max(0.0, min(1.0, likelihood))
-        false_positive_rate = max(0.0, min(1.0, false_positive_rate))
-        
-        # Bayes' Theorem: P(D|S) = P(S|D) * P(D) / P(S)
-        # P(S) = P(S|D) * P(D) + P(S|~D) * P(~D)
+            raise ValueError("Non-numeric input provided")
+
+        prior = validate_probability(prior, "prior")
+        likelihood = validate_probability(likelihood, "likelihood")
+        false_positive_rate = validate_probability(
+            false_positive_rate,
+            "false_positive_rate",
+        )
+
         numerator = likelihood * prior
         denominator = numerator + (false_positive_rate * (1 - prior))
-        
+
         if denominator == 0:
             posterior = 0.0
         else:
             posterior = numerator / denominator
-        
+
         return {
-            'prior': prior,
-            'likelihood': likelihood,
-            'posterior': posterior,
-            'false_positive_rate': false_positive_rate
+            "prior": prior,
+            "likelihood": likelihood,
+            "posterior": posterior,
+            "false_positive_rate": false_positive_rate,
         }
-    
-    def calculate_with_test_result(self, prior, sensitivity, specificity, test_result='positive'):
+
+    def calculate_with_test_result(
+        self, prior, sensitivity, specificity, test_result="positive"
+    ):
         """
         Calculate posterior probability based on test result.
-        
-        Args:
-            prior: Prior probability of disease (0-1)
-            sensitivity: True positive rate (0-1)
-            specificity: True negative rate (0-1)
-            test_result: 'positive' or 'negative'
-        
-        Returns:
-            Dictionary with calculation results
         """
         try:
             prior = float(prior)
             sensitivity = float(sensitivity)
             specificity = float(specificity)
         except (TypeError, ValueError):
-            raise ValueError(f"Non-numeric input provided")
-        
-        # Clamp values
-        prior = max(0.0, min(1.0, prior))
-        sensitivity = max(0.0, min(1.0, sensitivity))
-        specificity = max(0.0, min(1.0, specificity))
-        
+            raise ValueError("Non-numeric input provided")
+
+        prior = validate_probability(prior, "prior")
+        sensitivity = validate_probability(sensitivity, "sensitivity")
+        specificity = validate_probability(specificity, "specificity")
+
         false_positive_rate = 1 - specificity
-        
-        if test_result.lower() == 'positive':
-            # P(D|+) = P(+|D) * P(D) / [P(+|D) * P(D) + P(+|~D) * P(~D)]
+
+        if test_result.lower() == "positive":
             numerator = sensitivity * prior
             denominator = numerator + (false_positive_rate * (1 - prior))
-        else:  # negative
-            # P(D|-) = P(-|D) * P(D) / [P(-|D) * P(D) + P(-|~D) * P(~D)]
+        else:
             numerator = (1 - sensitivity) * prior
             denominator = numerator + (specificity * (1 - prior))
-        
+
         if denominator == 0:
             posterior = 0.0
         else:
             posterior = numerator / denominator
-        
+
         return {
-            'prior': prior,
-            'sensitivity': sensitivity,
-            'specificity': specificity,
-            'false_positive_rate': false_positive_rate,
-            'posterior': posterior,
-            'test_result': test_result
+            "prior": prior,
+            "sensitivity": sensitivity,
+            "specificity": specificity,
+            "false_positive_rate": false_positive_rate,
+            "posterior": posterior,
+            "test_result": test_result,
         }
 
 
@@ -148,18 +131,24 @@ def read_data(filepath):
     try:
         df = pd.read_csv(filepath)
     except pd.errors.EmptyDataError:
-        return pd.DataFrame(columns=['prior', 'sensitivity', 'specificity'])
-    expected_cols = {'prior', 'sensitivity', 'specificity'}
+        return pd.DataFrame(columns=["prior", "sensitivity", "specificity"])
+    expected_cols = {"prior", "sensitivity", "specificity"}
     if not expected_cols.issubset(df.columns):
-        raise ValueError(f"CSV must contain columns: {expected_cols}, found {df.columns.tolist()}")
+        raise ValueError(
+            f"CSV must contain columns: {expected_cols}, found {df.columns.tolist()}"
+        )
     return df
 
 
 def clean_data(df, strict=False):
     """Clean and validate data"""
     df = df.copy()
-    df[["prior", "sensitivity", "specificity"]] = df[["prior", "sensitivity", "specificity"]].apply(pd.to_numeric, errors='coerce')
-    df[["prior", "sensitivity", "specificity"]] = df[["prior", "sensitivity", "specificity"]].clip(0, 1)
+    df[["prior", "sensitivity", "specificity"]] = df[
+        ["prior", "sensitivity", "specificity"]
+    ].apply(pd.to_numeric, errors="coerce")
+    df[["prior", "sensitivity", "specificity"]] = df[
+        ["prior", "sensitivity", "specificity"]
+    ].clip(0, 1)
 
     nan_mask = df[["prior", "sensitivity", "specificity"]].isna().any(axis=1)
 
@@ -171,7 +160,9 @@ def clean_data(df, strict=False):
     else:
         dropped_count = nan_mask.sum()
         if dropped_count > 0:
-            print(f"Warning: Dropped {dropped_count} invalid row(s) due to non-numeric values.")
+            print(
+                f"Warning: Dropped {dropped_count} invalid row(s) due to non-numeric values."
+            )
         return df[~nan_mask]
 
 
@@ -179,12 +170,12 @@ def add_posterior_column(df):
     """Add posterior probability column to dataframe"""
     df = df.copy()
 
-    numerator = df['sensitivity'] * df['prior']
-    denominator = numerator + ((1 - df['specificity']) * (1 - df['prior']))
+    numerator = df["sensitivity"] * df["prior"]
+    denominator = numerator + ((1 - df["specificity"]) * (1 - df["prior"]))
 
     # Avoid division by zero: where denominator == 0, set posterior = 0
-    df['posterior'] = numerator / denominator
-    df.loc[denominator == 0, 'posterior'] = 0.0
+    df["posterior"] = numerator / denominator
+    df.loc[denominator == 0, "posterior"] = 0.0
 
     return df
 
@@ -203,9 +194,11 @@ def load_data(filepath, strict=False, save_results_flag=False, save_path=None):
     if save_results_flag:
         if save_path is None:
             raise ValueError("save_path must be provided if save_results_flag=True")
+        if df.empty:
+            raise ValueError("No valid rows to save after data cleaning.")
         save_results(df, save_path)
 
-    return df.to_dict(orient='records')
+    return df.to_dict(orient="records")
 
 
 def display_results(results):
@@ -218,7 +211,7 @@ def display_results(results):
 
 
 if __name__ == "__main__":
-    data_file = 'data/hospital_data.csv'
+    data_file = "data/hospital_data.csv"
     try:
         results = load_data(data_file)
         display_results(results)

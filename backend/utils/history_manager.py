@@ -13,9 +13,7 @@ HISTORY_FILE = "prediction_history.json"
 def initialize_history_file():
 
     if not os.path.exists(HISTORY_FILE):
-
         with open(HISTORY_FILE, "w") as f:
-
             json.dump([], f)
 
 
@@ -27,13 +25,10 @@ def load_history():
     initialize_history_file()
 
     try:
-
         with open(HISTORY_FILE, "r") as f:
-
             return json.load(f)
 
     except json.JSONDecodeError:
-
         return []
 
 
@@ -47,12 +42,7 @@ def save_history(entry):
     history.append(entry)
 
     with open(HISTORY_FILE, "w") as f:
-
-        json.dump(
-            history,
-            f,
-            indent=4
-        )
+        json.dump(history, f, indent=4)
 
 
 # =========================
@@ -61,7 +51,6 @@ def save_history(entry):
 def clear_history():
 
     with open(HISTORY_FILE, "w") as f:
-
         json.dump([], f)
 
 
@@ -82,18 +71,12 @@ def get_risk_distribution():
 
     history = load_history()
 
-    risk_counts = {
-        "Low": 0,
-        "Moderate": 0,
-        "High": 0
-    }
+    risk_counts = {"Low": 0, "Moderate": 0, "High": 0}
 
     for entry in history:
-
         risk = entry.get("Risk")
 
         if risk in risk_counts:
-
             risk_counts[risk] += 1
 
     return risk_counts

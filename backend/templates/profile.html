@@ -1,173 +1,202 @@
 {% extends "base.html" %}
+{% block title %}My Profile — Disease-prediction App{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
 
-<div class="profile-container">
+<div class="profile-page">
+    <div id="profile-toast-container" class="profile-toast-container" aria-live="polite"></div>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     {% for category, message in messages %}
-    <div class="alert alert-{{ category }} mb-3 py-2" role="alert">
-        {{ message }}
-    </div>
+    <span class="d-none" data-flash="{{ message }}" data-flash-type="{{ 'success' if category == 'success' else 'error' }}"></span>
     {% endfor %}
     {% endif %}
     {% endwith %}
 
-    <!-- Top Profile Card -->
-    <div class="profile-header">
-        <div class="avatar">
-            {{ user.username[0].upper() }}
+    <header class="profile-hero">
+        <div class="profile-hero-content">
+            <div class="profile-avatar" aria-hidden="true">
+                {{ user.username[0].upper() }}
+            </div>
+            <div class="profile-hero-text">
+                <p class="profile-hero-label">Account</p>
+                <h1 class="profile-hero-name">{{ user.username }}</h1>
+                <p class="profile-hero-email">
+                    <i class="fas fa-envelope" aria-hidden="true"></i>
+                    {{ user.email }}
+                </p>
+            </div>
         </div>
-        <div>
-            <h3>{{ user.username }}</h3>
-            <p>{{ user.email }}</p>
-        </div>
-        <button type="button" class="edit-btn" onclick="toggleEdit()">Edit</button>
+        <p class="profile-hero-hint">Update your contact, emergency, and health details below. Changes are saved to your account.</p>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="Profile sections">
+        <button type="button" class="tab-btn active" role="tab" aria-selected="true" aria-controls="overview"
+            onclick="openTab(event, 'overview')">
+            <i class="fas fa-id-card" aria-hidden="true"></i> Overview
+        </button>
+        <button type="button" class="tab-btn" role="tab" aria-selected="false" aria-controls="health"
+            onclick="openTab(event, 'health')">
+            <i class="fas fa-heartbeat" aria-hidden="true"></i> Health &amp; Safety
+        </button>
     </div>
 
-    <!-- Tabs -->
-    <div class="tabs">
-        <button class="tab-btn active" onclick="openTab(event, 'overview')">Overview</button>
-        <button class="tab-btn" onclick="openTab(event, 'health')">Health & Safety</button>
-    </div>
+    <form id="profile-form" method="POST" action="{{ url_for('auth.update_profile') }}" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <form method="POST" action="{{ url_for('auth.update_profile') }}">
+        <div id="overview" class="tab-content active" role="tabpanel">
+            <div class="profile-grid">
+                <section class="profile-card">
+                    <h2 class="profile-card-title">
+                        <i class="fas fa-phone-alt" aria-hidden="true"></i> Contact Info
+                    </h2>
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input id="phone" type="tel" name="phone" placeholder="+15551234567"
+                            value="{{ user.phone or '' }}" autocomplete="tel"
+                            pattern="^\+[1-9][0-9]{7,14}$" minlength="9" maxlength="16"
+                            title="Country code with +, then digits only (e.g. +15551234567).">
+                        <span class="form-hint">Include country code, starting with +</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <input id="address" name="address" placeholder="123 Main St, City"
+                            value="{{ user.address or '' }}" minlength="5" maxlength="160"
+                            autocomplete="street-address"
+                            pattern="^[A-Za-z0-9][A-Za-z0-9\s,.'/#-]{4,159}$"
+                            title="5–160 characters; letters, numbers, and common address punctuation.">
+                    </div>
+                </section>
 
-        <!-- OVERVIEW TAB -->
-        <div id="overview" class="tab-content active">
-            <div class="grid">
+                <section class="profile-card">
+                    <h2 class="profile-card-title">
+                        <i class="fas fa-user-shield" aria-hidden="true"></i> Emergency Contact
+                    </h2>
+                    <div class="form-group">
+                        <label for="emergency_name">Name</label>
+                        <input id="emergency_name" name="emergency_name" placeholder="Jane Doe"
+                            value="{{ user.emergency_name or '' }}" minlength="2" maxlength="80"
+                            pattern="^[A-Za-z][A-Za-z\s'.-]{1,79}$" autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="emergency_relation">Relation</label>
+                        <input id="emergency_relation" name="emergency_relation" placeholder="Sister"
+                            value="{{ user.emergency_relation or '' }}" minlength="2" maxlength="50"
+                            pattern="^[A-Za-z][A-Za-z\s'.-]{1,49}$">
+                    </div>
+                    <div class="form-group">
+                        <label for="emergency_phone">Phone</label>
+                        <input id="emergency_phone" type="tel" name="emergency_phone" placeholder="+15551239999"
+                            value="{{ user.emergency_phone or '' }}"
+                            pattern="^\+[1-9][0-9]{7,14}$" minlength="9" maxlength="16" autocomplete="tel">
+                    </div>
+                </section>
 
-                <div class="card">
-                    <h4>Contact Info</h4>
-                    <input class="editable" type="tel" name="phone" placeholder="Phone" value="{{ user.phone or '' }}"
-                        pattern="^\+[1-9][0-9]{7,14}$" minlength="9" maxlength="16"
-                        title="Enter country code plus sign followed by digits only, for example +15551234567." disabled>
-                    <input class="editable" name="address" placeholder="Address" value="{{ user.address or '' }}"
-                        minlength="5" maxlength="160" pattern="^[A-Za-z0-9][A-Za-z0-9\s,.'/#-]{4,159}$"
-                        title="Enter a valid address using letters, numbers, spaces, and common punctuation." disabled>
-                </div>
-
-                <div class="card">
-                    <h4>Emergency Contact</h4>
-                    <input class="editable" name="emergency_name" placeholder="Name" value="{{ user.emergency_name or '' }}"
-                        minlength="2" maxlength="80" pattern="^[A-Za-z][A-Za-z\s'.-]{1,79}$"
-                        title="Enter a valid name using letters, spaces, apostrophes, periods, or hyphens." disabled>
-                    <input class="editable" name="emergency_relation" placeholder="Relation" value="{{ user.emergency_relation or '' }}"
-                        minlength="2" maxlength="50" pattern="^[A-Za-z][A-Za-z\s'.-]{1,49}$"
-                        title="Enter a valid relation using letters, spaces, apostrophes, periods, or hyphens." disabled>
-                    <input class="editable" type="tel" name="emergency_phone" placeholder="Phone" value="{{ user.emergency_phone or '' }}"
-                        pattern="^\+[1-9][0-9]{7,14}$" minlength="9" maxlength="16"
-                        title="Enter country code plus sign followed by digits only, for example +15551234567." disabled>
-                </div>
-
-                <div class="card">
-                    <h4>Demographics</h4>
-                    <div class="dob-selects">
-                        <select class="editable dob-field" name="dob_day" title="Click Edit to change DOB" disabled>
-                            <option value="">DD</option>
-                            {% for day in day_options %}
-                            <option value="{{ day }}" {% if user.dob and user.dob.day == day %}selected{% endif %}>{{ "%02d"|format(day) }}</option>
-                            {% endfor %}
+                <section class="profile-card">
+                    <h2 class="profile-card-title">
+                        <i class="fas fa-user" aria-hidden="true"></i> Demographics
+                    </h2>
+                    <div class="form-group">
+                        <span class="form-label-block" id="dob-label">Date of birth</span>
+                        <div class="dob-selects" role="group" aria-labelledby="dob-label">
+                            <select class="dob-field" name="dob_day" aria-label="Day">
+                                <option value="">DD</option>
+                                {% for day in day_options %}
+                                <option value="{{ day }}" {% if user.dob and user.dob.day == day %}selected{% endif %}>{{ "%02d"|format(day) }}</option>
+                                {% endfor %}
+                            </select>
+                            <select class="dob-field" name="dob_month" aria-label="Month">
+                                <option value="">MM</option>
+                                {% for month in month_options %}
+                                <option value="{{ month }}" {% if user.dob and user.dob.month == month %}selected{% endif %}>{{ "%02d"|format(month) }}</option>
+                                {% endfor %}
+                            </select>
+                            <select class="dob-field" name="dob_year" aria-label="Year">
+                                <option value="">YYYY</option>
+                                {% for year in year_options %}
+                                <option value="{{ year }}" {% if user.dob and user.dob.year == year %}selected{% endif %}>{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" name="gender">
+                            <option value="" {% if not user.gender %}selected{% endif %}>Select gender</option>
+                            <option value="Male" {% if user.gender=='Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if user.gender=='Female' %}selected{% endif %}>Female</option>
+                            <option value="Other" {% if user.gender=='Other' %}selected{% endif %}>Other</option>
                         </select>
-                        <select class="editable dob-field" name="dob_month" title="Click Edit to change DOB" disabled>
-                            <option value="">MM</option>
-                            {% for month in month_options %}
-                            <option value="{{ month }}" {% if user.dob and user.dob.month == month %}selected{% endif %}>{{ "%02d"|format(month) }}</option>
-                            {% endfor %}
-                        </select>
-                        <select class="editable dob-field" name="dob_year" title="Click Edit to change DOB" disabled>
-                            <option value="">YYYY</option>
-                            {% for year in year_options %}
-                            <option value="{{ year }}" {% if user.dob and user.dob.year == year %}selected{% endif %}>{{ year }}</option>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div id="health" class="tab-content" role="tabpanel">
+            <div class="profile-grid profile-grid--two">
+                <section class="profile-card">
+                    <h2 class="profile-card-title">
+                        <i class="fas fa-ruler-vertical" aria-hidden="true"></i> Physical Metrics
+                    </h2>
+                    <div class="form-group">
+                        <label for="height">Height (cm)</label>
+                        <select id="height" name="height" onchange="calculateBMI()">
+                            <option value="">Select height</option>
+                            {% for height in height_options %}
+                            <option value="{{ height }}" {% if user.height and user.height|int == height %}selected{% endif %}>{{ height }} cm</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <select class="editable" name="gender" disabled>
-                        <option value="" {% if not user.gender %}selected{% endif %}>Select Gender</option>
-                        <option value="Male" {% if user.gender=='Male' %}selected{% endif %}>Male</option>
-                        <option value="Female" {% if user.gender=='Female' %}selected{% endif %}>Female</option>
-                        <option value="Other" {% if user.gender=='Other' %}selected{% endif %}>Other</option>
-                    </select>
-                </div>
+                    <div class="form-group">
+                        <label for="weight">Weight (kg)</label>
+                        <select id="weight" name="weight" onchange="calculateBMI()">
+                            <option value="">Select weight</option>
+                            {% for weight in weight_options %}
+                            <option value="{{ weight }}" {% if user.weight and user.weight|int == weight %}selected{% endif %}>{{ weight }} kg</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bmi">BMI</label>
+                        <input id="bmi" name="bmi_display" readonly placeholder="Calculated automatically"
+                            value="{{ user.bmi or '' }}" aria-readonly="true">
+                    </div>
+                </section>
 
+                <section class="profile-card">
+                    <h2 class="profile-card-title">
+                        <i class="fas fa-notes-medical" aria-hidden="true"></i> Medical Safety
+                    </h2>
+                    <div class="form-group">
+                        <label for="allergies">Allergies</label>
+                        <input id="allergies" name="allergies" placeholder="e.g. Peanuts, penicillin"
+                            value="{{ user.allergies or '' }}" maxlength="200"
+                            pattern="^[A-Za-z][A-Za-z\s,.';:/()&+-]*$"
+                            oninput="removeNumbers(this)">
+                        <span class="form-hint">Text only — numbers are removed automatically</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="medical_notes">Medical notes</label>
+                        <textarea id="medical_notes" name="medical_notes" rows="4"
+                            placeholder="Conditions, medications, or care instructions"
+                            oninput="removeNumbers(this)">{{ user.medical_notes or '' }}</textarea>
+                    </div>
+                </section>
             </div>
         </div>
 
-        <!-- HEALTH TAB -->
-        <div id="health" class="tab-content">
-            <div class="grid">
-
-                <div class="card">
-                    <h4>Physical Metrics</h4>
-                    <select class="editable" id="height" name="height" disabled onchange="calculateBMI()">
-                        <option value="">Select Height (cm)</option>
-                        {% for height in height_options %}
-                        <option value="{{ height }}" {% if user.height and user.height|int == height %}selected{% endif %}>{{ height }} cm</option>
-                        {% endfor %}
-                    </select>
-                    <select class="editable" id="weight" name="weight" disabled onchange="calculateBMI()">
-                        <option value="">Select Weight (kg)</option>
-                        {% for weight in weight_options %}
-                        <option value="{{ weight }}" {% if user.weight and user.weight|int == weight %}selected{% endif %}>{{ weight }} kg</option>
-                        {% endfor %}
-                    </select>
-                    <input id="bmi" readonly placeholder="BMI" value="{{ user.bmi or '' }}">
-                </div>
-
-                <div class="card">
-                    <h4>Medical Safety</h4>
-                    <input class="editable" name="allergies" placeholder="Allergies" value="{{ user.allergies or '' }}" maxlength="200"
-                        pattern="^[A-Za-z][A-Za-z\s,.';:/()&+-]*$" title="Use text only. Numbers are not allowed."
-                        oninput="removeNumbers(this)" disabled>
-                    <textarea class="editable" name="medical_notes" placeholder="Medical Notes" maxlength="1000"
-                        title="Use text only. Numbers are not allowed." oninput="removeNumbers(this)" disabled>{{ user.medical_notes or '' }}</textarea>
-                </div>
-
-            </div>
+        <div class="profile-actions">
+            <button type="submit" id="profile-save-btn" class="btn-save">
+                <span class="btn-spinner" aria-hidden="true"></span>
+                <span class="btn-label">Save Changes</span>
+            </button>
+            <a href="{{ url_for('auth.logout') }}" class="btn-logout">
+                <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Logout
+            </a>
         </div>
-
-        <div class="actions">
-            <button type="submit" class="save-btn editable" disabled>Save Changes</button>
-            <a href="{{ url_for('auth.logout') }}" class="logout-btn">Logout</a>
-        </div>
-
     </form>
 </div>
 
-<script>
-function toggleEdit() {
-    const saveBtn = document.querySelector('.save-btn');
-    const shouldEnable = saveBtn.disabled;
-    const editables = document.querySelectorAll('.editable');
-    editables.forEach(el => {
-        if (el !== saveBtn) {
-            el.disabled = !shouldEnable;
-            if (el.classList.contains('dob-field')) {
-                el.title = shouldEnable ? 'Select DOB value' : 'Click Edit to change DOB';
-            }
-        }
-    });
-    saveBtn.disabled = !shouldEnable;
-}
-
-function openTab(event, tabId) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    event.currentTarget.classList.add('active');
-}
-
-function calculateBMI() {
-    let h = document.getElementById("height").value / 100;
-    let w = document.getElementById("weight").value;
-    if (h > 0 && w > 0) {
-        document.getElementById("bmi").value = (w / (h * h)).toFixed(2);
-    }
-}
-
-function removeNumbers(field) {
-    field.value = field.value.replace(/[0-9]/g, '');
-}
-</script>
-
+<script src="{{ url_for('static', filename='profile.js') }}" defer></script>
 {% endblock %}

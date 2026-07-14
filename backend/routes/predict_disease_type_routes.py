@@ -1,42 +1,34 @@
 # Suppress numpy warnings
+import os
+import tempfile  # NEW: needed to save upload to disk for Grad-CAM
 import warnings
-warnings.filterwarnings(
-    "ignore",
-    category=FutureWarning,
-    message=".*np.object.*"
-)
-warnings.filterwarnings(
-    "ignore",
-    message=".*tf.lite.Interpreter is deprecated.*",
-    category=UserWarning
-)
-warnings.filterwarnings(
-    "ignore",
-    message=".*np.object.*",
-    category=FutureWarning
-)
 
 import numpy as np
-import os
-import tempfile                                          # NEW: needed to save upload to disk for Grad-CAM
-from PIL import Image
-from flask import Blueprint, request, jsonify
-from flask_login import current_user
 import tensorflow as tf
+from flask import Blueprint, jsonify, request
+from flask_login import current_user, login_required
+from PIL import Image
+from backend.middleware import rate_limit
+
+from backend.services.history_service import save_history
+from backend.utils.gradcam import generate_gradcam_overlay  # NEW
+from backend.utils.gradcam import generate_tflite_scorecam_overlay
+
+# Import TensorFlow models
+
+
+warnings.filterwarnings("ignore", category=FutureWarning, message=".*np.object.*")
+warnings.filterwarnings(
+    "ignore", message=".*tf.lite.Interpreter is deprecated.*", category=UserWarning
+)
+warnings.filterwarnings("ignore", message=".*np.object.*", category=FutureWarning)
 
 # Suppress TensorFlow logging
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-# Import TensorFlow models
-from tensorflow.keras.models import load_model
-from tensorflow.keras.applications.resnet50 import preprocess_input
-
-from backend.services.history_service import save_history
-from backend.utils.gradcam import generate_gradcam_overlay, generate_tflite_scorecam_overlay  # NEW
-
 predict_disease_type_bp = Blueprint("disease-type", __name__)
 
-# CONFIG 
+# CONFIG
 BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Add any new disease types models here
@@ -44,10 +36,7 @@ MODEL_CONFIG = {
     "eyes": {
         "format": "keras",
         "path": os.path.join(
-            BACKEND_DIR,
-            "models",
-            "resnet50_models",
-            "eye_disease_resnet50_fp16.keras"
+            BACKEND_DIR, "models", "resnet50_models", "eye_disease_resnet50_fp16.keras"
         ),
         "class_names": [
             "Cataract",
@@ -60,10 +49,7 @@ MODEL_CONFIG = {
     "skin": {
         "format": "tflite",
         "path": os.path.join(
-            BACKEND_DIR,
-            "models",
-            "resnet50_models",
-            "skin_model.tflite"
+            BACKEND_DIR, "models", "resnet50_models", "skin_model.tflite"
         ),
         "class_names": [
             "Atopic Dermatitis",
@@ -78,13 +64,17 @@ MODEL_CONFIG = {
             "Warts Molluscum and other Viral Infections",
         ],
         "img_size": (224, 224),
-        "dtype": "float32", 
-    }
+        "dtype": "float32",
+    },
 }
 
 # Model caches
 KERAS_MODEL_CACHE = {}
 TFLITE_MODEL_CACHE = {}
+
+# Confidence threshold for eliminating low-confidence predictions (can be adjusted or made dynamic)
+CONFIDENCE_THRESHOLD = 0.60
+
 
 # loads keras model in the KERAS_MODEL_CACHE (for eye disease prediction)
 def load_keras_model(model_type):
@@ -95,10 +85,9 @@ def load_keras_model(model_type):
         if not os.path.exists(path):
             raise FileNotFoundError(f"Model not found: {path}")
 
-        KERAS_MODEL_CACHE[model_type] = tf.keras.models.load_model(
-            path, compile=False
-        )
+        KERAS_MODEL_CACHE[model_type] = tf.keras.models.load_model(path, compile=False)
     return KERAS_MODEL_CACHE[model_type]
+
 
 # loads tflite model in the TFLITE_MODEL_CACHE(for skin disease prediction)
 def load_tflite_model(model_type):
@@ -119,6 +108,7 @@ def load_tflite_model(model_type):
         }
     return TFLITE_MODEL_CACHE[model_type]
 
+
 # preprocesses image for model input
 def preprocess_image(file, model_type):
     config = MODEL_CONFIG[model_type]
@@ -134,11 +124,13 @@ def preprocess_image(file, model_type):
     img_array = tf.keras.applications.resnet50.preprocess_input(img_array)
     return img_array
 
+
 # runs and predicts output for keras model
 def run_keras_inference(model_type, img_array):
     model = load_keras_model(model_type)
     preds = model.predict(img_array)[0]
     return preds
+
 
 # runs and predicts output for tflite model
 def run_tflite_inference(model_type, img_array):
@@ -158,14 +150,60 @@ def run_tflite_inference(model_type, img_array):
     return preds
 
 
+# Magic bytes for the image formats the models accept.
+# The check uses the first 12 bytes of the upload, which is sufficient
+# to distinguish JPEG (FF D8 FF), PNG (89 50 4E 47), and WebP (52 49 46 46 ... 57 45 42 50).
+_IMAGE_MAGIC = {
+    b"\xff\xd8\xff": "image/jpeg",
+    b"\x89PNG": "image/png",
+    b"RIFF": "image/webp",  # full WebP header checked below
+}
+_MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
+def _validate_image_magic(stream) -> bool:
+    """Return True only if the leading bytes identify a supported image format."""
+    header = stream.read(12)
+    stream.seek(0)
+    if not header:
+        return False
+    if header[:3] in _IMAGE_MAGIC or header[:4] in _IMAGE_MAGIC:
+        return True
+    # WebP: bytes 0-3 = 'RIFF', bytes 8-11 = 'WEBP'
+    if header[:4] == b"RIFF" and header[8:12] == b"WEBP":
+        return True
+    return False
+
+
 #  Main prediction route
 @predict_disease_type_bp.route("/predict", methods=["POST"])
+@rate_limit("prediction")
+@login_required
 def predict():
     # Accept file as "image" or "file"
     if "image" not in request.files:
         return jsonify({"error": "No image provided"}), 400
-    
+
     image_file = request.files["image"]
+
+    # Reject uploads that exceed the size limit before reading the full stream.
+    image_file.stream.seek(0, 2)
+    file_size = image_file.stream.tell()
+    image_file.stream.seek(0)
+    if file_size > _MAX_UPLOAD_BYTES:
+        return jsonify({"error": "File size exceeds the 10 MB limit."}), 400
+
+    # Validate the file magic bytes before using the filename extension.
+    # Extension-only checks are trivially bypassed by renaming any file to .jpg.
+    if not _validate_image_magic(image_file.stream):
+        return (
+            jsonify(
+                {
+                    "error": "Uploaded file is not a recognised image (JPEG, PNG, or WebP)."
+                }
+            ),
+            400,
+        )
 
     # Accept type from form or JSON
     model_type = (
@@ -177,12 +215,17 @@ def predict():
     print("model_type: ", model_type)
 
     if model_type not in MODEL_CONFIG:
-        return jsonify({
-            "error": f"Invalid type '{model_type}'. Use one of: {list(MODEL_CONFIG.keys())}"
-        }), 400
+        return (
+            jsonify(
+                {
+                    "error": f"Invalid type '{model_type}'. Use one of: {list(MODEL_CONFIG.keys())}"
+                }
+            ),
+            400,
+        )
 
     print(model_type not in MODEL_CONFIG)
-    
+
     try:
         # NEW: Save the upload to a temp file on disk so Grad-CAM can read
         # it by path (PIL.open from a stream can only be read once).
@@ -200,11 +243,28 @@ def predict():
                 preds = run_keras_inference(model_type, img_array)
             else:
                 preds = run_tflite_inference(model_type, img_array)
-            
+
             # 3. Get predicted class and confidence
             idx = int(np.argmax(preds))
             confidence = float(preds[idx])
             predicted_class = MODEL_CONFIG[model_type]["class_names"][idx]
+
+            print(f"Prediction: {predicted_class}, " f"Confidence: {confidence:.4f}")
+
+            if confidence < CONFIDENCE_THRESHOLD:
+                return (
+                    jsonify(
+                        {
+                            "error": (
+                                f"The uploaded image does not appear to be a valid "
+                                f"{model_type} disease image. "
+                                "Please upload a clear medical image."
+                            ),
+                            "confidence": round(confidence * 100, 2),
+                        }
+                    ),
+                    400,
+                )
 
             # 4. NEW: Generate Grad-CAM / Score-CAM heatmap
             gradcam_overlay = None
@@ -237,6 +297,7 @@ def predict():
 
             except Exception as cam_err:
                 import traceback
+
                 print(f"[Grad-CAM] Warning: heatmap generation failed: {cam_err}")
                 traceback.print_exc()
 
@@ -261,14 +322,19 @@ def predict():
         )
 
         # 6. Return prediction + heatmap (gradcam fields are None if generation failed)
-        return jsonify({
-            "prediction": predicted_class,
-            "confidence": round(confidence * 100, 2),
-            "type": model_type,
-            "gradcam_overlay": gradcam_overlay,       # NEW: base64 PNG, image + heatmap blended
-            "gradcam_heatmap": gradcam_heatmap,       # NEW: base64 PNG, raw heatmap only
-            "explanation_method": explanation_method,  # NEW: "grad-cam" | "score-cam" | None
-        }), 200
+        return (
+            jsonify(
+                {
+                    "prediction": predicted_class,
+                    "confidence": round(confidence * 100, 2),
+                    "type": model_type,
+                    "gradcam_overlay": gradcam_overlay,  # NEW: base64 PNG, image + heatmap blended
+                    "gradcam_heatmap": gradcam_heatmap,  # NEW: base64 PNG, raw heatmap only
+                    "explanation_method": explanation_method,  # NEW: "grad-cam" | "score-cam" | None
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

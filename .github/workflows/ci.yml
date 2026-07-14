@@ -1,28 +1,62 @@
 name: CI
-on: [push,pull_request]
+on: [push, pull_request]
+
 jobs:
-  CI_HEALTH_CHECK:
+  linting:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Check code formatting with Black
+        run: black --check backend/ data/ run.py dashboard.py
+
+      - name: Lint with Flake8
+        run: |
+          flake8 backend/ data/ run.py dashboard.py --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 backend/ data/ run.py dashboard.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  CI_HEALTH_CHECK:
+    needs: linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           path: .
+          
       - name: Setting Python
-        uses: actions/setup-python@v6.0.0
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.12
+          python-version: "3.12"
+          cache: 'pip'
+
       - name: Install dependencies
         run: pip install -r requirements.txt
+        
+      - name: Streamlit Dashboard Health Check
+        run: python -m py_compile dashboard.py
+
       - name: Run and check
         env:
           SECRET_KEY: test_secret_key_for_ci_only_not_for_production
           FLASK_ENV: development
-        run:  |
+        run: |
           python run.py > server.log 2>&1 &
           server_pid=$!
           echo "Server started with PID: $server_pid"
-          
           for i in {1..15}; do
             if curl -fs http://127.0.0.1:5001 > /dev/null; then
               echo "Server is up!"
@@ -33,9 +67,31 @@ jobs:
             echo "Waiting for server... (attempt $i/15)"
             sleep 2
           done
-          
           echo "Server failed to start. Printing logs:"
           cat server.log
           kill $server_pid
           exit 1
-      
+
+  tests:
+    needs: linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run pytest
+        env:
+          SECRET_KEY: test_secret_key_for_ci_only_not_for_production
+          FLASK_ENV: testing
+          DATABASE_URL: ""
+          GEMINI_API_KEY: ""
+        run: pytest backend/tests/ -v --tb=short

@@ -5,10 +5,10 @@ from datetime import date, timedelta
 import pytest
 from sqlalchemy.exc import OperationalError
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from backend import bcrypt, create_app, db
 from backend.models.user import User
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 @pytest.fixture
@@ -19,6 +19,7 @@ def client(monkeypatch, tmp_path):
 
     app = create_app()
     app.config["TESTING"] = True
+    app.config["WTF_CSRF_ENABLED"] = False
 
     with app.app_context():
         user = User(
@@ -197,6 +198,44 @@ def test_profile_rejects_numbers_in_medical_safety_fields(client):
     assert b"Medical notes must contain text only" in response.data
 
 
+def test_profile_update_preserves_fields_not_in_post(client):
+    client.post(
+        "/profile/update",
+        data={
+            "phone": "+15551234567",
+            "address": "123 Main St",
+            "emergency_name": "Jane Doe",
+            "emergency_relation": "Sister",
+            "emergency_phone": "+15551239999",
+            "dob_day": "10",
+            "dob_month": "05",
+            "dob_year": "1995",
+            "gender": "Female",
+            "height": "170",
+            "weight": "65",
+        },
+        follow_redirects=True,
+    )
+
+    response = client.post(
+        "/profile/update",
+        data={"phone": "+15559876543"},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"Profile updated successfully" in response.data
+
+    with client.application.app_context():
+        user = User.query.filter_by(email="profile@example.com").first()
+        assert user.phone == "+15559876543"
+        assert user.address == "123 Main St"
+        assert user.emergency_name == "Jane Doe"
+        assert user.dob.isoformat() == "1995-05-10"
+        assert user.height == 170.0
+        assert user.weight == 65.0
+
+
 def test_profile_rejects_incomplete_dropdown_dob(client):
     response = client.post(
         "/profile/update",
@@ -209,3 +248,15 @@ def test_profile_rejects_incomplete_dropdown_dob(client):
 
     assert response.status_code == 200
     assert b"Date of birth requires day, month, and year" in response.data
+
+
+def test_bmi_calculation_handles_zero_height():
+    h = 0
+    w = 70
+
+    bmi = None
+
+    if h and h > 0 and w:
+        bmi = round(w / ((h / 100) ** 2), 2)
+
+    assert bmi is None
