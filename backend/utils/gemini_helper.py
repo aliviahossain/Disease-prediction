@@ -153,7 +153,7 @@ def process_history(messages):
                     parts=[types.Part.from_text(text=turn["text"])]  # Wrapped properly
                 )
             )
-        return formatted_history
+        return formatted_history[::-1]
     except Exception as e:
         logger.error(str(e))
         return []
