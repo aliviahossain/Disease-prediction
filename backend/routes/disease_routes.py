@@ -88,10 +88,10 @@ def preset():
         with open(csv_path, newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                if row["Disease"].lower() == disease_name.lower():
-                    p_d = float(row["Prevalence"])
-                    sensitivity = float(row["Sensitivity"])
-                    false_pos = float(row["FalsePositive"])
+                if row["disease"].lower() == disease_name.lower():
+                    p_d = float(row["prior_probability"])
+                    sensitivity = float(row["sensitivity"])
+                    false_pos = 1 - float(row["specificity"])
 
                     try:
                         p_d_given_pos = bayesian_survival(p_d, sensitivity, false_pos)
@@ -107,7 +107,7 @@ def preset():
                         }
                     )
 
-        return jsonify({"error": "Disease not found"}), 404
+        return jsonify({"error": "Disease not found in preset data"}), 404
 
     except FileNotFoundError:
         return jsonify({"error": "Hospital data file not found"}), 500
