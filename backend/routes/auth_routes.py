@@ -197,10 +197,6 @@ def login():
 
             return redirect(next_page)
 
-        else:
-            flash("Invalid email or password", "danger")
-            return redirect(url_for("auth.login", tab="signin"))  # Keep on login page
-
         # Failed login
         LOGIN_ATTEMPTS[ip].append(time())
 
@@ -425,18 +421,4 @@ def logout():
     return redirect(url_for("auth.login"))
 
 
-def test_login_rate_limit(client):
-    for _ in range(6):
-        client.post(
-            "/login",
-            data={"email": "invalid@test.com", "password": "wrongpassword"},
-            follow_redirects=True,
-        )
 
-    response = client.post(
-        "/login",
-        data={"email": "invalid@test.com", "password": "wrongpassword"},
-        follow_redirects=True,
-    )
-
-    assert b"Too many failed login attempts" in response.data

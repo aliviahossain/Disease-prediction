@@ -22,14 +22,9 @@ def test_home_page(client):
     assert b"Probability Calculator" in rv.data
 
 
-@pytest.mark.xfail(
-    reason="pre-existing: /preset route returns 500 due to a bug in the "
-    "route handler; tracked separately, not introduced by this PR",
-    strict=True,
-)
 def test_preset_disease_calculation(client):
     """Test preset disease endpoint with valid data"""
-    data = {"disease": "Influenza"}
+    data = {"disease": "Heart Disease"}
     rv = client.post("/preset", data=json.dumps(data), content_type="application/json")
     assert rv.status_code == 200
     response = json.loads(rv.data)
@@ -37,11 +32,6 @@ def test_preset_disease_calculation(client):
     assert isinstance(response["p_d_given_pos"], float)
 
 
-@pytest.mark.xfail(
-    reason="pre-existing: /preset route returns 500 instead of 404 for "
-    "unknown disease; same root cause as test_preset_disease_calculation",
-    strict=True,
-)
 def test_preset_invalid_disease(client):
     """Test preset disease endpoint with invalid disease"""
     data = {"disease": "NonExistentDisease"}

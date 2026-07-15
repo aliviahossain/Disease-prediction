@@ -49,7 +49,7 @@ def load_diseases():
     try:
         with open(csv_path, newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
-            diseases = [row["Disease"] for row in reader]
+            diseases = [row["disease"] for row in reader]
         print(f"Loaded {len(diseases)} diseases from CSV")
     except FileNotFoundError:
         print(f"Error: hospital_data.csv not found at {csv_path}")
@@ -88,10 +88,10 @@ def preset():
         with open(csv_path, newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                if row["Disease"].lower() == disease_name.lower():
-                    p_d = float(row["Prevalence"])
-                    sensitivity = float(row["Sensitivity"])
-                    false_pos = float(row["FalsePositive"])
+                if row["disease"].lower() == disease_name.lower():
+                    p_d = float(row["prior_probability"])
+                    sensitivity = float(row["sensitivity"])
+                    false_pos = 1.0 - float(row["specificity"])
 
                     try:
                         p_d_given_pos = bayesian_survival(p_d, sensitivity, false_pos)
