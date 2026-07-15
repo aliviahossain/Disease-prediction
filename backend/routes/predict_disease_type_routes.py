@@ -71,21 +71,50 @@ MODEL_CONFIG = {
 # Model caches
 KERAS_MODEL_CACHE = {}
 TFLITE_MODEL_CACHE = {}
+CACHE_INITIALIZED = False
 
 # Confidence threshold for eliminating low-confidence predictions (can be adjusted or made dynamic)
 CONFIDENCE_THRESHOLD = 0.60
+
+
+def _initialize_model_cache():
+    """
+    Pre-load all models on startup to eliminate first-request latency.
+    This ensures model disk I/O happens during initialization, not during user requests.
+    """
+    global CACHE_INITIALIZED
+    if CACHE_INITIALIZED:
+        return
+
+    print("[MODEL_CACHE] Initializing model cache...")
+    for model_type, config in MODEL_CONFIG.items():
+        try:
+            if config["format"] == "keras":
+                load_keras_model(model_type)
+                print(f"[MODEL_CACHE] Pre-loaded Keras model: {model_type}")
+            else:
+                load_tflite_model(model_type)
+                print(f"[MODEL_CACHE] Pre-loaded TFLite model: {model_type}")
+        except Exception as e:
+            print(f"[MODEL_CACHE] Warning: Failed to pre-load {model_type}: {e}")
+
+    CACHE_INITIALIZED = True
+    print("[MODEL_CACHE] Model cache initialization complete")
 
 
 # loads keras model in the KERAS_MODEL_CACHE (for eye disease prediction)
 def load_keras_model(model_type):
     if model_type not in KERAS_MODEL_CACHE:
         path = MODEL_CONFIG[model_type]["path"]
-        print(f"Loading Keras model: {model_type}")
+        print(f"[MODEL_LOAD] Loading Keras model from disk: {model_type} ({path})")
 
         if not os.path.exists(path):
             raise FileNotFoundError(f"Model not found: {path}")
 
         KERAS_MODEL_CACHE[model_type] = tf.keras.models.load_model(path, compile=False)
+        print(f"[MODEL_LOAD] Keras model loaded and cached: {model_type}")
+    else:
+        print(f"[MODEL_CACHE_HIT] Keras model {model_type} served from cache")
     return KERAS_MODEL_CACHE[model_type]
 
 
@@ -93,7 +122,7 @@ def load_keras_model(model_type):
 def load_tflite_model(model_type):
     if model_type not in TFLITE_MODEL_CACHE:
         path = MODEL_CONFIG[model_type]["path"]
-        print(f"Loading TFLite model: {model_type}")
+        print(f"[MODEL_LOAD] Loading TFLite model from disk: {model_type} ({path})")
 
         if not os.path.exists(path):
             raise FileNotFoundError(f"Model not found: {path}")
@@ -106,6 +135,9 @@ def load_tflite_model(model_type):
             "input_details": interpreter.get_input_details(),
             "output_details": interpreter.get_output_details(),
         }
+        print(f"[MODEL_LOAD] TFLite model loaded and cached: {model_type}")
+    else:
+        print(f"[MODEL_CACHE_HIT] TFLite model {model_type} served from cache")
     return TFLITE_MODEL_CACHE[model_type]
 
 
@@ -173,6 +205,13 @@ def _validate_image_magic(stream) -> bool:
     if header[:4] == b"RIFF" and header[8:12] == b"WEBP":
         return True
     return False
+
+
+# Pre-warm model cache on first request to this blueprint
+@predict_disease_type_bp.before_request
+def _warm_cache_on_first_request():
+    """Initialize model cache on first request to eliminate cold-start latency."""
+    _initialize_model_cache()
 
 
 #  Main prediction route
