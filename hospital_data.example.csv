@@ -1,0 +1,5 @@
+disease,prior_probability,sensitivity,specificity
+Heart Disease,0.0000,0.0000,0.0000
+Diabetes,0.0000,0.0000,0.0000
+Breast Cancer,0.0000,0.0000,0.0000
+Lung Cancer,0.0000,0.0000,0.0000

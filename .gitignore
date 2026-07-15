@@ -206,3 +206,22 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 backend/site.db
+
+# Sensitive data files
+# Hospital data and patient statistics must not be committed to version control
+hospital_data.csv
+patient_data*.csv
+*.health_data.csv
+healthcare_*.csv
+
+# Application data files
+prediction_history.json
+user_data.json
+patient_records.json
+
+# Database and backup files
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+*.backup
