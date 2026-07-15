@@ -107,7 +107,7 @@ def preset():
                         }
                     )
 
-        return jsonify({"error": "Disease not found"}), 404
+        return jsonify({"error": "Disease not found in preset data"}), 404
 
     except FileNotFoundError:
         return jsonify({"error": "Hospital data file not found"}), 500
@@ -118,6 +118,23 @@ def preset():
 @disease_bp.route("/disease", methods=["POST"])
 def disease():
     data = request.json
+
+    if not data:
+        return jsonify({"error": "No JSON payload provided"}), 400
+
+    required_keys = ["pD", "sensitivity", "falsePositive"]
+    missing_keys = [
+        key
+        for key in required_keys
+        if data.get(key) is None or str(data.get(key)).strip() == ""
+    ]
+
+    if missing_keys:
+        return (
+            jsonify({"error": f"Missing required fields: {', '.join(missing_keys)}"}),
+            400,
+        )
+
     try:
         p_d = float(data.get("pD"))
         sensitivity = float(data.get("sensitivity"))
@@ -192,6 +209,7 @@ def contact():
 
 
 @disease_bp.route("/gemini-recommendations", methods=["POST"])
+@rate_limit("gemini")
 def gemini_recommendations():
     data = request.json
     try:

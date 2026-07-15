@@ -24,7 +24,7 @@ def test_home_page(client):
 
 def test_preset_disease_calculation(client):
     """Test preset disease endpoint with valid data"""
-    data = {"disease": "Heart Disease"}
+    data = {"disease": "Diabetes"}
     rv = client.post("/preset", data=json.dumps(data), content_type="application/json")
     assert rv.status_code == 200
     response = json.loads(rv.data)

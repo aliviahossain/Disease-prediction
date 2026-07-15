@@ -4,6 +4,7 @@ import logging
 from flask import Blueprint, request, jsonify
 from backend.services.synthetic_patient_service import SyntheticPatientGenerator
 from backend.middleware.error_handler import handle_errors
+from backend.middleware import rate_limit
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,7 @@ synthetic_bp = Blueprint("synthetic", __name__, url_prefix="/api/synthetic")
 
 @synthetic_bp.route("/generate", methods=["POST"])
 @handle_errors
+@rate_limit("prediction")
 def generate_patient():
     """Generate single synthetic patient for testing."""
     data = request.get_json() or {}
@@ -36,6 +38,7 @@ def generate_patient():
 
 @synthetic_bp.route("/population", methods=["POST"])
 @handle_errors
+@rate_limit("prediction")
 def generate_population():
     """Generate population of synthetic patients."""
     data = request.get_json() or {}
