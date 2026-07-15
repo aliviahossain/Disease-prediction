@@ -12,6 +12,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+from backend.middleware import rate_limit
 from backend.models.ml_model import ml_model
 from backend.services.history_service import save_history
 from backend.utils.calculator import bayesian_survival

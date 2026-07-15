@@ -123,20 +123,40 @@ venv\Scripts\activate         # Windows
 pip install -r requirements.txt
 ```
 
-### 3. (Optional) Enable AI Recommendations
+### 3. Configure Environment Variables
 
-Get a free API key from [Google AI Studio](https://aistudio.google.com/), then set it:
+Create your local `.env` by copying the provided template:
 
 ```bash
-# Option A: .env file (recommended)
-echo "GEMINI_API_KEY=your_key_here" > .env
+cp .env.example .env          # macOS / Linux
+copy .env.example .env        # Windows (cmd)
+Copy-Item .env.example .env   # Windows (PowerShell)
+```
 
-# Option B: Environment variable
+Then open `.env` and fill in the values. At minimum, generate a fresh `SECRET_KEY`:
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+Paste the output into the `SECRET_KEY=` line. The default `SECRET_KEY` in `.env.example` is public — never reuse it.
+
+### 4. (Optional) Enable AI Recommendations
+
+Get a free API key from [Google AI Studio](https://aistudio.google.com/), then set `GEMINI_API_KEY` in your `.env`:
+
+```bash
+GEMINI_API_KEY=your_key_here
+```
+
+Alternatively, export it as an environment variable:
+
+```bash
 export GEMINI_API_KEY=your_key_here    # macOS / Linux
 set GEMINI_API_KEY=your_key_here       # Windows
 ```
 
-### 4. Run the App
+### 5. Run the App
 
 ```bash
 python run.py
