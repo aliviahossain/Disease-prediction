@@ -282,6 +282,7 @@ class RateLimiter:
             "prediction": {"requests": 30, "window": 60},  # 30 req/min
             "ml_analysis": {"requests": 20, "window": 60},  # 20 req/min
             "report": {"requests": 10, "window": 60},  # 10 req/min
+            "gemini": {"requests": 5, "window": 3600},  # 5 req/hour for Gemini API
         }
 
         # Pluggable backend selection

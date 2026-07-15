@@ -192,6 +192,7 @@ def contact():
 
 
 @disease_bp.route("/gemini-recommendations", methods=["POST"])
+@rate_limit("gemini")
 def gemini_recommendations():
     data = request.json
     try:
