@@ -101,10 +101,19 @@
                         <i class="fas fa-list-check me-1"></i> Select Symptoms
                         <span id="symptom-count" class="badge bg-primary ms-2">0 selected</span>
                     </label>
+                    <div class="input-group mb-2">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" id="symptom-search-input" class="form-control"
+                               placeholder="Search symptoms..." oninput="filterSymptoms()"
+                               autocomplete="off">
+                    </div>
                     <div class="symptoms-grid border rounded p-3" id="symptoms-container">
                         <!-- Symptoms will be loaded here dynamically -->
                         <p class="text-muted text-center">Loading available symptoms...</p>
                     </div>
+                    <p class="text-muted text-center small mb-0 mt-1" id="no-symptom-match" style="display:none;">
+                        No symptoms match your search.
+                    </p>
                 </div>
 
                 <div class="d-grid">
@@ -297,6 +306,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
     let selectedSymptoms = [];
+    let allSymptoms = [];
     let symptomContributionChart = null;
 
     // Initialize on page load
@@ -320,15 +330,16 @@
             }
 
             const symptoms = data.symptoms; // Expecting list of {key: 'fever', name: 'Fever'}
+            allSymptoms = symptoms;
             let html = '';
 
             if (symptoms.length === 0) {
                 html = '<p class="text-muted text-center">No symptoms found.</p>';
             } else {
-                html = '<div class="row g-2">';
+                html = '<div class="row g-2" id="symptoms-list">';
                 symptoms.forEach((symptom) => {
                     html += `
-                    <div class="col-md-6">
+                    <div class="col-md-6 symptom-item" data-symptom-name="${symptom.name.toLowerCase()}">
                         <div class="symptom-checkbox">
                             <input type="checkbox" id="symptom-${symptom.key}" value="${symptom.key}" 
                                    onchange="toggleSymptom('${symptom.key}')">
@@ -345,6 +356,24 @@
         } catch (error) {
             console.error('Error loading symptoms:', error);
             container.innerHTML = '<p class="text-danger text-center">Failed to load symptoms. Please check if backend is running.</p>';
+        }
+    }
+
+    function filterSymptoms() {
+        const query = document.getElementById('symptom-search-input').value.trim().toLowerCase();
+        const items = document.querySelectorAll('#symptoms-container .symptom-item');
+        let visibleCount = 0;
+
+        items.forEach((item) => {
+            const name = item.getAttribute('data-symptom-name') || '';
+            const matches = name.includes(query);
+            item.style.display = matches ? '' : 'none';
+            if (matches) visibleCount++;
+        });
+
+        const noMatch = document.getElementById('no-symptom-match');
+        if (noMatch) {
+            noMatch.style.display = (visibleCount === 0 && allSymptoms.length > 0) ? 'block' : 'none';
         }
     }
 
