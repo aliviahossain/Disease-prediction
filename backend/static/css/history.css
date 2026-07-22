@@ -47,6 +47,12 @@
   height: 2.25rem;
 }
 
+.history-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .history-actions select {
   padding: 0 0.6rem;
   border: 1px solid var(--color-border, #d1d5db);
@@ -303,20 +309,18 @@
 }
 
 /* --- Dark mode support (project already supports it per README) --- */
-@media (prefers-color-scheme: dark) {
-  .history-container {
-    --color-fg: #e6e9ef;
-    --color-bg: #15181d;
-    --color-muted: #94a1b2;
-    --color-border: #2a2f38;
-    --color-card-bg: #1c2129;
-    --color-pill-bg: #232a35;
-    --color-skeleton-1: #1c2129;
-    --color-skeleton-2: #2a2f38;
-    --color-code-bg: #232a35;
-    --color-info-bg: #1e3a5f;
-    --color-info-fg: #bfdbfe;
-    --color-error-bg: #4b1d1d;
-    --color-error-fg: #fecaca;
-  }
+body.dark-mode .history-container {
+  --color-fg: #e6e9ef;
+  --color-bg: #15181d;
+  --color-muted: #94a1b2;
+  --color-border: #2a2f38;
+  --color-card-bg: #1c2129;
+  --color-pill-bg: #232a35;
+  --color-skeleton-1: #1c2129;
+  --color-skeleton-2: #2a2f38;
+  --color-code-bg: #232a35;
+  --color-info-bg: #1e3a5f;
+  --color-info-fg: #bfdbfe;
+  --color-error-bg: #4b1d1d;
+  --color-error-fg: #fecaca;
 }
