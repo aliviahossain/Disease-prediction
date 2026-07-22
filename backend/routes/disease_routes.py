@@ -1,5 +1,6 @@
 import csv
 import io
+import html
 import os
 import re
 from datetime import datetime
@@ -287,6 +288,7 @@ def download_results():
             _sanitize_name(data.get("disease_name") or "Custom Disease")
             or "Custom Disease"
         )
+        disease_name_escaped = html.escape(disease_name)
         test_result = str(data.get("test_result", "positive")).capitalize()
         sensitivity = float(data.get("sensitivity", 0))
         false_positive = float(data.get("false_positive", 0))
@@ -319,7 +321,7 @@ def download_results():
 
         table_data = [
             ["Parameter", "Value"],
-            ["Disease Name", disease_name],
+            ["Disease Name", disease_name_escaped],
             ["Prior Probability", f"{prior:.4f}"],
             ["Posterior Probability", f"{posterior:.4f}"],
             ["Test Result", test_result],
@@ -389,6 +391,7 @@ def download_ml_results():
             _sanitize_name(data.get("disease_name") or "Unknown Disease")
             or "Unknown Disease"
         )
+        disease_name_escaped = html.escape(disease_name)
         ml_probability = float(data.get("ml_probability", 0))
         prior_probability = float(data.get("prior_probability", 0))
         likelihood = float(data.get("likelihood", 0))
@@ -420,7 +423,9 @@ def download_ml_results():
         story.append(Paragraph(timestamp_text, styles["Normal"]))
         story.append(Spacer(1, 0.2 * inch))
 
-        story.append(Paragraph(f"<b>Disease:</b> {disease_name}", styles["Normal"]))
+        story.append(
+            Paragraph(f"<b>Disease:</b> {disease_name_escaped}", styles["Normal"])
+        )
         story.append(Spacer(1, 0.1 * inch))
         story.append(
             Paragraph(
