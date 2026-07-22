@@ -423,7 +423,9 @@ def download_ml_results():
         story.append(Paragraph(timestamp_text, styles["Normal"]))
         story.append(Spacer(1, 0.2 * inch))
 
-        story.append(Paragraph(f"<b>Disease:</b> {disease_name_escaped}", styles["Normal"]))
+        story.append(
+            Paragraph(f"<b>Disease:</b> {disease_name_escaped}", styles["Normal"])
+        )
         story.append(Spacer(1, 0.1 * inch))
         story.append(
             Paragraph(
