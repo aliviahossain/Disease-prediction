@@ -137,6 +137,9 @@ def create_app():
             )
 
     app.config["SECRET_KEY"] = secret_key
+    
+    # SECURITY FIX: Limit upload size to 10MB to prevent disk exhaustion DoS
+    app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 
     # --- Session & Cookie Security (Issue 5) --------------------------------
     # Sessions expire after 2 hours of inactivity.
