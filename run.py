@@ -28,10 +28,14 @@ if __name__ == "__main__":
     if flask_env == "production":
         debug = False
         if flask_debug_env in ("1", "true", "yes"):
-            print("[WARN] FLASK_DEBUG=1 found but FLASK_ENV=production: debug mode forcibly disabled")
+            print(
+                "[WARN] FLASK_DEBUG=1 found but FLASK_ENV=production: debug mode forcibly disabled"
+            )
 
     if debug:
-        print("[WARN] WARNING: Debug mode is ENABLED - remote code execution possible via Werkzeug PIN!")
+        print(
+            "[WARN] WARNING: Debug mode is ENABLED - remote code execution possible via Werkzeug PIN!"
+        )
         print("       Ensure this is development-only!\n")
     else:
         print("[OK] Debug mode is DISABLED (secure)\n")
