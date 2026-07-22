@@ -16,41 +16,8 @@ const STORAGE_KEY = "calculator_last_state";
 let contentGenerated = false;
 
 // ============================================
-// Dark Mode Toggle Functionality
+// Dark Mode Toggle Functionality (Removed - handled globally in base.html)
 // ============================================
-
-function initDarkMode() {
-  const darkModeToggle = document.getElementById('darkModeToggle');
-  const body = document.body;
-  const sunIcon = document.querySelector('.sun-icon');
-  const moonIcon = document.querySelector('.moon-icon');
-
-  const isDarkMode = localStorage.getItem('darkMode') === 'enabled';
-
-  if (isDarkMode) {
-    body.classList.add('dark-mode');
-    if (sunIcon) sunIcon.style.display = 'block';
-    if (moonIcon) moonIcon.style.display = 'none';
-  }
-
-  if (darkModeToggle) {
-    darkModeToggle.addEventListener('click', () => {
-      body.classList.toggle('dark-mode');
-      const isDark = body.classList.contains('dark-mode');
-      if (sunIcon && moonIcon) {
-        sunIcon.style.display = isDark ? 'block' : 'none';
-        moonIcon.style.display = isDark ? 'none' : 'block';
-      }
-      localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
-    });
-  }
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initDarkMode);
-} else {
-  initDarkMode();
-}
 
 // ============================================
 // Dashboard Menu Functionality

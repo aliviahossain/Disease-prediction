@@ -129,6 +129,20 @@ body {
     transform: scale(1.1);
 }
 
+/* --- Dark Mode Icon Styles --- */
+.dark-mode-toggle .sun-icon {
+    display: none;
+}
+.dark-mode-toggle .moon-icon {
+    display: block;
+}
+body.dark-mode .dark-mode-toggle .sun-icon {
+    display: block;
+}
+body.dark-mode .dark-mode-toggle .moon-icon {
+    display: none;
+}
+
 /* --- Card Styling & Hover Effects --- */
 .card {
     background-color: var(--card-bg) !important;

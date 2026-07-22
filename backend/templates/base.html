@@ -284,6 +284,18 @@
 </head>
 
 <body class="d-flex flex-column min-vh-100">
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || localStorage.getItem('darkMode');
+            if (savedTheme === 'dark' || savedTheme === 'enabled') {
+                document.body.classList.add('dark-mode');
+            } else if (savedTheme === 'light' || savedTheme === 'disabled') {
+                document.body.classList.remove('dark-mode');
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.body.classList.add('dark-mode');
+            }
+        })();
+    </script>
     <nav class="navbar navbar-expand-lg navbar-dark bg-custom-dark shadow-sm">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="/">
@@ -338,7 +350,7 @@
                         <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="sun-icon" style="display: none;">
+                                stroke-linejoin="round" class="sun-icon">
                                 <circle cx="12" cy="12" r="5"></circle>
                                 <line x1="12" y1="1" x2="12" y2="3"></line>
                                 <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -453,37 +465,24 @@
         document.addEventListener("DOMContentLoaded", function () {
             // --- DARK MODE LOGIC ---
             const darkModeToggle = document.getElementById('darkModeToggle');
-            const sunIcon = document.querySelector('.sun-icon');
-            const moonIcon = document.querySelector('.moon-icon');
             const body = document.body;
 
-            // Function to apply theme
-            const applyTheme = (isDark) => {
-                if (isDark) {
-                    body.classList.add('dark-mode');
-                    sunIcon.style.display = 'block';
-                    moonIcon.style.display = 'none';
-                } else {
-                    body.classList.remove('dark-mode');
-                    sunIcon.style.display = 'none';
-                    moonIcon.style.display = 'block';
-                }
-            };
+            if (darkModeToggle) {
+                darkModeToggle.addEventListener('click', function () {
+                    const isCurrentlyDark = body.classList.contains('dark-mode');
+                    const newThemeIsDark = !isCurrentlyDark;
 
-            // Check for saved preference
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'dark') {
-                applyTheme(true);
+                    if (newThemeIsDark) {
+                        body.classList.add('dark-mode');
+                        localStorage.setItem('theme', 'dark');
+                        localStorage.setItem('darkMode', 'enabled');
+                    } else {
+                        body.classList.remove('dark-mode');
+                        localStorage.setItem('theme', 'light');
+                        localStorage.setItem('darkMode', 'disabled');
+                    }
+                });
             }
-
-            // Toggle click listener
-            darkModeToggle.addEventListener('click', function () {
-                const isCurrentlyDark = body.classList.contains('dark-mode');
-                const newThemeIsDark = !isCurrentlyDark;
-
-                applyTheme(newThemeIsDark);
-                localStorage.setItem('theme', newThemeIsDark ? 'dark' : 'light');
-            });
 
 
             // --- DASHBOARD DROPDOWN LOGIC ---
