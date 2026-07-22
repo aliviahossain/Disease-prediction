@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 import logging
 from typing import Optional
 
@@ -222,6 +223,7 @@ def export_history_csv():
             "Disease",
             "Probability (%)",
             "Risk Level",
+            "BMI",
             "Inputs",
             "Results",
             "Notes",
@@ -230,6 +232,27 @@ def export_history_csv():
     )
 
     for entry in entries:
+        bmi = ""
+        if entry.results_json:
+            try:
+                # Handle cases where results_json is already a dict, or parse it if it's a string
+                results_dict = json.loads(entry.results_json) if isinstance(entry.results_json, str) else entry.results_json
+                bmi = results_dict.get("bmi", results_dict.get("BMI", ""))
+            except Exception:
+                pass
+
+        # Fallback: compute from height/weight in inputs_json if not found in results
+        if bmi == "" and entry.inputs_json:
+            try:
+                inputs_dict = json.loads(entry.inputs_json) if isinstance(entry.inputs_json, str) else entry.inputs_json
+                height_cm = inputs_dict.get("height_cm")
+                weight_kg = inputs_dict.get("weight_kg")
+                if height_cm and weight_kg:
+                    height_m = float(height_cm) / 100
+                    bmi = round(float(weight_kg) / (height_m ** 2), 2)
+            except Exception:
+                pass
+
         writer.writerow(
             [
                 entry.id,
@@ -241,6 +264,7 @@ def export_history_csv():
                     else ""
                 ),
                 entry.risk_level or "",
+                bmi,
                 entry.inputs_json or "",
                 entry.results_json or "",
                 _sanitize_csv_field(entry.notes),
