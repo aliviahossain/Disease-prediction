@@ -225,3 +225,5 @@ patient_records.json
 *.sqlite3
 *.bak
 *.backup
+venv312/
+
