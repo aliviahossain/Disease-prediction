@@ -92,15 +92,20 @@ def create_app():
         debug_mode = False
         if flask_debug_env in ("1", "true", "yes"):
             print("[WARN] WARNING: FLASK_DEBUG=1 found but FLASK_ENV=production")
-            print("       Debug mode forcibly disabled for security. Set FLASK_ENV=development to enable debug.")
+            print(
+                "       Debug mode forcibly disabled for security. Set FLASK_ENV=development to enable debug."
+            )
 
     app.debug = debug_mode
     if debug_mode:
-        print("[WARN] WARNING: Flask debug mode is ENABLED. This should NEVER be enabled in production.")
-        print("       Remote code execution is possible via the Werkzeug debugger PIN bypass.")
+        print(
+            "[WARN] WARNING: Flask debug mode is ENABLED. This should NEVER be enabled in production."
+        )
+        print(
+            "       Remote code execution is possible via the Werkzeug debugger PIN bypass."
+        )
     else:
         print("[OK] Flask debug mode is DISABLED (secure)")
-
 
     # Configure Database
     database_url = os.getenv("DATABASE_URL")
@@ -137,7 +142,7 @@ def create_app():
             )
 
     app.config["SECRET_KEY"] = secret_key
-    
+
     # SECURITY FIX: Limit upload size to 10MB to prevent disk exhaustion DoS
     app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 
