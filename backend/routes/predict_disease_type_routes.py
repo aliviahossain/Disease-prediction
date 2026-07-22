@@ -269,11 +269,13 @@ def predict():
         # NEW: Save the upload to a temp file on disk so Grad-CAM can read
         # it by path (PIL.open from a stream can only be read once).
         suffix = os.path.splitext(image_file.filename or ".jpg")[1] or ".jpg"
-        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-            image_file.save(tmp)
-            tmp_path = tmp.name
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+        tmp_path = tmp.name
 
         try:
+            with tmp:
+                image_file.save(tmp)
+
             # 1. Preprocess image
             img_array = preprocess_image(tmp_path, model_type)
 
@@ -342,7 +344,11 @@ def predict():
 
         finally:
             # Always clean up the temp file
-            os.unlink(tmp_path)
+            if os.path.exists(tmp_path):
+                try:
+                    os.unlink(tmp_path)
+                except Exception as e:
+                    print(f"Failed to delete temp file {tmp_path}: {e}")
 
         # 5. Persist prediction history (unchanged)
         save_history(
