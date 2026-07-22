@@ -266,9 +266,14 @@ def predict():
     print(model_type not in MODEL_CONFIG)
 
     try:
+        from werkzeug.utils import secure_filename
+
         # NEW: Save the upload to a temp file on disk so Grad-CAM can read
         # it by path (PIL.open from a stream can only be read once).
-        suffix = os.path.splitext(image_file.filename or ".jpg")[1] or ".jpg"
+        safe_filename = (
+            secure_filename(image_file.filename) if image_file.filename else ".jpg"
+        )
+        suffix = os.path.splitext(safe_filename)[1] or ".jpg"
         tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
         tmp_path = tmp.name
 
