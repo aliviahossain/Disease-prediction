@@ -241,6 +241,18 @@ def export_history_csv():
             except Exception:
                 pass
 
+        # Fallback: compute from height/weight in inputs_json if not found in results
+        if bmi == "" and entry.inputs_json:
+            try:
+                inputs_dict = json.loads(entry.inputs_json) if isinstance(entry.inputs_json, str) else entry.inputs_json
+                height_cm = inputs_dict.get("height_cm")
+                weight_kg = inputs_dict.get("weight_kg")
+                if height_cm and weight_kg:
+                    height_m = float(height_cm) / 100
+                    bmi = round(float(weight_kg) / (height_m ** 2), 2)
+            except Exception:
+                pass
+
         writer.writerow(
             [
                 entry.id,
