@@ -182,9 +182,6 @@
   font-size: 1rem;
 }
 
-.history-card-risk.risk-low    .value { color: var(--color-success, #15803d); }
-.history-card-risk.risk-medium .value { color: var(--color-warning, #b45309); }
-.history-card-risk.risk-high   .value { color: var(--color-danger,  #b91c1c); }
 
 .history-card-actions {
   display: flex;

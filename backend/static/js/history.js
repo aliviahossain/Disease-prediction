@@ -107,10 +107,11 @@
       ? entry.probability_percent.toFixed(2) + "%"
       : "—";
 
-    const risk = entry.risk_level || "—";
-    const riskClass = risk === "high"   ? "risk-high"
-                    : risk === "medium" ? "risk-medium"
-                    : risk === "low"    ? "risk-low"
+    const risk = (entry.risk_level || "—").toLowerCase();
+    const riskClass = risk === "critical" ? "risk-very-high"
+                    : risk === "high"     ? "risk-high"
+                    : risk === "medium"   ? "risk-medium"
+                    : risk === "low"      ? "risk-low"
                     : "";
 
     const typeLabel = TYPE_LABELS[entry.prediction_type]
@@ -136,9 +137,9 @@
             <span class="label">Probability</span>
             <span class="value">${escapeHTML(probPct)}</span>
           </div>
-          <div class="history-card-risk ${riskClass}">
+          <div class="history-card-risk">
             <span class="label">Risk</span>
-            <span class="value">${escapeHTML(risk)}</span>
+            <span class="value badge rounded-pill ${riskClass}">${escapeHTML(risk)}</span>
           </div>
         </div>
 
