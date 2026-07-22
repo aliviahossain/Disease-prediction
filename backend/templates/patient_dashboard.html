@@ -142,6 +142,9 @@
                     <button class="btn btn-outline-success" onclick="exportToCSV()">
                         <i class="fas fa-download me-1"></i>Export to CSV
                     </button>
+                    <button class="btn btn-outline-danger" onclick="clearAllHistory()">
+                        <i class="fas fa-trash-alt me-1"></i>Clear History
+                    </button>
                 </div>
             </div>
         </div>
@@ -257,7 +260,10 @@
                                     <i class="fas fa-history me-2"></i>Prediction History
                                 </h5>
                             </div>
-                            <div class="col-auto">
+                            <div class="col-auto d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-danger" onclick="clearAllHistory()">
+                                    <i class="fas fa-trash-alt me-1"></i>Clear History
+                                </button>
                                 <div class="input-group input-group-sm" style="width: 250px;">
                                     <span class="input-group-text bg-transparent border-end-0">
                                         <i class="fas fa-search text-muted"></i>
@@ -436,6 +442,30 @@
     </div>
 </div>
 
+<!-- Clear History Confirmation Modal -->
+<div class="modal fade" id="clearHistoryModal" tabindex="-1" aria-labelledby="clearHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="clearHistoryModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Clear History
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="mb-2 fs-6">Are you sure you want to delete <strong>ALL</strong> of your prediction history?</p>
+                <p class="text-danger small mb-0"><i class="fas fa-info-circle me-1"></i>This action is permanent and cannot be undone.</p>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmClearBtn" onclick="executeClearHistory()">
+                    <i class="fas fa-trash-alt me-1"></i>Yes, Delete All History
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
@@ -457,6 +487,47 @@ async function fetchDashboardData() {
         return result.data;
     } else {
         throw new Error(result.message || 'Failed to fetch data');
+    }
+}
+
+// Open clear history confirmation modal
+function clearAllHistory() {
+    const modalEl = document.getElementById('clearHistoryModal');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        const bsModal = new bootstrap.Modal(modalEl);
+        bsModal.show();
+    } else if (confirm('Are you sure you want to delete ALL of your prediction history? This action cannot be undone.')) {
+        executeClearHistory();
+    }
+}
+
+// Execute history deletion after confirmation
+async function executeClearHistory() {
+    const confirmBtn = document.getElementById('confirmClearBtn');
+    if (confirmBtn) confirmBtn.disabled = true;
+    try {
+        const response = await fetch('/api/history', {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        if (response.ok) {
+            const modalEl = document.getElementById('clearHistoryModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                const bsModal = bootstrap.Modal.getInstance(modalEl);
+                if (bsModal) bsModal.hide();
+            }
+            refreshDashboard();
+        } else {
+            alert('Failed to clear history. Please try again.');
+        }
+    } catch (err) {
+        console.error('Error clearing history:', err);
+        alert('Network error while clearing history.');
+    } finally {
+        if (confirmBtn) confirmBtn.disabled = false;
     }
 }
 

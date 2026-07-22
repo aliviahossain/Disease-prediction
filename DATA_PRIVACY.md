@@ -59,6 +59,12 @@ Breast Cancer,0.0000,0.0000,0.0000
 
 Replace with actual prevalence, sensitivity, and specificity values from your hospital data.
 
+## Managing & Clearing Prediction History
+
+To support patient data privacy, user control, and demonstration resets:
+- **Streamlit Dashboard**: Users can click the **"Clear History"** button under the *Prediction History Timeline* section. A confirmation prompt prevents accidental deletion before completely resetting `prediction_history.json`.
+- **Flask Web Application & Patient Dashboard**: Logged-in users can navigate to **Patient History** or **My Health Dashboard** and click **"Clear History"**. Confirming the action invokes `DELETE /api/history`, permanently removing all database prediction records linked to the user's account.
+
 ## Privacy and Compliance
 
 - **HIPAA Compliance**: In the US, ensure hospital data complies with HIPAA regulations
