@@ -18,6 +18,31 @@ def app():
         yield flask_app
 
 
+@pytest.fixture(autouse=True)
+def clear_test_isolation_state():
+    """Clears failed login attempts and rate limiter states to ensure test isolation."""
+    try:
+        from backend.routes.auth_routes import LOGIN_ATTEMPTS
+        LOGIN_ATTEMPTS.clear()
+    except Exception:
+        pass
+
+    try:
+        from backend.middleware.security import rate_limiter
+        if hasattr(rate_limiter, "backend"):
+            backend = rate_limiter.backend
+            if hasattr(backend, "_requests"):
+                backend._requests.clear()
+            elif hasattr(backend, "db_path"):
+                import sqlite3
+                conn = sqlite3.connect(backend.db_path)
+                conn.execute("DELETE FROM rate_limits")
+                conn.commit()
+                conn.close()
+    except Exception:
+        pass
+
+
 # Your mocks to prevent real API calls during testing
 @pytest.fixture(autouse=True)
 def mock_external_services():

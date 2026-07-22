@@ -12,6 +12,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+from backend.middleware import rate_limit
 from backend.models.ml_model import ml_model
 from backend.services.history_service import save_history
 from backend.utils.calculator import bayesian_survival
@@ -49,7 +50,7 @@ def load_diseases():
     try:
         with open(csv_path, newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
-            diseases = [row["Disease"] for row in reader]
+            diseases = [row["disease"] for row in reader]
         print(f"Loaded {len(diseases)} diseases from CSV")
     except FileNotFoundError:
         print(f"Error: hospital_data.csv not found at {csv_path}")
@@ -88,10 +89,10 @@ def preset():
         with open(csv_path, newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                if row["Disease"].lower() == disease_name.lower():
-                    p_d = float(row["Prevalence"])
-                    sensitivity = float(row["Sensitivity"])
-                    false_pos = float(row["FalsePositive"])
+                if row["disease"].lower() == disease_name.lower():
+                    p_d = float(row["prior_probability"])
+                    sensitivity = float(row["sensitivity"])
+                    false_pos = 1.0 - float(row["specificity"])
 
                     try:
                         p_d_given_pos = bayesian_survival(p_d, sensitivity, false_pos)
@@ -107,7 +108,7 @@ def preset():
                         }
                     )
 
-        return jsonify({"error": "Disease not found"}), 404
+        return jsonify({"error": "Disease not found in preset data"}), 404
 
     except FileNotFoundError:
         return jsonify({"error": "Hospital data file not found"}), 500
@@ -118,6 +119,23 @@ def preset():
 @disease_bp.route("/disease", methods=["POST"])
 def disease():
     data = request.json
+
+    if not data:
+        return jsonify({"error": "No JSON payload provided"}), 400
+
+    required_keys = ["pD", "sensitivity", "falsePositive"]
+    missing_keys = [
+        key
+        for key in required_keys
+        if data.get(key) is None or str(data.get(key)).strip() == ""
+    ]
+
+    if missing_keys:
+        return (
+            jsonify({"error": f"Missing required fields: {', '.join(missing_keys)}"}),
+            400,
+        )
+
     try:
         p_d = float(data.get("pD"))
         sensitivity = float(data.get("sensitivity"))
@@ -192,6 +210,7 @@ def contact():
 
 
 @disease_bp.route("/gemini-recommendations", methods=["POST"])
+@rate_limit("gemini")
 def gemini_recommendations():
     data = request.json
     try:
