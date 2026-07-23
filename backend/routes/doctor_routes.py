@@ -25,9 +25,7 @@ def get_real_dashboard_data():
     """
     try:
         # Total predictions (as proxy for patients)
-        total_patients = (
-            db.session.query(func.count(PatientHistory.id)).scalar() or 0
-        )
+        total_patients = db.session.query(func.count(PatientHistory.id)).scalar() or 0
 
         # New cases in last 7 days
         seven_days_ago = datetime.utcnow() - timedelta(days=7)
@@ -40,9 +38,7 @@ def get_real_dashboard_data():
 
         # Risk distribution counts
         risk_counts = (
-            db.session.query(
-                PatientHistory.risk_level, func.count(PatientHistory.id)
-            )
+            db.session.query(PatientHistory.risk_level, func.count(PatientHistory.id))
             .group_by(PatientHistory.risk_level)
             .all()
         )
@@ -269,7 +265,7 @@ def get_patient_temporal_trends():
             d = pred.to_dict()
             inputs = d.get("inputs") or {}
             results = d.get("results") or {}
-            
+
             # Flatten to match what TemporalAnalysisEngine expects
             flat = {
                 **d,
@@ -277,7 +273,7 @@ def get_patient_temporal_trends():
                 **results,
                 "bayesian_posterior": results.get("bayesian_posterior"),
                 "ml_probability": results.get("ml_probability", d.get("probability")),
-                "survival_probability": results.get("survival_probability")
+                "survival_probability": results.get("survival_probability"),
             }
             history_list.append(flat)
 

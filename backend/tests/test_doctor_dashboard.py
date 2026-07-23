@@ -82,8 +82,12 @@ def sample_predictions(app, test_user):
                 user_id=test_user,
                 prediction_type="symptom",
                 disease="diabetes",
-                inputs_json=json.dumps({"symptoms": ["fatigue", "increased_thirst"], "age": 35}),
-                results_json=json.dumps({"ml_probability": 0.25, "bayesian_posterior": 0.30}),
+                inputs_json=json.dumps(
+                    {"symptoms": ["fatigue", "increased_thirst"], "age": 35}
+                ),
+                results_json=json.dumps(
+                    {"ml_probability": 0.25, "bayesian_posterior": 0.30}
+                ),
                 probability=0.30,
                 risk_level="low",
                 created_at=datetime.utcnow(),
@@ -92,8 +96,12 @@ def sample_predictions(app, test_user):
                 user_id=test_user,
                 prediction_type="symptom",
                 disease="hypertension",
-                inputs_json=json.dumps({"symptoms": ["headache", "dizziness"], "age": 45}),
-                results_json=json.dumps({"ml_probability": 0.55, "bayesian_posterior": 0.60}),
+                inputs_json=json.dumps(
+                    {"symptoms": ["headache", "dizziness"], "age": 45}
+                ),
+                results_json=json.dumps(
+                    {"ml_probability": 0.55, "bayesian_posterior": 0.60}
+                ),
                 probability=0.60,
                 risk_level="medium",
                 created_at=datetime.utcnow(),
@@ -102,8 +110,12 @@ def sample_predictions(app, test_user):
                 user_id=test_user,
                 prediction_type="symptom",
                 disease="heart_disease",
-                inputs_json=json.dumps({"symptoms": ["chest_pain", "shortness_breath"], "age": 55}),
-                results_json=json.dumps({"ml_probability": 0.75, "bayesian_posterior": 0.80}),
+                inputs_json=json.dumps(
+                    {"symptoms": ["chest_pain", "shortness_breath"], "age": 55}
+                ),
+                results_json=json.dumps(
+                    {"ml_probability": 0.75, "bayesian_posterior": 0.80}
+                ),
                 probability=0.80,
                 risk_level="high",
                 created_at=datetime.utcnow(),
@@ -112,8 +124,12 @@ def sample_predictions(app, test_user):
                 user_id=test_user,
                 prediction_type="symptom",
                 disease="covid19",
-                inputs_json=json.dumps({"symptoms": ["fever", "cough", "loss_taste_smell"], "age": 65}),
-                results_json=json.dumps({"ml_probability": 0.90, "bayesian_posterior": 0.95}),
+                inputs_json=json.dumps(
+                    {"symptoms": ["fever", "cough", "loss_taste_smell"], "age": 65}
+                ),
+                results_json=json.dumps(
+                    {"ml_probability": 0.90, "bayesian_posterior": 0.95}
+                ),
                 probability=0.95,
                 risk_level="critical",
                 created_at=datetime.utcnow(),
@@ -268,9 +284,6 @@ class TestPredictionPersistence:
             inputs = json.loads(prediction.inputs_json)
             assert "increased_thirst" in inputs["symptoms"]
             assert "frequent_urination" in inputs["symptoms"]
-
-
-
 
 
 class TestDoctorDashboardPage:

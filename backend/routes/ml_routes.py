@@ -1,11 +1,9 @@
-import json
 import traceback
 
 from flask import Blueprint, jsonify, render_template, request
 from flask_login import current_user
 from jinja2 import TemplateNotFound
 
-from backend import db
 from backend.models.ml_model import ml_model
 from backend.models.patient_history import PatientHistory
 from backend.preprocessing import PreprocessingError, clean_prediction_payload
