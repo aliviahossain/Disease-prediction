@@ -9,7 +9,7 @@ from datetime import datetime
 import pytest
 
 from backend import create_app, db
-from backend.models.prediction import PredictionHistory
+from backend.models.patient_history import PatientHistory
 from backend.models.user import User
 
 
@@ -74,44 +74,48 @@ def auth_client(client, test_user):
 
 
 @pytest.fixture
-def sample_predictions(app):
+def sample_predictions(app, test_user):
     """Create sample predictions in the database."""
     with app.app_context():
         predictions = [
-            PredictionHistory(
+            PatientHistory(
+                user_id=test_user,
+                prediction_type="symptom",
                 disease="diabetes",
-                symptoms=json.dumps(["fatigue", "increased_thirst"]),
-                ml_probability=0.25,
-                bayesian_posterior=0.30,
+                inputs_json=json.dumps({"symptoms": ["fatigue", "increased_thirst"], "age": 35}),
+                results_json=json.dumps({"ml_probability": 0.25, "bayesian_posterior": 0.30}),
+                probability=0.30,
                 risk_level="low",
-                patient_age=35,
                 created_at=datetime.utcnow(),
             ),
-            PredictionHistory(
+            PatientHistory(
+                user_id=test_user,
+                prediction_type="symptom",
                 disease="hypertension",
-                symptoms=json.dumps(["headache", "dizziness"]),
-                ml_probability=0.55,
-                bayesian_posterior=0.60,
+                inputs_json=json.dumps({"symptoms": ["headache", "dizziness"], "age": 45}),
+                results_json=json.dumps({"ml_probability": 0.55, "bayesian_posterior": 0.60}),
+                probability=0.60,
                 risk_level="medium",
-                patient_age=45,
                 created_at=datetime.utcnow(),
             ),
-            PredictionHistory(
+            PatientHistory(
+                user_id=test_user,
+                prediction_type="symptom",
                 disease="heart_disease",
-                symptoms=json.dumps(["chest_pain", "shortness_breath"]),
-                ml_probability=0.75,
-                bayesian_posterior=0.80,
+                inputs_json=json.dumps({"symptoms": ["chest_pain", "shortness_breath"], "age": 55}),
+                results_json=json.dumps({"ml_probability": 0.75, "bayesian_posterior": 0.80}),
+                probability=0.80,
                 risk_level="high",
-                patient_age=55,
                 created_at=datetime.utcnow(),
             ),
-            PredictionHistory(
+            PatientHistory(
+                user_id=test_user,
+                prediction_type="symptom",
                 disease="covid19",
-                symptoms=json.dumps(["fever", "cough", "loss_taste_smell"]),
-                ml_probability=0.90,
-                bayesian_posterior=0.95,
+                inputs_json=json.dumps({"symptoms": ["fever", "cough", "loss_taste_smell"], "age": 65}),
+                results_json=json.dumps({"ml_probability": 0.90, "bayesian_posterior": 0.95}),
+                probability=0.95,
                 risk_level="critical",
-                patient_age=65,
                 created_at=datetime.utcnow(),
             ),
         ]
@@ -218,10 +222,11 @@ class TestPredictionPersistence:
         assert response.status_code == 200
 
         with app.app_context():
-            predictions = PredictionHistory.query.all()
+            predictions = PatientHistory.query.all()
             assert len(predictions) == 1
-            assert predictions[0].disease == "diabetes"
-            assert predictions[0].patient_age == 45
+            assert predictions[0].disease == "Diabetes"
+            inputs = json.loads(predictions[0].inputs_json)
+            assert inputs.get("age") == 45
 
     def test_prediction_risk_level_saved(self, auth_client, app):
         """Test that risk level is correctly saved based on probability."""
@@ -243,7 +248,7 @@ class TestPredictionPersistence:
         assert response.status_code == 200
 
         with app.app_context():
-            prediction = PredictionHistory.query.first()
+            prediction = PatientHistory.query.first()
             assert prediction.risk_level in ["low", "medium", "high", "critical"]
 
     def test_prediction_symptoms_stored_as_json(self, auth_client, app):
@@ -259,60 +264,13 @@ class TestPredictionPersistence:
         )
 
         with app.app_context():
-            prediction = PredictionHistory.query.first()
-            symptoms_list = prediction.get_symptoms_list()
-            assert "increased_thirst" in symptoms_list
-            assert "frequent_urination" in symptoms_list
+            prediction = PatientHistory.query.first()
+            inputs = json.loads(prediction.inputs_json)
+            assert "increased_thirst" in inputs["symptoms"]
+            assert "frequent_urination" in inputs["symptoms"]
 
 
-class TestPredictionHistoryModel:
-    """Tests for the PredictionHistory model."""
 
-    def test_get_symptoms_list(self, app):
-        """Test that symptoms JSON is correctly parsed to list."""
-        with app.app_context():
-            prediction = PredictionHistory(
-                disease="test",
-                symptoms=json.dumps(["symptom1", "symptom2"]),
-                ml_probability=0.5,
-                risk_level="medium",
-            )
-
-            symptoms = prediction.get_symptoms_list()
-            assert symptoms == ["symptom1", "symptom2"]
-
-    def test_get_symptoms_list_invalid_json(self, app):
-        """Test that invalid JSON returns empty list."""
-        with app.app_context():
-            prediction = PredictionHistory(
-                disease="test",
-                symptoms="invalid json",
-                ml_probability=0.5,
-                risk_level="medium",
-            )
-
-            symptoms = prediction.get_symptoms_list()
-            assert symptoms == []
-
-    def test_to_dict(self, app):
-        """Test that to_dict returns correct structure."""
-        with app.app_context():
-            prediction = PredictionHistory(
-                disease="diabetes",
-                symptoms=json.dumps(["fatigue"]),
-                ml_probability=0.5,
-                bayesian_posterior=0.6,
-                risk_level="medium",
-                patient_age=40,
-            )
-            db.session.add(prediction)
-            db.session.commit()
-
-            data = prediction.to_dict()
-            assert data["disease"] == "diabetes"
-            assert data["risk_level"] == "medium"
-            assert data["patient_age"] == 40
-            assert "created_at" in data
 
 
 class TestDoctorDashboardPage:

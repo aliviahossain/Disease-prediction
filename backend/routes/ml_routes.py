@@ -7,7 +7,7 @@ from jinja2 import TemplateNotFound
 
 from backend import db
 from backend.models.ml_model import ml_model
-from backend.models.prediction import PredictionHistory
+from backend.models.patient_history import PatientHistory
 from backend.preprocessing import PreprocessingError, clean_prediction_payload
 from backend.services.history_service import save_history
 from backend.utils.calculator import BayesCalculator
@@ -168,18 +168,19 @@ def predict_disease():
             trend_factor = 0.0
             if current_user.is_authenticated:
                 user_preds = (
-                    PredictionHistory.query.filter_by(user_id=current_user.id)
-                    .order_by(PredictionHistory.created_at.desc())
+                    PatientHistory.query.filter_by(user_id=current_user.id)
+                    .order_by(PatientHistory.created_at.desc())
                     .all()
                 )
                 if user_preds:
                     prev_rec = user_preds[0]
+                    prev_inputs = prev_rec.to_dict().get("inputs", {}) or {}
                     prev_vitals = TemporalAnalysisEngine.analyze_vitals(
-                        heart_rate=prev_rec.heart_rate,
-                        bp_systolic=prev_rec.blood_pressure_systolic,
-                        bp_diastolic=prev_rec.blood_pressure_diastolic,
-                        blood_glucose=prev_rec.blood_glucose,
-                        temperature=prev_rec.temperature,
+                        heart_rate=prev_inputs.get("heart_rate"),
+                        bp_systolic=prev_inputs.get("blood_pressure_systolic"),
+                        bp_diastolic=prev_inputs.get("blood_pressure_diastolic"),
+                        blood_glucose=prev_inputs.get("blood_glucose"),
+                        temperature=prev_inputs.get("temperature"),
                     )
                     diff = (
                         vitals_analysis["vitals_health_score"]
@@ -198,32 +199,10 @@ def predict_disease():
             # (vitals, diagnoses) with no data subject linkage, making it
             # impossible to honour deletion requests and causing the table
             # to grow unboundedly with orphaned rows.
-            if current_user.is_authenticated:
-                prediction_record = PredictionHistory(
-                    user_id=current_user.id,
-                    disease=disease,
-                    symptoms=json.dumps(symptoms),
-                    patient_age=age,
-                    ml_probability=ml_prediction["raw_probability"],
-                    bayesian_posterior=bayesian_result["posterior"],
-                    confidence_score=confidence_score,
-                    survival_probability=survival_prob,
-                    heart_rate=cleaned.heart_rate,
-                    blood_pressure_systolic=cleaned.blood_pressure_systolic,
-                    blood_pressure_diastolic=cleaned.blood_pressure_diastolic,
-                    blood_glucose=cleaned.blood_glucose,
-                    temperature=cleaned.temperature,
-                    risk_level=risk_level_db,
-                )
-                db.session.add(prediction_record)
-                db.session.commit()
-                print(
-                    f"Prediction saved: disease={disease}, risk_level={risk_level_db}, survival_prob={survival_prob}%"
-                )
+            # (Removed direct inserts to PredictionHistory here. Handled by save_history below.)
         except Exception as db_error:
-            print(f"Failed to save prediction to database: {db_error}")
+            print(f"Failed to process temporal analysis: {db_error}")
             traceback.print_exc()
-            db.session.rollback()
 
         # Build full result (only reached when prediction is confident)
         result = {
@@ -297,6 +276,11 @@ def predict_disease():
                     "age": age,
                     "height_cm": height,
                     "weight_kg": weight,
+                    "heart_rate": cleaned.heart_rate,
+                    "blood_pressure_systolic": cleaned.blood_pressure_systolic,
+                    "blood_pressure_diastolic": cleaned.blood_pressure_diastolic,
+                    "blood_glucose": cleaned.blood_glucose,
+                    "temperature": cleaned.temperature,
                 },
                 results={
                     "ml_probability": ml_prediction["raw_probability"],
@@ -453,18 +437,19 @@ def predict_multiple_diseases():
                 # Calculate trend factor from prior predictions
                 trend_factor = 0.0
                 user_preds = (
-                    PredictionHistory.query.filter_by(user_id=current_user.id)
-                    .order_by(PredictionHistory.created_at.desc())
+                    PatientHistory.query.filter_by(user_id=current_user.id)
+                    .order_by(PatientHistory.created_at.desc())
                     .all()
                 )
                 if user_preds:
                     prev_rec = user_preds[0]
+                    prev_inputs = prev_rec.to_dict().get("inputs", {}) or {}
                     prev_vitals = TemporalAnalysisEngine.analyze_vitals(
-                        heart_rate=prev_rec.heart_rate,
-                        bp_systolic=prev_rec.blood_pressure_systolic,
-                        bp_diastolic=prev_rec.blood_pressure_diastolic,
-                        blood_glucose=prev_rec.blood_glucose,
-                        temperature=prev_rec.temperature,
+                        heart_rate=prev_inputs.get("heart_rate"),
+                        bp_systolic=prev_inputs.get("blood_pressure_systolic"),
+                        bp_diastolic=prev_inputs.get("blood_pressure_diastolic"),
+                        blood_glucose=prev_inputs.get("blood_glucose"),
+                        temperature=prev_inputs.get("temperature"),
                     )
                     diff = (
                         vitals_analysis["vitals_health_score"]
@@ -490,31 +475,13 @@ def predict_multiple_diseases():
                     top_pred["risk_level"]["level"], "medium"
                 )
 
-                prediction_record = PredictionHistory(
-                    user_id=current_user.id,
-                    disease=disease_key,
-                    symptoms=json.dumps(symptoms),
-                    patient_age=age,
-                    ml_probability=top_pred["probability"] / 100.0,
-                    bayesian_posterior=posterior_prob,
-                    confidence_score=top_pred["confidence"] / 100.0,
-                    survival_probability=survival_prob,
-                    heart_rate=cleaned.heart_rate,
-                    blood_pressure_systolic=cleaned.blood_pressure_systolic,
-                    blood_pressure_diastolic=cleaned.blood_pressure_diastolic,
-                    blood_glucose=cleaned.blood_glucose,
-                    temperature=cleaned.temperature,
-                    risk_level=risk_level_db,
-                )
-                db.session.add(prediction_record)
-                db.session.commit()
+                # (Removed direct inserts to PredictionHistory here. Handled by save_history below.)
                 print(
-                    f"✅ Auto-saved home page top prediction to history: {disease_key}, risk={risk_level_db}, survival_prob={survival_prob}%"
+                    f"✅ Processed temporal analysis: {disease_key}, risk={risk_level_db}, survival_prob={survival_prob}%"
                 )
             except Exception as db_err:
-                print(f"⚠️ Failed to auto-save prediction: {db_err}")
+                print(f"⚠️ Failed to process temporal analysis: {db_err}")
                 traceback.print_exc()
-                db.session.rollback()
 
         # Issue #230: also persist the top prediction via the unified
         # history service so the PatientHistory-backed History page
@@ -531,6 +498,11 @@ def predict_multiple_diseases():
                     "age": age,
                     "height_cm": height,
                     "weight_kg": weight,
+                    "heart_rate": cleaned.heart_rate,
+                    "blood_pressure_systolic": cleaned.blood_pressure_systolic,
+                    "blood_pressure_diastolic": cleaned.blood_pressure_diastolic,
+                    "blood_glucose": cleaned.blood_glucose,
+                    "temperature": cleaned.temperature,
                     "differential": True,
                 },
                 results={

@@ -11,14 +11,14 @@ from flask_login import current_user, login_required
 from sqlalchemy import func
 
 from backend import db
-from backend.models.prediction import PredictionHistory
+from backend.models.patient_history import PatientHistory
 
 doctor_bp = Blueprint("doctor", __name__, template_folder="../templates")
 
 
 def get_real_dashboard_data():
     """
-    Fetch real dashboard data from the PredictionHistory table.
+    Fetch real dashboard data from the PatientHistory table.
 
     Returns:
         dict: Dashboard metrics and risk distribution data from database
@@ -26,14 +26,14 @@ def get_real_dashboard_data():
     try:
         # Total predictions (as proxy for patients)
         total_patients = (
-            db.session.query(func.count(PredictionHistory.id)).scalar() or 0
+            db.session.query(func.count(PatientHistory.id)).scalar() or 0
         )
 
         # New cases in last 7 days
         seven_days_ago = datetime.utcnow() - timedelta(days=7)
         new_cases = (
-            db.session.query(func.count(PredictionHistory.id))
-            .filter(PredictionHistory.created_at >= seven_days_ago)
+            db.session.query(func.count(PatientHistory.id))
+            .filter(PatientHistory.created_at >= seven_days_ago)
             .scalar()
             or 0
         )
@@ -41,9 +41,9 @@ def get_real_dashboard_data():
         # Risk distribution counts
         risk_counts = (
             db.session.query(
-                PredictionHistory.risk_level, func.count(PredictionHistory.id)
+                PatientHistory.risk_level, func.count(PatientHistory.id)
             )
-            .group_by(PredictionHistory.risk_level)
+            .group_by(PatientHistory.risk_level)
             .all()
         )
 
@@ -155,8 +155,8 @@ def get_patient_dashboard_data(user_id):
         Exception: Propagates database errors to caller for proper handling
     """
     user_predictions = (
-        PredictionHistory.query.filter_by(user_id=user_id)
-        .order_by(PredictionHistory.created_at.desc())
+        PatientHistory.query.filter_by(user_id=user_id)
+        .order_by(PatientHistory.created_at.desc())
         .all()
     )
 
@@ -259,12 +259,28 @@ def get_patient_temporal_trends():
         from backend.utils.temporal_analysis import TemporalAnalysisEngine
 
         user_predictions = (
-            PredictionHistory.query.filter_by(user_id=current_user.id)
-            .order_by(PredictionHistory.created_at.asc())
+            PatientHistory.query.filter_by(user_id=current_user.id)
+            .order_by(PatientHistory.created_at.asc())
             .all()
         )
 
-        history_list = [pred.to_dict() for pred in user_predictions]
+        history_list = []
+        for pred in user_predictions:
+            d = pred.to_dict()
+            inputs = d.get("inputs") or {}
+            results = d.get("results") or {}
+            
+            # Flatten to match what TemporalAnalysisEngine expects
+            flat = {
+                **d,
+                **inputs,
+                **results,
+                "bayesian_posterior": results.get("bayesian_posterior"),
+                "ml_probability": results.get("ml_probability", d.get("probability")),
+                "survival_probability": results.get("survival_probability")
+            }
+            history_list.append(flat)
+
         trends = TemporalAnalysisEngine.analyze_history_trends(history_list)
 
         return jsonify({"success": True, "data": trends}), 200
