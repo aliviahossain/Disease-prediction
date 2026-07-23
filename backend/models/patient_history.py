@@ -11,7 +11,9 @@ History page had nothing to display.
 
 from datetime import datetime
 
-from backend import db  # the SQLAlchemy() instance created in backend/__init__.py
+from backend import (
+    db,
+)  # the SQLAlchemy() instance created in backend/__init__.py
 
 
 class PatientHistory(db.Model):

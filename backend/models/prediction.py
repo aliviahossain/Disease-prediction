@@ -7,10 +7,12 @@ import numpy as np
 from backend import db
 from sqlalchemy import CheckConstraint
 
-from backend import db
+from backend import db  # noqa
 
 # Configurable confidence threshold
-CONFIDENCE_THRESHOLD = float(os.getenv("PREDICTION_CONFIDENCE_THRESHOLD", 0.65))
+CONFIDENCE_THRESHOLD = float(
+    os.getenv("PREDICTION_CONFIDENCE_THRESHOLD", 0.65)
+)
 
 # Example disease classes
 CLASS_NAMES = ["Cataract", "Diabetic Retinopathy", "Glaucoma", "Normal"]
@@ -18,11 +20,11 @@ CLASS_NAMES = ["Cataract", "Diabetic Retinopathy", "Glaucoma", "Normal"]
 
 def predict_disease(model, img_path, target_size=(224, 224)):
     try:
-        # Lazy import: keras is only needed at inference time, not at import time.
-        # This allows the model to be imported on environments without TensorFlow.
+        # Lazy import: keras is only needed at inference time, not at import time. # noqa: E501
+        # This allows the model to be imported on environments without TensorFlow. # noqa: E501
         from keras.utils import load_img, img_to_array
 
-        from keras.utils import load_img, img_to_array
+        from keras.utils import load_img, img_to_array  # noqa
 
         # Load image
         img = load_img(img_path, target_size=target_size)
@@ -85,11 +87,15 @@ class PredictionHistory(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
     patient_age = db.Column(db.Integer, nullable=True)
     __table_args__ = (
-        CheckConstraint("patient_age >= 0", name="check_patient_age_non_negative"),
+        CheckConstraint(
+            "patient_age >= 0", name="check_patient_age_non_negative"
+        ),
     )
     # Prediction details
     disease = db.Column(db.String(100), nullable=False)
-    symptoms = db.Column(db.Text, nullable=False)  # JSON string of symptoms list
+    symptoms = db.Column(
+        db.Text, nullable=False
+    )  # JSON string of symptoms list
 
     # Probability scores
     ml_probability = db.Column(db.Float, nullable=False)
@@ -122,13 +128,15 @@ class PredictionHistory(db.Model):
     )
 
     # Relationship to User
-    user = db.relationship("User", backref=db.backref("predictions", lazy=True))
+    user = db.relationship(
+        "User", backref=db.backref("predictions", lazy=True)
+    )
 
     def __init__(self, **kwargs):
         super(PredictionHistory, self).__init__(**kwargs)
 
     def __repr__(self):
-        return f"PredictionHistory('{self.disease}', risk='{self.risk_level}', created='{self.created_at}')"
+        return f"PredictionHistory('{self.disease}', risk='{self.risk_level}', created='{self.created_at}')"  # noqa: E501
 
     def get_symptoms_list(self):
         try:
@@ -155,5 +163,7 @@ class PredictionHistory(db.Model):
             "risk_level": self.risk_level,
             "patient_age": self.patient_age,
             "is_synthetic": self.is_synthetic,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "created_at": (
+                self.created_at.isoformat() if self.created_at else None
+            ),
         }

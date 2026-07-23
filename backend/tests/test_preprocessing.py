@@ -66,10 +66,19 @@ def test_clean_prediction_payload_accepts_comma_separated_symptoms():
     "payload,error",
     [
         ({"disease": "", "symptoms": ["fatigue"]}, "Disease not specified"),
-        ({"disease": "diabetes", "symptoms": []}, "No valid symptoms provided"),
+        (
+            {"disease": "diabetes", "symptoms": []},
+            "No valid symptoms provided",
+        ),
         ({"disease": "diabetes", "symptoms": ["fatigue"], "age": 140}, "Age"),
-        ({"disease": "diabetes", "symptoms": ["fatigue"], "height_cm": 10}, "Height"),
-        ({"disease": "diabetes", "symptoms": ["fatigue"], "weight_kg": 0}, "Weight"),
+        (
+            {"disease": "diabetes", "symptoms": ["fatigue"], "height_cm": 10},
+            "Height",
+        ),
+        (
+            {"disease": "diabetes", "symptoms": ["fatigue"], "weight_kg": 0},
+            "Weight",
+        ),
     ],
 )
 def test_clean_prediction_payload_rejects_invalid_values(payload, error):

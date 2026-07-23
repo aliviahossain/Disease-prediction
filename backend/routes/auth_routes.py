@@ -4,7 +4,15 @@ from urllib.parse import urljoin, urlparse
 from collections import defaultdict
 from time import time
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import (
+    Blueprint,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy.exc import OperationalError
 
@@ -34,7 +42,7 @@ def _clean_form_value(name):
 
 
 def _form_has_field(name):
-    """True when the field was included in the POST (disabled inputs are omitted)."""
+    """True when the field was included in the POST (disabled inputs are omitted)."""  # noqa: E501
     return name in request.form
 
 
@@ -44,7 +52,7 @@ def _validate_phone(value, label, errors):
 
     if not PHONE_RE.fullmatch(value):
         errors.append(
-            f"{label} must start with a country code plus sign and contain digits only."
+            f"{label} must start with a country code plus sign and contain digits only."  # noqa: E501
         )
         return None
     return value
@@ -90,7 +98,9 @@ def _validate_dob(value, errors):
         errors.append("Date of birth cannot be in the future.")
         return None
     if parsed < oldest_allowed:
-        errors.append(f"Date of birth must be within the last {MAX_PROFILE_AGE} years.")
+        errors.append(
+            f"Date of birth must be within the last {MAX_PROFILE_AGE} years."
+        )
         return None
     return parsed
 
@@ -118,7 +128,9 @@ def _validate_medical_text(value, label, max_length, errors):
         errors.append(f"{label} must be {max_length} characters or fewer.")
         return None
     if not MEDICAL_TEXT_RE.fullmatch(value):
-        errors.append(f"{label} must contain text only. Numbers are not allowed.")
+        errors.append(
+            f"{label} must contain text only. Numbers are not allowed."
+        )
         return None
     return value
 
@@ -144,7 +156,10 @@ def _oldest_allowed_dob(today):
 def is_safe_url(target):
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
-    return test_url.scheme in ("http", "https") and ref_url.netloc == test_url.netloc
+    return (
+        test_url.scheme in ("http", "https")
+        and ref_url.netloc == test_url.netloc
+    )
 
 
 @auth_bp.route("/auth", methods=["GET"])
@@ -152,7 +167,9 @@ def auth():
     # Deprecated: Redirect to login or profile
     if current_user.is_authenticated:
         return redirect(url_for("auth.profile"))
-    return redirect(url_for("auth.login", tab=request.args.get("tab", "signin")))
+    return redirect(
+        url_for("auth.login", tab=request.args.get("tab", "signin"))
+    )
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
@@ -172,7 +189,7 @@ def login():
         # Check lockout
         if len(LOGIN_ATTEMPTS[ip]) >= MAX_LOGIN_ATTEMPTS:
             flash(
-                "Too many failed login attempts. Please try again in 5 minutes.",
+                "Too many failed login attempts. Please try again in 5 minutes.",  # noqa: E501
                 "danger",
             )
             return redirect(url_for("auth.login", tab="signin"))
@@ -228,12 +245,16 @@ def signup():
 
     if len(username) < MIN_USERNAME_LEN:
         flash(
-            f"Username must be at least {MIN_USERNAME_LEN} characters long.", "danger"
+            f"Username must be at least {MIN_USERNAME_LEN} characters long.",
+            "danger",
         )
         return redirect(url_for("auth.login", tab="register"))
 
     if len(username) > MAX_USERNAME_LEN:
-        flash(f"Username must be {MAX_USERNAME_LEN} characters or fewer.", "danger")
+        flash(
+            f"Username must be {MAX_USERNAME_LEN} characters or fewer.",
+            "danger",
+        )
         return redirect(url_for("auth.login", tab="register"))
 
     # Validate email format
@@ -248,7 +269,7 @@ def signup():
         or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password)
     ):
         flash(
-            "Password must be at least 8 characters long, contain at least one number and one special character.",
+            "Password must be at least 8 characters long, contain at least one number and one special character.",  # noqa: E501
             "danger",
         )
         return redirect(url_for("auth.login", tab="register"))
@@ -299,7 +320,9 @@ def profile():
 @login_required
 def update_profile():
     errors = []
-    phone = emergency_phone = address = emergency_name = emergency_relation = None
+    phone = emergency_phone = address = emergency_name = emergency_relation = (
+        None
+    )
     dob = height = weight = allergies = medical_notes = None
     gender = current_user.gender
 
@@ -315,7 +338,7 @@ def update_profile():
             ADDRESS_RE,
             "Address",
             errors,
-            "must be 5 to 160 characters and contain only letters, numbers, spaces, and common address punctuation.",
+            "must be 5 to 160 characters and contain only letters, numbers, spaces, and common address punctuation.",  # noqa: E501
         )
     if _form_has_field("emergency_name"):
         emergency_name = _validate_pattern(
@@ -323,7 +346,7 @@ def update_profile():
             NAME_RE,
             "Emergency contact name",
             errors,
-            "must contain only letters, spaces, apostrophes, periods, or hyphens.",
+            "must contain only letters, spaces, apostrophes, periods, or hyphens.",  # noqa: E501
         )
     if _form_has_field("emergency_relation"):
         emergency_relation = _validate_pattern(
@@ -331,10 +354,11 @@ def update_profile():
             RELATION_RE,
             "Emergency relation",
             errors,
-            "must contain only letters, spaces, apostrophes, periods, or hyphens.",
+            "must contain only letters, spaces, apostrophes, periods, or hyphens.",  # noqa: E501
         )
     if any(
-        _form_has_field(name) for name in ("dob_day", "dob_month", "dob_year", "dob")
+        _form_has_field(name)
+        for name in ("dob_day", "dob_month", "dob_year", "dob")
     ):
         dob = _validate_dob(_clean_form_value("dob"), errors)
     if _form_has_field("gender"):
@@ -342,9 +366,13 @@ def update_profile():
         if gender not in ALLOWED_GENDERS:
             errors.append("Gender must be Male, Female, or Other.")
     if _form_has_field("height"):
-        height = _validate_float(_clean_form_value("height"), "Height", 30, 272, errors)
+        height = _validate_float(
+            _clean_form_value("height"), "Height", 30, 272, errors
+        )
     if _form_has_field("weight"):
-        weight = _validate_float(_clean_form_value("weight"), "Weight", 1, 635, errors)
+        weight = _validate_float(
+            _clean_form_value("weight"), "Weight", 1, 635, errors
+        )
     if _form_has_field("allergies"):
         allergies = _validate_medical_text(
             _clean_form_value("allergies"), "Allergies", 200, errors
@@ -370,7 +398,8 @@ def update_profile():
     if _form_has_field("emergency_phone"):
         current_user.emergency_phone = emergency_phone
     if any(
-        _form_has_field(name) for name in ("dob_day", "dob_month", "dob_year", "dob")
+        _form_has_field(name)
+        for name in ("dob_day", "dob_month", "dob_year", "dob")
     ):
         current_user.dob = dob
     if _form_has_field("gender"):
@@ -401,8 +430,8 @@ def update_profile():
         db.session.rollback()
         if "readonly database" in str(error).lower():
             flash(
-                "Profile could not be saved because the local database is read-only. "
-                "Please restart the Flask server and check database file permissions.",
+                "Profile could not be saved because the local database is read-only. "  # noqa: E501
+                "Please restart the Flask server and check database file permissions.",  # noqa: E501
                 "danger",
             )
             return redirect(url_for("auth.profile"))

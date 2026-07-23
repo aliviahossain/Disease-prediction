@@ -26,7 +26,9 @@ class BiasAnalyzer:
 
     # Thresholds for underrepresentation
     MIN_SYMPTOMS_THRESHOLD = 4  # Diseases with fewer symptoms are flagged
-    LOW_WEIGHT_THRESHOLD = 0.65  # Symptoms below this weight are considered weak
+    LOW_WEIGHT_THRESHOLD = (
+        0.65  # Symptoms below this weight are considered weak
+    )
     BIAS_IMBALANCE_RATIO = (
         2.0  # Ratio above which class sizes are considered imbalanced
     )
@@ -39,7 +41,7 @@ class BiasAnalyzer:
     def run_full_analysis(self) -> Dict[str, Any]:
         """
         Execute a complete bias and coverage analysis. Returns a comprehensive
-        result dictionary suitable for JSON serialization and dashboard display.
+        result dictionary suitable for JSON serialization and dashboard display.  # noqa: E501
         """
         if self._analysis_cache:
             return self._analysis_cache
@@ -48,8 +50,8 @@ class BiasAnalyzer:
             "summary": self._generate_summary(),
             "class_distribution": self._analyze_class_distribution(),
             "symptom_coverage": self._analyze_symptom_coverage(),
-            "underrepresented_diseases": self._find_underrepresented_diseases(),
-            "underrepresented_symptoms": self._find_underrepresented_symptoms(),
+            "underrepresented_diseases": self._find_underrepresented_diseases(),  # noqa: E501
+            "underrepresented_symptoms": self._find_underrepresented_symptoms(),  # noqa: E501
             "per_disease_metrics": self._simulate_per_disease_metrics(),
             "bias_indicators": self._compute_bias_indicators(),
             "disease_complexity": self._analyze_disease_complexity(),
@@ -77,7 +79,9 @@ class BiasAnalyzer:
             total_symptom_slots += len(symptoms)
             biases.append(data["bias"])
 
-        symptom_counts = [len(d["symptoms"]) for d in self.disease_weights.values()]
+        symptom_counts = [
+            len(d["symptoms"]) for d in self.disease_weights.values()
+        ]
 
         return {
             "total_diseases": len(self.disease_weights),
@@ -99,8 +103,8 @@ class BiasAnalyzer:
 
     def _analyze_class_distribution(self) -> Dict[str, Any]:
         """
-        Analyze how diseases are distributed based on symptom count and weight magnitude.
-        Since the model uses hardcoded weights rather than training data, we analyze
+        Analyze how diseases are distributed based on symptom count and weight magnitude.  # noqa: E501
+        Since the model uses hardcoded weights rather than training data, we analyze  # noqa: E501
         the 'representational complexity' as a proxy for dataset class size.
         """
         distribution = {}
@@ -120,7 +124,9 @@ class BiasAnalyzer:
         # Sort by symptom count for easy visualization
         sorted_dist = dict(
             sorted(
-                distribution.items(), key=lambda x: x[1]["symptom_count"], reverse=True
+                distribution.items(),
+                key=lambda x: x[1]["symptom_count"],
+                reverse=True,
             )
         )
 
@@ -140,7 +146,7 @@ class BiasAnalyzer:
 
     def _analyze_symptom_coverage(self) -> Dict[str, Any]:
         """
-        Analyze which symptoms appear across how many diseases and their average weight.
+        Analyze which symptoms appear across how many diseases and their average weight.  # noqa: E501
         """
         symptom_diseases = defaultdict(list)
         symptom_weights_agg = defaultdict(list)
@@ -155,14 +161,24 @@ class BiasAnalyzer:
             coverage[symptom] = {
                 "disease_count": len(symptom_diseases[symptom]),
                 "diseases": symptom_diseases[symptom],
-                "avg_weight": round(float(np.mean(symptom_weights_agg[symptom])), 3),
-                "max_weight": round(float(np.max(symptom_weights_agg[symptom])), 3),
-                "min_weight": round(float(np.min(symptom_weights_agg[symptom])), 3),
+                "avg_weight": round(
+                    float(np.mean(symptom_weights_agg[symptom])), 3
+                ),
+                "max_weight": round(
+                    float(np.max(symptom_weights_agg[symptom])), 3
+                ),
+                "min_weight": round(
+                    float(np.min(symptom_weights_agg[symptom])), 3
+                ),
             }
 
         # Sort by disease_count descending (most shared symptoms first)
         sorted_coverage = dict(
-            sorted(coverage.items(), key=lambda x: x[1]["disease_count"], reverse=True)
+            sorted(
+                coverage.items(),
+                key=lambda x: x[1]["disease_count"],
+                reverse=True,
+            )
         )
 
         disease_counts = [c["disease_count"] for c in coverage.values()]
@@ -188,7 +204,9 @@ class BiasAnalyzer:
         - Extreme bias values
         """
         flagged = []
-        all_symptom_counts = [len(d["symptoms"]) for d in self.disease_weights.values()]
+        all_symptom_counts = [
+            len(d["symptoms"]) for d in self.disease_weights.values()
+        ]
         avg_count = np.mean(all_symptom_counts)
 
         for disease, data in self.disease_weights.items():
@@ -202,7 +220,7 @@ class BiasAnalyzer:
 
             if count < avg_count * 0.6:
                 reasons.append(
-                    f"Below 60% of average symptom count ({count} vs avg {avg_count:.1f})"
+                    f"Below 60% of average symptom count ({count} vs avg {avg_count:.1f})"  # noqa: E501
                 )
 
             avg_w = np.mean(weights)
@@ -211,7 +229,7 @@ class BiasAnalyzer:
 
             if data["bias"] <= -4.0:
                 reasons.append(
-                    f"Very strong negative bias ({data['bias']}), harder to diagnose"
+                    f"Very strong negative bias ({data['bias']}), harder to diagnose"  # noqa: E501
                 )
 
             if reasons:
@@ -229,7 +247,10 @@ class BiasAnalyzer:
 
         # Sort by severity (high first), then by symptom count
         flagged.sort(
-            key=lambda x: (0 if x["severity"] == "high" else 1, x["symptom_count"])
+            key=lambda x: (
+                0 if x["severity"] == "high" else 1,
+                x["symptom_count"],
+            )
         )
         return flagged
 
@@ -237,7 +258,7 @@ class BiasAnalyzer:
 
     def _find_underrepresented_symptoms(self) -> List[Dict[str, Any]]:
         """
-        Identify symptoms that appear in only one disease or have consistently low weights.
+        Identify symptoms that appear in only one disease or have consistently low weights.  # noqa: E501
         """
         symptom_info = defaultdict(lambda: {"diseases": [], "weights": []})
 
@@ -251,7 +272,9 @@ class BiasAnalyzer:
             reasons = []
 
             if len(info["diseases"]) == 1:
-                reasons.append(f"Unique to only one disease ({info['diseases'][0]})")
+                reasons.append(
+                    f"Unique to only one disease ({info['diseases'][0]})"
+                )
 
             avg_w = np.mean(info["weights"])
             if avg_w < self.LOW_WEIGHT_THRESHOLD:
@@ -278,7 +301,7 @@ class BiasAnalyzer:
         self, num_simulations: int = 200
     ) -> Dict[str, Dict]:
         """
-        Simulate predictions with random symptom subsets to estimate per-disease
+        Simulate predictions with random symptom subsets to estimate per-disease  # noqa: E501
         performance characteristics (since we don't have a test dataset).
 
         For each disease, we simulate:
@@ -294,7 +317,9 @@ class BiasAnalyzer:
         metrics = {}
 
         for disease in all_diseases:
-            disease_symptoms = list(self.disease_weights[disease]["symptoms"].keys())
+            disease_symptoms = list(
+                self.disease_weights[disease]["symptoms"].keys()
+            )
             other_symptoms = []
             for d, data in self.disease_weights.items():
                 if d != disease:
@@ -309,7 +334,9 @@ class BiasAnalyzer:
             for _ in range(num_simulations):
                 n_symptoms = random.randint(1, max(1, len(disease_symptoms)))
                 sampled = random.sample(disease_symptoms, n_symptoms)
-                result = self.ml_model.predict_disease_probability(disease, sampled)
+                result = self.ml_model.predict_disease_probability(
+                    disease, sampled
+                )
                 prob = result["raw_probability"]
                 probabilities_positive.append(prob)
 
@@ -326,7 +353,9 @@ class BiasAnalyzer:
                 else:
                     sampled = []
 
-                result = self.ml_model.predict_disease_probability(disease, sampled)
+                result = self.ml_model.predict_disease_probability(
+                    disease, sampled
+                )
                 prob = result["raw_probability"]
                 probabilities_negative.append(prob)
 
@@ -398,12 +427,18 @@ class BiasAnalyzer:
         return {
             "gini_coefficient": round(gini, 4),
             "coefficient_of_variation": round(cv, 4),
-            "symptom_count_range": [int(min(symptom_counts)), int(max(symptom_counts))],
+            "symptom_count_range": [
+                int(min(symptom_counts)),
+                int(max(symptom_counts)),
+            ],
             "weight_average_range": [
                 round(float(min(weight_averages)), 3),
                 round(float(max(weight_averages)), 3),
             ],
-            "bias_range": [round(float(min(biases)), 2), round(float(max(biases)), 2)],
+            "bias_range": [
+                round(float(min(biases)), 2),
+                round(float(max(biases)), 2),
+            ],
             "bias_std": round(float(np.std(biases)), 3),
             "diseases_with_few_symptoms": sum(
                 1 for c in symptom_counts if c < self.MIN_SYMPTOMS_THRESHOLD
@@ -415,7 +450,7 @@ class BiasAnalyzer:
         }
 
     def _gini_coefficient(self, values: List[float]) -> float:
-        """Compute the Gini coefficient (0 = perfect equality, 1 = total inequality)."""
+        """Compute the Gini coefficient (0 = perfect equality, 1 = total inequality)."""  # noqa: E501
         arr = np.array(values, dtype=float)
         if arr.sum() == 0:
             return 0
@@ -423,10 +458,13 @@ class BiasAnalyzer:
         n = len(arr)
         index = np.arange(1, n + 1)
         return float(
-            (2 * np.sum(index * arr) - (n + 1) * np.sum(arr)) / (n * np.sum(arr))
+            (2 * np.sum(index * arr) - (n + 1) * np.sum(arr))
+            / (n * np.sum(arr))
         )
 
-    def _compute_balance_score(self, counts: List[int], biases: List[float]) -> Dict:
+    def _compute_balance_score(
+        self, counts: List[int], biases: List[float]
+    ) -> Dict:
         """
         An overall 0-100 balance score for the model.
         Higher = more balanced.
@@ -457,7 +495,7 @@ class BiasAnalyzer:
 
     def _analyze_disease_complexity(self) -> List[Dict]:
         """
-        Rank diseases by diagnostic complexity based on symptom overlap with other diseases.
+        Rank diseases by diagnostic complexity based on symptom overlap with other diseases.  # noqa: E501
         """
         complexity = []
         for disease, data in self.disease_weights.items():
@@ -481,7 +519,9 @@ class BiasAnalyzer:
                     )
 
             # Sort overlapping diseases by shared_count descending
-            overlapping_diseases.sort(key=lambda x: x["shared_count"], reverse=True)
+            overlapping_diseases.sort(
+                key=lambda x: x["shared_count"], reverse=True
+            )
 
             complexity.append(
                 {
@@ -490,7 +530,10 @@ class BiasAnalyzer:
                     "total_overlap_count": overlap_count,
                     "unique_symptom_ratio": (
                         round(
-                            len(my_symptoms - self._get_all_other_symptoms(disease))
+                            len(
+                                my_symptoms
+                                - self._get_all_other_symptoms(disease)
+                            )
                             / len(my_symptoms),
                             3,
                         )
@@ -537,7 +580,9 @@ class BiasAnalyzer:
                             "disease_2": d2,
                             "shared_symptoms": list(shared),
                             "shared_count": len(shared),
-                            "jaccard_index": round(len(shared) / len(s1 | s2), 3),
+                            "jaccard_index": round(
+                                len(shared) / len(s1 | s2), 3
+                            ),
                         }
                     )
 
@@ -547,7 +592,9 @@ class BiasAnalyzer:
             "total_overlapping_pairs": len(overlapping_pairs),
             "top_overlapping_pairs": overlapping_pairs[:20],
             "avg_shared_symptoms": (
-                round(np.mean([p["shared_count"] for p in overlapping_pairs]), 2)
+                round(
+                    np.mean([p["shared_count"] for p in overlapping_pairs]), 2
+                )
                 if overlapping_pairs
                 else 0
             ),

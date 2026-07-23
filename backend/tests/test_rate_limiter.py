@@ -1,9 +1,9 @@
 import os
 import time
-import threading
-import sqlite3
+import threading  # noqa
+import sqlite3  # noqa
 from unittest import mock
-import pytest
+import pytest  # noqa
 from flask import Flask
 
 from backend.middleware.security import (
@@ -98,7 +98,7 @@ def test_in_memory_backend_sliding_window():
 
 
 def test_in_memory_backend_cleanup():
-    """Test that stale entries are automatically cleaned up from in-memory backend."""
+    """Test that stale entries are automatically cleaned up from in-memory backend."""  # noqa: E501
     backend = InMemoryBackend(cleanup_interval=10)
     try:
         identifier = "stale_ip"
@@ -163,7 +163,8 @@ def test_sqlite_backend_cleanup(tmp_path):
         with backend._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT COUNT(*) FROM rate_limits WHERE identifier = ?", (identifier,)
+                "SELECT COUNT(*) FROM rate_limits WHERE identifier = ?",
+                (identifier,),
             )
             assert cursor.fetchone()[0] == 1
 
@@ -175,7 +176,8 @@ def test_sqlite_backend_cleanup(tmp_path):
         with backend._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT COUNT(*) FROM rate_limits WHERE identifier = ?", (identifier,)
+                "SELECT COUNT(*) FROM rate_limits WHERE identifier = ?",
+                (identifier,),
             )
             assert cursor.fetchone()[0] == 0
     finally:
@@ -208,7 +210,9 @@ def test_redis_backend_lua_mock():
         assert remaining == 5
 
         # Verify register_script was called with LUA_RATE_LIMIT script
-        mock_redis.register_script.assert_called_once_with(backend.LUA_RATE_LIMIT)
+        mock_redis.register_script.assert_called_once_with(
+            backend.LUA_RATE_LIMIT
+        )
         # Verify the registered script was called with correct keys & args
         mock_script.assert_called_once()
         call_kwargs = mock_script.call_args[1]
@@ -220,7 +224,7 @@ def test_redis_backend_lua_mock():
 
 @mock.patch.dict(os.environ, {"RATE_LIMIT_BACKEND": "in_memory"})
 def test_rate_limiter_load_in_memory():
-    """Test that RateLimiter initializes InMemoryBackend by default or when configured."""
+    """Test that RateLimiter initializes InMemoryBackend by default or when configured."""  # noqa: E501
     limiter = RateLimiter()
     assert isinstance(limiter.backend, InMemoryBackend)
     limiter.backend.stop()
@@ -249,10 +253,11 @@ def test_rate_limiter_load_sqlite():
 
 
 @mock.patch.dict(
-    os.environ, {"RATE_LIMIT_BACKEND": "redis", "REDIS_URL": "redis://localhost:6379/0"}
+    os.environ,
+    {"RATE_LIMIT_BACKEND": "redis", "REDIS_URL": "redis://localhost:6379/0"},
 )
 def test_rate_limiter_load_redis_fallback():
-    """Test that RateLimiter falls back to InMemoryBackend if Redis connection/initialization fails."""
+    """Test that RateLimiter falls back to InMemoryBackend if Redis connection/initialization fails."""  # noqa: E501
     mock_redis = mock.MagicMock()
     mock_redis.from_url.side_effect = Exception("Redis connection error")
     with mock.patch("backend.middleware.security.redis", mock_redis):

@@ -1,6 +1,6 @@
 """
 Temporal Analysis Engine for Disease Prediction
-Handles progression timeline tracking, vitals trend analysis, weighted recent medical events,
+Handles progression timeline tracking, vitals trend analysis, weighted recent medical events,  # noqa: E501
 and dynamic survival probability calculations over time.
 """
 
@@ -12,13 +12,18 @@ import numpy as np
 
 class TemporalAnalysisEngine:
     """
-    Advanced engine to process sequential patient history, analyze vital trends,
+    Advanced engine to process sequential patient history, analyze vital trends,  # noqa: E501
     and compute dynamic survival probabilities.
     """
 
     # Healthy baselines for vitals
     VITALS_BASELINE = {
-        "heart_rate": {"min": 60.0, "max": 100.0, "ideal": 70.0, "weight": 0.15},
+        "heart_rate": {
+            "min": 60.0,
+            "max": 100.0,
+            "ideal": 70.0,
+            "weight": 0.15,
+        },
         "blood_pressure_systolic": {
             "min": 90.0,
             "max": 120.0,
@@ -31,8 +36,18 @@ class TemporalAnalysisEngine:
             "ideal": 75.0,
             "weight": 0.15,
         },
-        "blood_glucose": {"min": 70.0, "max": 100.0, "ideal": 85.0, "weight": 0.25},
-        "temperature": {"min": 36.1, "max": 37.2, "ideal": 36.6, "weight": 0.25},
+        "blood_glucose": {
+            "min": 70.0,
+            "max": 100.0,
+            "ideal": 85.0,
+            "weight": 0.25,
+        },
+        "temperature": {
+            "min": 36.1,
+            "max": 37.2,
+            "ideal": 36.6,
+            "weight": 0.25,
+        },
     }
 
     @classmethod
@@ -45,12 +60,12 @@ class TemporalAnalysisEngine:
         temperature: Optional[float] = None,
     ) -> Dict[str, Any]:
         """
-        Analyze a single set of vitals, flag clinical anomalies, and compute a vitals health index (0 to 1).
+        Analyze a single set of vitals, flag clinical anomalies, and compute a vitals health index (0 to 1).  # noqa: E501
         """
         analysis = {
             "flags": [],
             "metrics": {},
-            "vitals_health_score": 1.0,  # 1.0 = perfect health, 0.0 = highly unstable
+            "vitals_health_score": 1.0,  # 1.0 = perfect health, 0.0 = highly unstable # noqa: E501
             "summary": "Vitals are normal.",
         }
 
@@ -68,8 +83,10 @@ class TemporalAnalysisEngine:
                         "vital": "heart_rate",
                         "status": "Tachycardia (High)",
                         "value": heart_rate,
-                        "severity": "danger" if heart_rate > 120 else "warning",
-                        "message": f"Elevated heart rate ({heart_rate} bpm). Target: 60-100 bpm.",
+                        "severity": (
+                            "danger" if heart_rate > 120 else "warning"
+                        ),
+                        "message": f"Elevated heart rate ({heart_rate} bpm). Target: 60-100 bpm.",  # noqa: E501
                     }
                 )
                 penalties += hr_cfg["weight"] * severity
@@ -81,7 +98,7 @@ class TemporalAnalysisEngine:
                         "status": "Bradycardia (Low)",
                         "value": heart_rate,
                         "severity": "danger" if heart_rate < 50 else "warning",
-                        "message": f"Low heart rate ({heart_rate} bpm). Target: 60-100 bpm.",
+                        "message": f"Low heart rate ({heart_rate} bpm). Target: 60-100 bpm.",  # noqa: E501
                     }
                 )
                 penalties += hr_cfg["weight"] * severity
@@ -107,19 +124,17 @@ class TemporalAnalysisEngine:
             if bp_systolic > 140 or bp_diastolic > 90:
                 bp_status = "Hypertension Stage 2"
                 bp_severity = "danger"
-                bp_msg = f"Critically high blood pressure ({int(bp_systolic)}/{int(bp_diastolic)} mmHg)."
+                bp_msg = f"Critically high blood pressure ({int(bp_systolic)}/{int(bp_diastolic)} mmHg)."  # noqa: E501
                 penalties += (sys_cfg["weight"] + dia_cfg["weight"]) * 0.95
             elif bp_systolic > 120 or bp_diastolic > 80:
                 bp_status = "Pre-hypertension"
                 bp_severity = "warning"
-                bp_msg = f"Elevated blood pressure ({int(bp_systolic)}/{int(bp_diastolic)} mmHg)."
+                bp_msg = f"Elevated blood pressure ({int(bp_systolic)}/{int(bp_diastolic)} mmHg)."  # noqa: E501
                 penalties += (sys_cfg["weight"] + dia_cfg["weight"]) * 0.4
             elif bp_systolic < 90 or bp_diastolic < 60:
                 bp_status = "Hypotension"
                 bp_severity = "warning"
-                bp_msg = (
-                    f"Low blood pressure ({int(bp_systolic)}/{int(bp_diastolic)} mmHg)."
-                )
+                bp_msg = f"Low blood pressure ({int(bp_systolic)}/{int(bp_diastolic)} mmHg)."  # noqa: E501
                 penalties += (sys_cfg["weight"] + dia_cfg["weight"]) * 0.5
 
             if bp_status != "Normal":
@@ -150,8 +165,10 @@ class TemporalAnalysisEngine:
                         "vital": "blood_glucose",
                         "status": "Hyperglycemia (High)",
                         "value": blood_glucose,
-                        "severity": "danger" if blood_glucose > 180 else "warning",
-                        "message": f"Elevated blood glucose ({blood_glucose} mg/dL). Target: 70-100 mg/dL (fasting).",
+                        "severity": (
+                            "danger" if blood_glucose > 180 else "warning"
+                        ),
+                        "message": f"Elevated blood glucose ({blood_glucose} mg/dL). Target: 70-100 mg/dL (fasting).",  # noqa: E501
                     }
                 )
                 penalties += glu_cfg["weight"] * severity
@@ -162,8 +179,10 @@ class TemporalAnalysisEngine:
                         "vital": "blood_glucose",
                         "status": "Hypoglycemia (Low)",
                         "value": blood_glucose,
-                        "severity": "danger" if blood_glucose < 55 else "warning",
-                        "message": f"Critically low blood glucose ({blood_glucose} mg/dL). Target: 70-100 mg/dL.",
+                        "severity": (
+                            "danger" if blood_glucose < 55 else "warning"
+                        ),
+                        "message": f"Critically low blood glucose ({blood_glucose} mg/dL). Target: 70-100 mg/dL.",  # noqa: E501
                     }
                 )
                 penalties += glu_cfg["weight"] * severity
@@ -187,8 +206,10 @@ class TemporalAnalysisEngine:
                         "vital": "temperature",
                         "status": "Fever/Hyperthermia",
                         "value": temperature,
-                        "severity": "danger" if temperature > 39.0 else "warning",
-                        "message": f"Elevated temperature ({temperature}°C). Indicating active infection or inflammation.",
+                        "severity": (
+                            "danger" if temperature > 39.0 else "warning"
+                        ),
+                        "message": f"Elevated temperature ({temperature}°C). Indicating active infection or inflammation.",  # noqa: E501
                     }
                 )
                 penalties += temp_cfg["weight"] * severity
@@ -199,8 +220,10 @@ class TemporalAnalysisEngine:
                         "vital": "temperature",
                         "status": "Hypothermia",
                         "value": temperature,
-                        "severity": "danger" if temperature < 35.0 else "warning",
-                        "message": f"Low body temperature ({temperature}°C). Target: 36.1-37.2°C.",
+                        "severity": (
+                            "danger" if temperature < 35.0 else "warning"
+                        ),
+                        "message": f"Low body temperature ({temperature}°C). Target: 36.1-37.2°C.",  # noqa: E501
                     }
                 )
                 penalties += temp_cfg["weight"] * severity
@@ -223,11 +246,11 @@ class TemporalAnalysisEngine:
             )
             if critical_flags > 0:
                 analysis["summary"] = (
-                    f"Warning: {critical_flags} critical vital anomaly detected! Medical assessment recommended."
+                    f"Warning: {critical_flags} critical vital anomaly detected! Medical assessment recommended."  # noqa: E501
                 )
             else:
                 analysis["summary"] = (
-                    f"Alert: {len(analysis['flags'])} minor vital deviations observed. Keep tracking."
+                    f"Alert: {len(analysis['flags'])} minor vital deviations observed. Keep tracking."  # noqa: E501
                 )
 
         return analysis
@@ -243,9 +266,9 @@ class TemporalAnalysisEngine:
         Calculate dynamic survival/recovery probability.
 
         Args:
-            disease_posterior: The posterior probability of having the disease (0 to 1).
-            vitals_health_score: The calculated vitals stability index (0 to 1).
-            trend_factor: Positive or negative adjustment based on historical trend (-0.15 to +0.15).
+            disease_posterior: The posterior probability of having the disease (0 to 1).  # noqa: E501
+            vitals_health_score: The calculated vitals stability index (0 to 1).  # noqa: E501
+            trend_factor: Positive or negative adjustment based on historical trend (-0.15 to +0.15).  # noqa: E501
 
         Returns:
             float: Dynamic survival probability percentage (0.0 to 100.0)
@@ -253,9 +276,11 @@ class TemporalAnalysisEngine:
         # Baseline survival is complementary to the disease posterior chance
         baseline_survival = 1.0 - disease_posterior
 
-        # Modulate by vitals health score. If vitals are highly unstable, survival probability takes a hit
+        # Modulate by vitals health score. If vitals are highly unstable, survival probability takes a hit # noqa: E501
         # If vitals are perfect (1.0), it reaches baseline or slightly better.
-        vitals_modifier = (vitals_health_score - 0.7) * 0.25  # -0.175 to +0.075 range
+        vitals_modifier = (
+            vitals_health_score - 0.7
+        ) * 0.25  # -0.175 to +0.075 range
 
         # Calculate dynamic survival
         dynamic_survival = baseline_survival + vitals_modifier + trend_factor
@@ -266,7 +291,9 @@ class TemporalAnalysisEngine:
         return round(dynamic_survival * 100, 2)
 
     @classmethod
-    def analyze_history_trends(cls, history: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def analyze_history_trends(
+        cls, history: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """
         Process user's chronological prediction history, calculating:
         1. progression timeline with timestamps
@@ -283,12 +310,13 @@ class TemporalAnalysisEngine:
                 "vitals_trends": {},
                 "recent_event_weights": [],
                 "overall_trend": "stable",
-                "overall_message": "No historical data to establish a trend line.",
+                "overall_message": "No historical data to establish a trend line.",  # noqa: E501
             }
 
-        # Sort history to be absolutely sure of chronological order (oldest first)
+        # Sort history to be absolutely sure of chronological order (oldest first) # noqa: E501
         sorted_history = sorted(
-            history, key=lambda x: x.get("created_at") or datetime.utcnow().isoformat()
+            history,
+            key=lambda x: x.get("created_at") or datetime.utcnow().isoformat(),
         )
 
         n_records = len(sorted_history)
@@ -325,7 +353,7 @@ class TemporalAnalysisEngine:
                 temperature=record.get("temperature"),
             )
 
-            # Trend Factor calculation: Are vitals improving compared to the previous record?
+            # Trend Factor calculation: Are vitals improving compared to the previous record? # noqa: E501
             trend_factor = 0.0
             if prev_vitals_health is not None:
                 current_health = vitals_analysis["vitals_health_score"]
@@ -340,7 +368,7 @@ class TemporalAnalysisEngine:
                 record.get("ml_probability") or 0.0
             )
 
-            # Check if record already has a calculated survival_probability, otherwise calculate it dynamically
+            # Check if record already has a calculated survival_probability, otherwise calculate it dynamically # noqa: E501
             survival_prob = record.get("survival_probability")
             if survival_prob is None:
                 survival_prob = cls.calculate_dynamic_survival(
@@ -369,7 +397,9 @@ class TemporalAnalysisEngine:
                         else None
                     ),
                     "survival_probability": survival_prob,
-                    "risk_level": record.get("risk_level", "medium").capitalize(),
+                    "risk_level": record.get(
+                        "risk_level", "medium"
+                    ).capitalize(),
                     "vitals_summary": vitals_analysis["summary"],
                     "flags": vitals_analysis["flags"],
                     "health_index": round(
@@ -378,7 +408,7 @@ class TemporalAnalysisEngine:
                     "vitals": {
                         "heart_rate": record.get("heart_rate"),
                         "blood_pressure": (
-                            f"{record.get('blood_pressure_systolic')}/{record.get('blood_pressure_diastolic')}"
+                            f"{record.get('blood_pressure_systolic')}/{record.get('blood_pressure_diastolic')}"  # noqa: E501
                             if record.get("blood_pressure_systolic")
                             else None
                         ),
@@ -391,8 +421,12 @@ class TemporalAnalysisEngine:
             # Append to trend lists
             vitals_trends["dates"].append(date_formatted)
             vitals_trends["heart_rate"].append(record.get("heart_rate"))
-            vitals_trends["bp_systolic"].append(record.get("blood_pressure_systolic"))
-            vitals_trends["bp_diastolic"].append(record.get("blood_pressure_diastolic"))
+            vitals_trends["bp_systolic"].append(
+                record.get("blood_pressure_systolic")
+            )
+            vitals_trends["bp_diastolic"].append(
+                record.get("blood_pressure_diastolic")
+            )
             vitals_trends["blood_glucose"].append(record.get("blood_glucose"))
             vitals_trends["temperature"].append(record.get("temperature"))
             vitals_trends["survival_probability"].append(survival_prob)
@@ -419,7 +453,9 @@ class TemporalAnalysisEngine:
 
         # 3. Overall progression direction
         overall_trend = "stable"
-        overall_message = "Your health patterns are stable and holding consistent."
+        overall_message = (
+            "Your health patterns are stable and holding consistent."
+        )
 
         if n_records >= 2:
             first_survival = timeline[0]["survival_probability"]
@@ -428,13 +464,13 @@ class TemporalAnalysisEngine:
 
             if net_change > 5.0:
                 overall_trend = "improving"
-                overall_message = f"Significant clinical improvement detected! Your recovery/survival probability has increased by {net_change:.1f}% over the last {n_records} sessions."
+                overall_message = f"Significant clinical improvement detected! Your recovery/survival probability has increased by {net_change:.1f}% over the last {n_records} sessions."  # noqa: E501
             elif net_change < -5.0:
                 overall_trend = "worsening"
-                overall_message = f"Warning: Clinical progression observed. Your dynamic survival probability has dropped by {abs(net_change):.1f}% since baseline. Consider contacting your physician."
+                overall_message = f"Warning: Clinical progression observed. Your dynamic survival probability has dropped by {abs(net_change):.1f}% since baseline. Consider contacting your physician."  # noqa: E501
             else:
                 overall_trend = "stable"
-                overall_message = "Your health status is stable. Minor fluctuations observed in vitals, but overall prognosis is steady."
+                overall_message = "Your health status is stable. Minor fluctuations observed in vitals, but overall prognosis is steady."  # noqa: E501
 
         # Prepare compatible structures for JS frontend
         dates = vitals_trends["dates"]
@@ -444,7 +480,7 @@ class TemporalAnalysisEngine:
         systolic_bp = vitals_trends["bp_systolic"]
         diastolic_bp = vitals_trends["bp_diastolic"]
 
-        # In JS, survival_probability values are multiplied by 100, so they must be in range 0.0 to 1.0
+        # In JS, survival_probability values are multiplied by 100, so they must be in range 0.0 to 1.0 # noqa: E501
         survival_probability_fractions = [
             float(v) / 100.0 for v in vitals_trends["survival_probability"]
         ]
@@ -491,5 +527,7 @@ class TemporalAnalysisEngine:
             "latest_survival_probability": (
                 timeline[-1]["survival_probability"] if timeline else 100.0
             ),
-            "latest_health_index": timeline[-1]["health_index"] if timeline else 100.0,
+            "latest_health_index": (
+                timeline[-1]["health_index"] if timeline else 100.0
+            ),
         }

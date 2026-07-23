@@ -50,7 +50,9 @@ def load_data(filepath):
             prevalence = float(row["Prevalence"])
             sensitivity = float(row["Sensitivity"])
             false_positive = float(row["FalsePositive"])
-            posterior = bayesian_survival(prevalence, sensitivity, false_positive)
+            posterior = bayesian_survival(
+                prevalence, sensitivity, false_positive
+            )
             row["Posterior"] = round(posterior, 4)
             results.append(row)
     return results
@@ -86,7 +88,10 @@ class BayesCalculator:
         pass
 
     def _compute_posterior_value(
-        self, prior: float, likelihood: float, false_positive_rate: float = 0.05
+        self,
+        prior: float,
+        likelihood: float,
+        false_positive_rate: float = 0.05,
     ) -> float:
         """Compute the raw posterior value without rounding, clamped to [0, 1]."""
         complement_prior = 1.0 - prior
@@ -98,11 +103,14 @@ class BayesCalculator:
         return clamp_probability(posterior)
 
     def calculate_posterior(
-        self, prior: float, likelihood: float, false_positive_rate: float = 0.05
+        self,
+        prior: float,
+        likelihood: float,
+        false_positive_rate: float = 0.05,
     ) -> dict:
         """
         Calculates the posterior probability using Bayes' Theorem for ML models.
-        Automatically clamps probability values to valid [0,1] range.
+        Automatically clamps probability values to valid [0,1] range.  # noqa: E501
         """
         try:
             prior = float(prior)
@@ -129,7 +137,7 @@ class BayesCalculator:
             risk_category = "High"
 
         return {
-            # Legacy fields (Keeps existing frontend components working perfectly)
+            # Legacy fields (Keeps existing frontend components working perfectly) # noqa: E501
             "prior": round(prior, 4),
             "likelihood": round(likelihood, 4),
             "posterior": round(posterior, 4),
@@ -149,7 +157,7 @@ class BayesCalculator:
         tolerance: float = 1e-6,
         max_permutations: int = 6,
     ) -> dict:
-        """Verify Bayesian posterior stability across symptom order permutations."""
+        """Verify Bayesian posterior stability across symptom order permutations."""  # noqa: E501
         if symptoms is None:
             symptoms = []
 
@@ -171,11 +179,13 @@ class BayesCalculator:
                 "max_posterior": 0.0,
                 "min_posterior": 0.0,
                 "posterior_values": [],
-                "diagnostic": "No symptoms provided; order invariance holds by definition.",
+                "diagnostic": "No symptoms provided; order invariance holds by definition.",  # noqa: E501
             }
 
         baseline_order = ordered_sequences[0]
-        baseline_prediction = model.predict_disease_probability(disease, baseline_order)
+        baseline_prediction = model.predict_disease_probability(
+            disease, baseline_order
+        )
         baseline_posterior = self._compute_posterior_value(
             baseline_prediction["prior_probability"],
             baseline_prediction["likelihood"],
@@ -213,9 +223,9 @@ class BayesCalculator:
             "min_posterior": round(min_posterior, 8),
             "posterior_values": [round(p, 8) for p in posterior_values],
             "diagnostic": (
-                "Posterior probability remained stable across symptom orderings."
+                "Posterior probability remained stable across symptom orderings."  # noqa: E501
                 if invariant
-                else "Detected non-commutative posterior drift across symptom orderings."
+                else "Detected non-commutative posterior drift across symptom orderings."  # noqa: E501
             ),
             "tolerance": tolerance,
             "drift_records": drift_records,
@@ -270,7 +280,7 @@ class BayesCalculator:
             risk_category = "High"
 
         return {
-            # Legacy fields (Keeps existing frontend components working perfectly)
+            # Legacy fields (Keeps existing frontend components working perfectly) # noqa: E501
             "prior": round(prior, 4),
             "sensitivity": round(sensitivity, 4),
             "specificity": round(specificity, 4),

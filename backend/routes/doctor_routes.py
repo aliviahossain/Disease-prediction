@@ -1,6 +1,6 @@
 """
 Doctor Dashboard Routes
-Provides API endpoints for doctor-facing dashboard with patient overview and risk summary.
+Provides API endpoints for doctor-facing dashboard with patient overview and risk summary.  # noqa: E501
 Also includes patient dashboard for individual user health tracking.
 """
 
@@ -11,14 +11,14 @@ from flask_login import current_user, login_required
 from sqlalchemy import func
 
 from backend import db
-from backend.models.prediction import PredictionHistory
+from backend.models.patient_history import PatientHistory
 
 doctor_bp = Blueprint("doctor", __name__, template_folder="../templates")
 
 
 def get_real_dashboard_data():
     """
-    Fetch real dashboard data from the PredictionHistory table.
+    Fetch real dashboard data from the PatientHistory table.
 
     Returns:
         dict: Dashboard metrics and risk distribution data from database
@@ -26,14 +26,14 @@ def get_real_dashboard_data():
     try:
         # Total predictions (as proxy for patients)
         total_patients = (
-            db.session.query(func.count(PredictionHistory.id)).scalar() or 0
+            db.session.query(func.count(PatientHistory.id)).scalar() or 0
         )
 
         # New cases in last 7 days
         seven_days_ago = datetime.utcnow() - timedelta(days=7)
         new_cases = (
-            db.session.query(func.count(PredictionHistory.id))
-            .filter(PredictionHistory.created_at >= seven_days_ago)
+            db.session.query(func.count(PatientHistory.id))
+            .filter(PatientHistory.created_at >= seven_days_ago)
             .scalar()
             or 0
         )
@@ -41,9 +41,9 @@ def get_real_dashboard_data():
         # Risk distribution counts
         risk_counts = (
             db.session.query(
-                PredictionHistory.risk_level, func.count(PredictionHistory.id)
+                PatientHistory.risk_level, func.count(PatientHistory.id)
             )
-            .group_by(PredictionHistory.risk_level)
+            .group_by(PatientHistory.risk_level)
             .all()
         )
 
@@ -77,12 +77,12 @@ def get_real_dashboard_data():
             base_percentages = [int(p) for p in raw_percentages]
             remainder = 100 - sum(base_percentages)
 
-            # Distribute remaining percentage points to categories with largest fractional parts
+            # Distribute remaining percentage points to categories with largest fractional parts # noqa: E501
             if remainder > 0:
                 fractional_parts = [
                     (p - int(p), idx) for idx, p in enumerate(raw_percentages)
                 ]
-                # Sort by descending fractional part so we add 1% to the largest fractions first
+                # Sort by descending fractional part so we add 1% to the largest fractions first # noqa: E501
                 fractional_parts.sort(reverse=True)
                 for i in range(remainder):
                     idx = fractional_parts[i % len(fractional_parts)][1]
@@ -92,7 +92,9 @@ def get_real_dashboard_data():
                 base_percentages
             )
         else:
-            low_risk_pct = medium_risk_pct = high_risk_pct = critical_risk_pct = 0
+            low_risk_pct = medium_risk_pct = high_risk_pct = (
+                critical_risk_pct
+            ) = 0
 
         return {
             "total_patients": total_patients,
@@ -101,8 +103,14 @@ def get_real_dashboard_data():
             "critical_risk_count": critical_risk_count,
             "risk_distribution": {
                 "low": {"count": low_risk_count, "percentage": low_risk_pct},
-                "medium": {"count": medium_risk_count, "percentage": medium_risk_pct},
-                "high": {"count": high_risk_count, "percentage": high_risk_pct},
+                "medium": {
+                    "count": medium_risk_count,
+                    "percentage": medium_risk_pct,
+                },
+                "high": {
+                    "count": high_risk_count,
+                    "percentage": high_risk_pct,
+                },
                 "critical": {
                     "count": critical_risk_count,
                     "percentage": critical_risk_pct,
@@ -155,8 +163,8 @@ def get_patient_dashboard_data(user_id):
         Exception: Propagates database errors to caller for proper handling
     """
     user_predictions = (
-        PredictionHistory.query.filter_by(user_id=user_id)
-        .order_by(PredictionHistory.created_at.desc())
+        PatientHistory.query.filter_by(user_id=user_id)
+        .order_by(PatientHistory.created_at.desc())
         .all()
     )
 
@@ -169,7 +177,9 @@ def get_patient_dashboard_data(user_id):
         if pred.risk_level in risk_counts:
             risk_counts[pred.risk_level] += 1
         if pred.disease:
-            disease_counts[pred.disease] = disease_counts.get(pred.disease, 0) + 1
+            disease_counts[pred.disease] = (
+                disease_counts.get(pred.disease, 0) + 1
+            )
 
     most_common_disease = None
     if disease_counts:
@@ -253,18 +263,36 @@ def get_patient_data():
 @login_required
 def get_patient_temporal_trends():
     """
-    API endpoint to fetch sequential patient prediction history and vitals trends.
+    API endpoint to fetch sequential patient prediction history and vitals trends.  # noqa: E501
     """
     try:
         from backend.utils.temporal_analysis import TemporalAnalysisEngine
 
         user_predictions = (
-            PredictionHistory.query.filter_by(user_id=current_user.id)
-            .order_by(PredictionHistory.created_at.asc())
+            PatientHistory.query.filter_by(user_id=current_user.id)
+            .order_by(PatientHistory.created_at.asc())
             .all()
         )
 
-        history_list = [pred.to_dict() for pred in user_predictions]
+        history_list = []
+        for pred in user_predictions:
+            d = pred.to_dict()
+            inputs = d.get("inputs") or {}
+            results = d.get("results") or {}
+
+            # Flatten to match what TemporalAnalysisEngine expects
+            flat = {
+                **d,
+                **inputs,
+                **results,
+                "bayesian_posterior": results.get("bayesian_posterior"),
+                "ml_probability": results.get(
+                    "ml_probability", d.get("probability")
+                ),
+                "survival_probability": results.get("survival_probability"),
+            }
+            history_list.append(flat)
+
         trends = TemporalAnalysisEngine.analyze_history_trends(history_list)
 
         return jsonify({"success": True, "data": trends}), 200

@@ -1,6 +1,6 @@
 """
 Tests for SECRET_KEY security configuration
-Tests that the application correctly handles SECRET_KEY in different environments
+Tests that the application correctly handles SECRET_KEY in different environments  # noqa: E501
 """
 
 import os
@@ -49,7 +49,7 @@ def test_secret_key_missing_in_production(monkeypatch):
 
 
 def test_secret_key_auto_generated_in_dev(monkeypatch, capsys):
-    """Test that app auto-generates SECRET_KEY in development when not provided"""
+    """Test that app auto-generates SECRET_KEY in development when not provided"""  # noqa: E501
     # Setup
     monkeypatch.delenv("SECRET_KEY", raising=False)
     monkeypatch.setenv("FLASK_ENV", "development")
@@ -63,7 +63,9 @@ def test_secret_key_auto_generated_in_dev(monkeypatch, capsys):
 
     # Assert
     assert app.config["SECRET_KEY"] is not None
-    assert len(app.config["SECRET_KEY"]) == 64  # token_hex(32) produces 64 chars
+    assert (
+        len(app.config["SECRET_KEY"]) == 64
+    )  # token_hex(32) produces 64 chars
 
     # Check warning message was printed
     captured = capsys.readouterr()
@@ -114,7 +116,8 @@ def test_secret_key_not_hardcoded():
 
     # Read the source file
     init_file = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "__init__.py"
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "__init__.py",
     )
 
     with open(init_file, "r", encoding="utf-8") as f:
@@ -132,7 +135,7 @@ def test_secret_key_not_hardcoded():
     )
 
     # Verify no literal key assignments (e.g., secret_key = 'hardcoded_value')
-    # This pattern checks for literal string assignments without environment loading
+    # This pattern checks for literal string assignments without environment loading # noqa: E501
     hardcoded_pattern = r"secret_key\s*=\s*['\"][^'\"]+['\"]"
     assert not re.search(
         hardcoded_pattern, content_no_comments

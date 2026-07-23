@@ -1,8 +1,10 @@
 """Test synthetic patient module."""
 
 import pytest
-from backend.models.ml_model import DiseaseMLModel
-from backend.services.synthetic_patient_service import SyntheticPatientGenerator
+from backend.models.ml_model import DiseaseMLModel  # noqa
+from backend.services.synthetic_patient_service import (
+    SyntheticPatientGenerator,
+)
 
 
 def test_generate_single_patient():

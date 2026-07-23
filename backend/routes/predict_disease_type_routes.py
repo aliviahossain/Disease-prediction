@@ -17,11 +17,17 @@ from backend.utils.gradcam import generate_tflite_scorecam_overlay
 # Import TensorFlow models
 
 
-warnings.filterwarnings("ignore", category=FutureWarning, message=".*np.object.*")
 warnings.filterwarnings(
-    "ignore", message=".*tf.lite.Interpreter is deprecated.*", category=UserWarning
+    "ignore", category=FutureWarning, message=".*np.object.*"
 )
-warnings.filterwarnings("ignore", message=".*np.object.*", category=FutureWarning)
+warnings.filterwarnings(
+    "ignore",
+    message=".*tf.lite.Interpreter is deprecated.*",
+    category=UserWarning,
+)
+warnings.filterwarnings(
+    "ignore", message=".*np.object.*", category=FutureWarning
+)
 
 # Suppress TensorFlow logging
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
@@ -36,7 +42,10 @@ MODEL_CONFIG = {
     "eyes": {
         "format": "keras",
         "path": os.path.join(
-            BACKEND_DIR, "models", "resnet50_models", "eye_disease_resnet50_fp16.keras"
+            BACKEND_DIR,
+            "models",
+            "resnet50_models",
+            "eye_disease_resnet50_fp16.keras",
         ),
         "class_names": [
             "Cataract",
@@ -73,7 +82,7 @@ KERAS_MODEL_CACHE = {}
 TFLITE_MODEL_CACHE = {}
 CACHE_INITIALIZED = False
 
-# Confidence threshold for eliminating low-confidence predictions (can be adjusted or made dynamic)
+# Confidence threshold for eliminating low-confidence predictions (can be adjusted or made dynamic) # noqa: E501
 CONFIDENCE_THRESHOLD = 0.60
 
 
@@ -111,7 +120,9 @@ def load_keras_model(model_type):
         if not os.path.exists(path):
             raise FileNotFoundError(f"Model not found: {path}")
 
-        KERAS_MODEL_CACHE[model_type] = tf.keras.models.load_model(path, compile=False)
+        KERAS_MODEL_CACHE[model_type] = tf.keras.models.load_model(
+            path, compile=False
+        )
         print(f"[MODEL_LOAD] Keras model loaded and cached: {model_type}")
     else:
         print(f"[MODEL_CACHE_HIT] Keras model {model_type} served from cache")
@@ -184,7 +195,7 @@ def run_tflite_inference(model_type, img_array):
 
 # Magic bytes for the image formats the models accept.
 # The check uses the first 12 bytes of the upload, which is sufficient
-# to distinguish JPEG (FF D8 FF), PNG (89 50 4E 47), and WebP (52 49 46 46 ... 57 45 42 50).
+# to distinguish JPEG (FF D8 FF), PNG (89 50 4E 47), and WebP (52 49 46 46 ... 57 45 42 50). # noqa: E501
 _IMAGE_MAGIC = {
     b"\xff\xd8\xff": "image/jpeg",
     b"\x89PNG": "image/png",
@@ -194,7 +205,7 @@ _MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
 
 
 def _validate_image_magic(stream) -> bool:
-    """Return True only if the leading bytes identify a supported image format."""
+    """Return True only if the leading bytes identify a supported image format."""  # noqa: E501
     header = stream.read(12)
     stream.seek(0)
     if not header:
@@ -233,12 +244,12 @@ def predict():
         return jsonify({"error": "File size exceeds the 10 MB limit."}), 400
 
     # Validate the file magic bytes before using the filename extension.
-    # Extension-only checks are trivially bypassed by renaming any file to .jpg.
+    # Extension-only checks are trivially bypassed by renaming any file to .jpg. # noqa: E501
     if not _validate_image_magic(image_file.stream):
         return (
             jsonify(
                 {
-                    "error": "Uploaded file is not a recognised image (JPEG, PNG, or WebP)."
+                    "error": "Uploaded file is not a recognised image (JPEG, PNG, or WebP)."  # noqa: E501
                 }
             ),
             400,
@@ -257,7 +268,7 @@ def predict():
         return (
             jsonify(
                 {
-                    "error": f"Invalid type '{model_type}'. Use one of: {list(MODEL_CONFIG.keys())}"
+                    "error": f"Invalid type '{model_type}'. Use one of: {list(MODEL_CONFIG.keys())}"  # noqa: E501
                 }
             ),
             400,
@@ -288,14 +299,17 @@ def predict():
             confidence = float(preds[idx])
             predicted_class = MODEL_CONFIG[model_type]["class_names"][idx]
 
-            print(f"Prediction: {predicted_class}, " f"Confidence: {confidence:.4f}")
+            print(
+                f"Prediction: {predicted_class}, "
+                f"Confidence: {confidence:.4f}"
+            )
 
             if confidence < CONFIDENCE_THRESHOLD:
                 return (
                     jsonify(
                         {
                             "error": (
-                                f"The uploaded image does not appear to be a valid "
+                                f"The uploaded image does not appear to be a valid "  # noqa: E501
                                 f"{model_type} disease image. "
                                 "Please upload a clear medical image."
                             ),
@@ -316,28 +330,34 @@ def predict():
                 if config["format"] == "keras":
                     # Eye model → Grad-CAM using the cached Keras model
                     keras_model = load_keras_model(model_type)
-                    gradcam_overlay, gradcam_heatmap = generate_gradcam_overlay(
-                        model=keras_model,
-                        img_path=tmp_path,
-                        class_index=idx,
-                        target_size=config["img_size"],
+                    gradcam_overlay, gradcam_heatmap = (
+                        generate_gradcam_overlay(
+                            model=keras_model,
+                            img_path=tmp_path,
+                            class_index=idx,
+                            target_size=config["img_size"],
+                        )
                     )
                     explanation_method = "grad-cam"
 
                 else:
                     # Skin model → Score-CAM using the .tflite file path
-                    gradcam_overlay, gradcam_heatmap = generate_tflite_scorecam_overlay(
-                        tflite_path=config["path"],
-                        img_path=tmp_path,
-                        class_index=idx,
-                        target_size=config["img_size"],
+                    gradcam_overlay, gradcam_heatmap = (
+                        generate_tflite_scorecam_overlay(
+                            tflite_path=config["path"],
+                            img_path=tmp_path,
+                            class_index=idx,
+                            target_size=config["img_size"],
+                        )
                     )
                     explanation_method = "score-cam"
 
             except Exception as cam_err:
                 import traceback
 
-                print(f"[Grad-CAM] Warning: heatmap generation failed: {cam_err}")
+                print(
+                    f"[Grad-CAM] Warning: heatmap generation failed: {cam_err}"
+                )
                 traceback.print_exc()
 
         finally:
@@ -360,16 +380,16 @@ def predict():
             probability=confidence,
         )
 
-        # 6. Return prediction + heatmap (gradcam fields are None if generation failed)
+        # 6. Return prediction + heatmap (gradcam fields are None if generation failed) # noqa: E501
         return (
             jsonify(
                 {
                     "prediction": predicted_class,
                     "confidence": round(confidence * 100, 2),
                     "type": model_type,
-                    "gradcam_overlay": gradcam_overlay,  # NEW: base64 PNG, image + heatmap blended
-                    "gradcam_heatmap": gradcam_heatmap,  # NEW: base64 PNG, raw heatmap only
-                    "explanation_method": explanation_method,  # NEW: "grad-cam" | "score-cam" | None
+                    "gradcam_overlay": gradcam_overlay,  # NEW: base64 PNG, image + heatmap blended # noqa: E501
+                    "gradcam_heatmap": gradcam_heatmap,  # NEW: base64 PNG, raw heatmap only # noqa: E501
+                    "explanation_method": explanation_method,  # NEW: "grad-cam" | "score-cam" | None # noqa: E501
                 }
             ),
             200,
