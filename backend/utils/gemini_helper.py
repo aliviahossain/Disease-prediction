@@ -1,5 +1,5 @@
 """
-Gemini API helper for generating recommendations based on disease probability results.
+Gemini API helper for generating recommendations based on disease probability results.  # noqa: E501
 """
 
 import os
@@ -22,7 +22,7 @@ def configure_gemini():
         import warnings
 
         warnings.warn(
-            "google-genai package not properly installed. Gemini features disabled."
+            "google-genai package not properly installed. Gemini features disabled."  # noqa: E501
         )
         return
 
@@ -41,10 +41,10 @@ def generate_recommendations(
     language: str = "english",
 ) -> dict:
     """
-    Generate AI-powered recommendations using Gemini API based on disease probability results.
+    Generate AI-powered recommendations using Gemini API based on disease probability results.  # noqa: E501
 
     Args:
-        disease_name: Name of the disease (optional, can be None for custom input)
+        disease_name: Name of the disease (optional, can be None for custom input)  # noqa: E501
         prior_probability: Prior probability of disease (before test)
         posterior_probability: Posterior probability of disease (after test)
         test_result: The test result ("positive" or "negative")
@@ -67,9 +67,9 @@ def generate_recommendations(
         # Language mapping for prompt instructions
         language_instructions = {
             "english": "Respond in English.",
-            "hindi": "Respond in Hindi (हिंदी में जवाब दें). Use Devanagari script.",
-            "gujarati": "Respond in Gujarati (ગુજરાતીમાં જવાબ આપો). Use Gujarati script.",
-            "tamil": "Respond in Tamil (தமிழில் பதிலளிக்கவும்). Use Tamil script.",
+            "hindi": "Respond in Hindi (हिंदी में जवाब दें). Use Devanagari script.",  # noqa: E501
+            "gujarati": "Respond in Gujarati (ગુજરાતીમાં જવાબ આપો). Use Gujarati script.",  # noqa: E501
+            "tamil": "Respond in Tamil (தமிழில் பதிலளிக்கவும்). Use Tamil script.",  # noqa: E501
         }
 
         language_instruction = language_instructions.get(
@@ -77,29 +77,29 @@ def generate_recommendations(
         )
 
         prompt = f"""
-You are a medical informatics assistant helping to interpret diagnostic test results.
- 
+You are a medical informatics assistant helping to interpret diagnostic test results.  # noqa: E501
+
 IMPORTANT: {language_instruction}
- 
+
 Context:
 - Disease/Condition: {disease_context}
 - Test Result: {test_result.upper()}
 - Prior Probability (before test): {prior_probability * 100:.2f}%
 - Posterior Probability (after test): {posterior_probability * 100:.2f}%
- 
-Based on these Bayesian probability results, provide clear, actionable recommendations for what to do next. 
+
+Based on these Bayesian probability results, provide clear, actionable recommendations for what to do next.   # noqa: E501
 Structure your response in the following format:
- 
+
 **Interpretation:**
 (Brief explanation of what these numbers mean in plain language)
- 
+
 **Recommended Next Steps:**
-(2-4 specific, practical recommendations such as: further testing, consultation with specialists, lifestyle changes, monitoring, etc.)
- 
+(2-4 specific, practical recommendations such as: further testing, consultation with specialists, lifestyle changes, monitoring, etc.)  # noqa: E501
+
 **Important Notes:**
 (Any critical considerations or disclaimers)
- 
-Keep your response concise (under 200 words), professional, educational, and emphasize that this is a probabilistic tool, not a definitive diagnosis. The recommendations should be general guidance that would apply to most cases.
+
+Keep your response concise (under 200 words), professional, educational, and emphasize that this is a probabilistic tool, not a definitive diagnosis. The recommendations should be general guidance that would apply to most cases.  # noqa: E501
 """
 
         # Attempt each model in order; move to next if one fails
@@ -119,7 +119,9 @@ Keep your response concise (under 200 words), professional, educational, and emp
                 }
                 break
             except Exception as e:
-                logger.warning(f"Model {model_name} failed: {e}. Trying next model...")
+                logger.warning(
+                    f"Model {model_name} failed: {e}. Trying next model..."
+                )
                 last_exception = e
                 continue
 
@@ -132,13 +134,13 @@ Keep your response concise (under 200 words), professional, educational, and emp
         return {
             "success": False,
             "error": str(ve),
-            "recommendations": "API key not configured. Please set GEMINI_API_KEY environment variable.",
+            "recommendations": "API key not configured. Please set GEMINI_API_KEY environment variable.",  # noqa: E501
         }
     except Exception as e:
         return {
             "success": False,
             "error": str(e),
-            "recommendations": "Unable to generate recommendations at this time. Please try again later.",
+            "recommendations": "Unable to generate recommendations at this time. Please try again later.",  # noqa: E501
         }
 
 
@@ -154,7 +156,9 @@ def process_history(messages):
             formatted_history.append(
                 types.Content(
                     role=turn["role"],  # Must be 'user' or 'model'
-                    parts=[types.Part.from_text(text=turn["text"])],  # Wrapped properly
+                    parts=[
+                        types.Part.from_text(text=turn["text"])
+                    ],  # Wrapped properly
                 )
             )
         return formatted_history
@@ -165,7 +169,7 @@ def process_history(messages):
 
 def generate_chat_response(messages: str, history: list = None) -> dict:
     """
-    Generate a chat response using Gemini API, restricted to medical/health domain.
+    Generate a chat response using Gemini API, restricted to medical/health domain.  # noqa: E501
 
     Args:
         message: The user's query
@@ -180,26 +184,28 @@ def generate_chat_response(messages: str, history: list = None) -> dict:
         # System instruction to restrict domain
         system_instruction = """
         You are a helpful AI assistant for a Disease Prediction Application.
- 
+
         YOUR ROLE:
         - Helper users understand disease predictions.
         - Answer general health and medical questions.
-        - Explain how to use the application (symptom checker, calculator, etc.).
-        
+        - Explain how to use the application (symptom checker, calculator, etc.).  # noqa: E501
+
         STRICT RULES:
-        1. ONLY answer questions related to health, medicine, diseases, symptoms, treatments, and this application.
-        2. If a user asks a non-medical question (e.g., "Who won the World Cup?", "Write python code for..."), politely REFUSE.
-           - Example refusal: "I apologize, but I am specialized in health and disease prediction. I cannot answer general queries outside this domain."
-        3. ALWAYS include a disclaimer for specific medical advice: "I am an AI, not a doctor. Please consult a healthcare professional for diagnosis and treatment."
-        4. Keep answers concise (under 150 words) unless detailed explanation is requested.
+        1. ONLY answer questions related to health, medicine, diseases, symptoms, treatments, and this application.  # noqa: E501
+        2. If a user asks a non-medical question (e.g., "Who won the World Cup?", "Write python code for..."), politely REFUSE.  # noqa: E501
+           - Example refusal: "I apologize, but I am specialized in health and disease prediction. I cannot answer general queries outside this domain."  # noqa: E501
+        3. ALWAYS include a disclaimer for specific medical advice: "I am an AI, not a doctor. Please consult a healthcare professional for diagnosis and treatment."  # noqa: E501
+        4. Keep answers concise (under 150 words) unless detailed explanation is requested.  # noqa: E501
         5. Be empathetic and professional.
         """
         formatted_history = process_history(messages=messages)
 
-        # Use the modern chats utility instance configuration passing system instruction
+        # Use the modern chats utility instance configuration passing system instruction # noqa: E501
         chat = client.chats.create(
             model="gemini-2.5-flash",
-            config=types.GenerateContentConfig(system_instruction=system_instruction),
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction
+            ),
             history=formatted_history,
         )
         message = messages[-1].get("text")
@@ -221,5 +227,5 @@ def generate_chat_response(messages: str, history: list = None) -> dict:
         return {
             "success": False,
             "error": str(e),
-            "response": "I'm having trouble connecting right now. Please try again later.",
+            "response": "I'm having trouble connecting right now. Please try again later.",  # noqa: E501
         }

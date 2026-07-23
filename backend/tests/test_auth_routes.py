@@ -1,4 +1,4 @@
-import pytest
+import pytest  # noqa
 
 
 def test_logout_post_succeeds(client):

@@ -25,7 +25,9 @@ def client(monkeypatch, tmp_path):
         user = User(
             username="profileuser",
             email="profile@example.com",
-            password_hash=bcrypt.generate_password_hash("password123").decode("utf-8"),
+            password_hash=bcrypt.generate_password_hash("password123").decode(
+                "utf-8"
+            ),
         )
         db.session.add(user)
         db.session.commit()

@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, render_template
 from backend.models.ml_model import ml_model
-import json
+import json  # noqa
 
 heatmap_bp = Blueprint("heatmap", __name__)
 

@@ -32,14 +32,19 @@ def chat():
         ai_result = generate_chat_response(messages)
 
         if ai_result["success"]:
-            return jsonify({"success": True, "response": ai_result["response"]}), 200
+            return (
+                jsonify({"success": True, "response": ai_result["response"]}),
+                200,
+            )
         else:
             return (
                 jsonify(
                     {
                         "success": False,
                         "error": ai_result.get("error", "Unknown error"),
-                        "response": ai_result.get("response", "Error occurred."),
+                        "response": ai_result.get(
+                            "response", "Error occurred."
+                        ),
                     }
                 ),
                 500,

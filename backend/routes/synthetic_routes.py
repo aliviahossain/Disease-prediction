@@ -2,7 +2,9 @@
 
 import logging
 from flask import Blueprint, request, jsonify
-from backend.services.synthetic_patient_service import SyntheticPatientGenerator
+from backend.services.synthetic_patient_service import (
+    SyntheticPatientGenerator,
+)
 from backend.middleware.error_handler import handle_errors
 
 logger = logging.getLogger(__name__)
@@ -25,7 +27,9 @@ def generate_patient():
         )
 
         # Calculate prediction score
-        ml_score = generator.calculate_ml_score(patient["disease"], patient["symptoms"])
+        ml_score = generator.calculate_ml_score(
+            patient["disease"], patient["symptoms"]
+        )
         patient["ml_score"] = ml_score
 
         return jsonify({"status": "success", "patient": patient}), 200
@@ -80,7 +84,9 @@ def rare_combinations():
         rare = generator.generate_rare_combinations(count)
 
         return (
-            jsonify({"status": "success", "count": len(rare), "combinations": rare}),
+            jsonify(
+                {"status": "success", "count": len(rare), "combinations": rare}
+            ),
             200,
         )
     except Exception as e:
@@ -96,7 +102,12 @@ def edge_cases():
         generator = SyntheticPatientGenerator()
         cases = generator.generate_edge_cases()
 
-        return jsonify({"status": "success", "count": len(cases), "cases": cases}), 200
+        return (
+            jsonify(
+                {"status": "success", "count": len(cases), "cases": cases}
+            ),
+            200,
+        )
     except Exception as e:
         logger.error(f"Error generating edge cases: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 400

@@ -16,7 +16,7 @@ load_dotenv()
 # Initialize extensions
 db = SQLAlchemy()
 bcrypt = Bcrypt()
-from flask_caching import Cache
+from flask_caching import Cache  # noqa
 
 cache = Cache()
 csrf = CSRFProtect()
@@ -35,7 +35,7 @@ def load_user(user_id):
 
 
 def _ensure_user_profile_columns(engine):
-    """Add profile columns to existing SQLite databases created before this model update."""
+    """Add profile columns to existing SQLite databases created before this model update."""  # noqa: E501
     if engine.dialect.name != "sqlite":
         return
 
@@ -43,7 +43,9 @@ def _ensure_user_profile_columns(engine):
     if "user" not in inspector.get_table_names():
         return
 
-    existing_columns = {column["name"] for column in inspector.get_columns("user")}
+    existing_columns = {
+        column["name"] for column in inspector.get_columns("user")
+    }
     profile_columns = {
         "phone": "VARCHAR(20)",
         "address": "VARCHAR(160)",
@@ -63,7 +65,9 @@ def _ensure_user_profile_columns(engine):
         for column_name, column_type in profile_columns.items():
             if column_name not in existing_columns:
                 connection.execute(
-                    text(f"ALTER TABLE user ADD COLUMN {column_name} {column_type}")
+                    text(
+                        f"ALTER TABLE user ADD COLUMN {column_name} {column_type}"  # noqa: E501
+                    )
                 )
 
 
@@ -87,7 +91,9 @@ def create_app():
     if database_url:
         # Compatibility fix for newer SQLAlchemy versions and Heroku-style URLs
         if database_url.startswith("postgres://"):
-            database_url = database_url.replace("postgres://", "postgresql://", 1)
+            database_url = database_url.replace(
+                "postgres://", "postgresql://", 1
+            )
         app.config["SQLALCHEMY_DATABASE_URI"] = database_url
     else:
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(
@@ -100,7 +106,8 @@ def create_app():
     secret_key = os.getenv("SECRET_KEY")
     if not secret_key:
         is_development = (
-            os.getenv("FLASK_ENV") == "development" or os.getenv("FLASK_DEBUG") == "1"
+            os.getenv("FLASK_ENV") == "development"
+            or os.getenv("FLASK_DEBUG") == "1"
         )
 
         if is_development:
@@ -110,9 +117,9 @@ def create_app():
             print("   For production, set SECRET_KEY in your .env file!\n")
         else:
             raise ValueError(
-                "\n[FAIL] CRITICAL ERROR: SECRET_KEY environment variable is required!\n"
+                "\n[FAIL] CRITICAL ERROR: SECRET_KEY environment variable is required!\n"  # noqa: E501
                 "   Please set SECRET_KEY in your .env file.\n"
-                '   Generate one with: python -c "import secrets; print(secrets.token_hex(32))"\n'
+                '   Generate one with: python -c "import secrets; print(secrets.token_hex(32))"\n'  # noqa: E501
             )
 
     app.config["SECRET_KEY"] = secret_key
@@ -122,10 +129,13 @@ def create_app():
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=2)
     # Prevent JavaScript from reading the session cookie (XSS mitigation).
     app.config["SESSION_COOKIE_HTTPONLY"] = True
-    # Block the cookie from being sent on cross-site navigations (CSRF mitigation).
+    # Block the cookie from being sent on cross-site navigations (CSRF mitigation). # noqa: E501
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     # Only send the cookie over HTTPS in non-development environments.
-    _is_dev = os.getenv("FLASK_ENV") == "development" or os.getenv("FLASK_DEBUG") == "1"
+    _is_dev = (
+        os.getenv("FLASK_ENV") == "development"
+        or os.getenv("FLASK_DEBUG") == "1"
+    )
     app.config["SESSION_COOKIE_SECURE"] = not _is_dev
     # Apply the same hardening to Flask-Login's "remember me" cookie.
     app.config["REMEMBER_COOKIE_HTTPONLY"] = True
@@ -157,10 +167,10 @@ def create_app():
         app.config["WTF_CSRF_ENABLED"] = False
 
     # --- Models -------------------------------------------------------
-    # Import the models so SQLAlchemy registers them with `db` before create_all() is called below.
-    # Without this import the patient_history table is never created, which is one half of the bug where history is "not being recorded".
-    from backend.models.user import User
-    from backend.models.prediction import PredictionHistory
+    # Import the models so SQLAlchemy registers them with `db` before create_all() is called below. # noqa: E501
+    # Without this import the patient_history table is never created, which is one half of the bug where history is "not being recorded". # noqa: E501
+    from backend.models.user import User  # noqa
+    from backend.models.prediction import PredictionHistory  # noqa
 
     # Register Disease Routes Blueprint
     from backend.routes.disease_routes import disease_bp
@@ -201,12 +211,18 @@ def create_app():
         print(f"[WARN] Warning: Could not import 'history_routes'. Error: {e}")
 
     try:
-        from backend.routes.predict_disease_type_routes import predict_disease_type_bp
+        from backend.routes.predict_disease_type_routes import (
+            predict_disease_type_bp,
+        )
 
         app.register_blueprint(predict_disease_type_bp)
-        print("'predict_disease_type_bp_routes' blueprint registered successfully")
+        print(
+            "'predict_disease_type_bp_routes' blueprint registered successfully"  # noqa: E501
+        )
     except ImportError as e:
-        print(f"Warning: Could not import 'predict_disease_type_bp_routes'. Error: {e}")
+        print(
+            f"Warning: Could not import 'predict_disease_type_bp_routes'. Error: {e}"  # noqa: E501
+        )
 
     try:
         from backend.routes.general_routes import general_bp
@@ -222,7 +238,9 @@ def create_app():
         app.register_blueprint(scalability_bp)
         print("'scalability_routes' blueprint registered successfully")
     except ImportError as e:
-        print(f"[WARN] Warning: Could not import 'scalability_routes'. Error: {e}")
+        print(
+            f"[WARN] Warning: Could not import 'scalability_routes'. Error: {e}"  # noqa: E501
+        )
 
     try:
         from backend.routes.chat_routes import chat_bp
@@ -248,12 +266,14 @@ def create_app():
         app.register_blueprint(synthetic_bp)
         print("[OK] 'synthetic_routes' blueprint registered successfully")
     except ImportError as e:
-        print(f"[WARN] Warning: Could not import 'synthetic_routes'. Error: {e}")
+        print(
+            f"[WARN] Warning: Could not import 'synthetic_routes'. Error: {e}"
+        )
 
     # Keep centralized error handler (from register-error-handler branch)
     ErrorHandler(app)
 
-    # Mark every session as permanent so Flask applies PERMANENT_SESSION_LIFETIME.
+    # Mark every session as permanent so Flask applies PERMANENT_SESSION_LIFETIME. # noqa: E501
     # Without this, sessions use the browser-session lifetime (close = expire).
     @app.before_request
     def _make_session_permanent():

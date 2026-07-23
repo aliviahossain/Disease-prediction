@@ -13,7 +13,7 @@ Configuration (environment variables):
 
 Usage:
     from backend.utils.uncertainty_handler import uncertainty_handler
-    check = uncertainty_handler.evaluate(confidence_score=0.32, top2_score=0.28)
+    check = uncertainty_handler.evaluate(confidence_score=0.32, top2_score=0.28)  # noqa: E501
     if not check["is_sufficient"]:
         return jsonify(check), 200
 """
@@ -31,7 +31,9 @@ Below this value → "Insufficient data" response.
 Range: 0.0 – 1.0  |  Recommended: 0.30 – 0.60
 """
 
-MARGIN_THRESHOLD: float = float(os.getenv("PREDICTION_MARGIN_THRESHOLD", "0.10"))
+MARGIN_THRESHOLD: float = float(
+    os.getenv("PREDICTION_MARGIN_THRESHOLD", "0.10")
+)
 """
 Minimum score gap between the rank-1 and rank-2 prediction.
 A near-tie means the model cannot distinguish between two diseases.
@@ -78,24 +80,26 @@ class UncertaintyHandler:
         Parameters
         ----------
         confidence_score : float        Top prediction's confidence (0–1).
-        top2_score       : float|None   Second-best score; None if only one result.
-        disease_name     : str          Label for the top prediction (for messages).
+        top2_score       : float|None   Second-best score; None if only one result.  # noqa: E501
+        disease_name     : str          Label for the top prediction (for messages).  # noqa: E501
         top2_disease     : str          Label for the second prediction.
 
         Returns
         -------
         dict with keys:
-            is_sufficient  bool     True → show prediction; False → show warning card.
+            is_sufficient  bool     True → show prediction; False → show warning card.  # noqa: E501
             reason         str|None Human-readable explanation when False.
             confidence     float    The raw score that was evaluated.
         """
         # ── Input validation ─────────────────────────────────────────────────
         if not (0.0 <= confidence_score <= 1.0):
             raise ValueError(
-                f"confidence_score must be in [0.0, 1.0], got {confidence_score}"
+                f"confidence_score must be in [0.0, 1.0], got {confidence_score}"  # noqa: E501
             )
         if top2_score is not None and not (0.0 <= top2_score <= 1.0):
-            raise ValueError(f"top2_score must be in [0.0, 1.0], got {top2_score}")
+            raise ValueError(
+                f"top2_score must be in [0.0, 1.0], got {top2_score}"
+            )
 
         # Check 1 — absolute confidence
         if confidence_score < self.confidence_threshold:
@@ -103,9 +107,9 @@ class UncertaintyHandler:
                 "is_sufficient": False,
                 "confidence": confidence_score,
                 "reason": (
-                    f"The model's confidence ({confidence_score:.0%}) is below "
-                    f"the minimum threshold ({self.confidence_threshold:.0%}). "
-                    "Please provide additional symptoms or diagnostic data for a reliable result."
+                    f"The model's confidence ({confidence_score:.0%}) is below "  # noqa: E501
+                    f"the minimum threshold ({self.confidence_threshold:.0%}). "  # noqa: E501
+                    "Please provide additional symptoms or diagnostic data for a reliable result."  # noqa: E501
                 ),
             }
 
@@ -120,13 +124,17 @@ class UncertaintyHandler:
                     "confidence": confidence_score,
                     "reason": (
                         f"The model is nearly split between '{d1}' "
-                        f"({confidence_score:.0%}) and '{d2}' ({top2_score:.0%}). "
-                        f"The {margin:.0%} margin is too small for a reliable prediction. "
+                        f"({confidence_score:.0%}) and '{d2}' ({top2_score:.0%}). "  # noqa: E501
+                        f"The {margin:.0%} margin is too small for a reliable prediction. "  # noqa: E501
                         "More symptoms or test results are needed."
                     ),
                 }
 
-        return {"is_sufficient": True, "confidence": confidence_score, "reason": None}
+        return {
+            "is_sufficient": True,
+            "confidence": confidence_score,
+            "reason": None,
+        }
 
     def get_config(self) -> dict:
         """Return active thresholds (exposed via /api/ml/config)."""

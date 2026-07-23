@@ -76,7 +76,9 @@ def save_history(
         return None
 
     try:
-        probability_value = float(probability) if probability is not None else None
+        probability_value = (
+            float(probability) if probability is not None else None
+        )
     except (TypeError, ValueError):
         logger.warning(
             "history.save: invalid probability value %r; storing as None",
@@ -106,6 +108,8 @@ def save_history(
         )
         return entry
     except Exception as exc:  # broad on purpose — see docstring
-        logger.exception("history.save: failed to persist history entry: %s", exc)
+        logger.exception(
+            "history.save: failed to persist history entry: %s", exc
+        )
         db.session.rollback()
         return None

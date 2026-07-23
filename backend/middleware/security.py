@@ -47,19 +47,25 @@ class InMemoryBackend:
             for identifier in list(self._requests.keys()):
                 cutoff = current_time - max_window
                 self._requests[identifier] = [
-                    (ts, ep) for ts, ep in self._requests[identifier] if ts > cutoff
+                    (ts, ep)
+                    for ts, ep in self._requests[identifier]
+                    if ts > cutoff
                 ]
                 if not self._requests[identifier]:
                     del self._requests[identifier]
 
-    def check_rate_limit(self, identifier, endpoint_type, max_requests, window):
+    def check_rate_limit(
+        self, identifier, endpoint_type, max_requests, window
+    ):
         current_time = time.time()
         cutoff_time = current_time - window
 
         with self._lock:
             # Clean old requests
             self._requests[identifier] = [
-                (ts, ep) for ts, ep in self._requests[identifier] if ts > cutoff_time
+                (ts, ep)
+                for ts, ep in self._requests[identifier]
+                if ts > cutoff_time
             ]
 
             # Count requests in window
@@ -67,8 +73,12 @@ class InMemoryBackend:
 
             # Check if limit exceeded
             if current_requests >= max_requests:
-                oldest_request = min(self._requests[identifier], key=lambda x: x[0])
-                retry_after = int(window - (current_time - oldest_request[0])) + 1
+                oldest_request = min(
+                    self._requests[identifier], key=lambda x: x[0]
+                )
+                retry_after = (
+                    int(window - (current_time - oldest_request[0])) + 1
+                )
                 return False, retry_after, 0
 
             # Add current request
@@ -93,7 +103,7 @@ class InMemoryBackend:
 
 class RedisBackend:
     """
-    Distributed Redis rate limit backend using TTL-based keys and an atomic Lua script.
+    Distributed Redis rate limit backend using TTL-based keys and an atomic Lua script.  # noqa: E501
     """
 
     LUA_RATE_LIMIT = """
@@ -111,7 +121,7 @@ class RedisBackend:
         local oldest = redis.call('ZRANGE', key, 0, 0, 'WITHSCORES')
         local retry_after = 0
         if oldest[2] then
-            retry_after = math.max(0, math.floor(window - (now - tonumber(oldest[2])))) + 1
+            retry_after = math.max(0, math.floor(window - (now - tonumber(oldest[2])))) + 1  # noqa: E501
         else
             retry_after = math.max(0, math.floor(window)) + 1
         end
@@ -127,17 +137,22 @@ class RedisBackend:
     def __init__(self, redis_url="redis://localhost:6379/0"):
         if redis is None:
             raise ImportError(
-                "The 'redis' package is required to use the Redis rate limit backend."
+                "The 'redis' package is required to use the Redis rate limit backend."  # noqa: E501
             )
         self.redis_client = redis.from_url(redis_url, decode_responses=True)
-        self._lua_script = self.redis_client.register_script(self.LUA_RATE_LIMIT)
+        self._lua_script = self.redis_client.register_script(
+            self.LUA_RATE_LIMIT
+        )
 
-    def check_rate_limit(self, identifier, endpoint_type, max_requests, window):
+    def check_rate_limit(
+        self, identifier, endpoint_type, max_requests, window
+    ):
         key = f"rate_limit:{identifier}:{endpoint_type}"
         current_time = time.time()
 
         allowed, retry_after, remaining = self._lua_script(
-            keys=[key], args=[current_time, window, max_requests, endpoint_type]
+            keys=[key],
+            args=[current_time, window, max_requests, endpoint_type],
         )
 
         return bool(allowed), int(retry_after), int(remaining)
@@ -204,10 +219,14 @@ class SQLiteBackend:
     def prune_stale_entries(self):
         cutoff = time.time() - 300  # 5 minutes buffer
         with self._get_connection() as conn:
-            conn.execute("DELETE FROM rate_limits WHERE timestamp < ?", (cutoff,))
+            conn.execute(
+                "DELETE FROM rate_limits WHERE timestamp < ?", (cutoff,)
+            )
             conn.commit()
 
-    def check_rate_limit(self, identifier, endpoint_type, max_requests, window):
+    def check_rate_limit(
+        self, identifier, endpoint_type, max_requests, window
+    ):
         current_time = time.time()
         cutoff_time = current_time - window
 
@@ -215,7 +234,7 @@ class SQLiteBackend:
             cursor = conn.cursor()
             # Clean old records for this identifier
             cursor.execute(
-                "DELETE FROM rate_limits WHERE identifier = ? AND timestamp < ?",
+                "DELETE FROM rate_limits WHERE identifier = ? AND timestamp < ?",  # noqa: E501
                 (identifier, cutoff_time),
             )
 
@@ -230,19 +249,21 @@ class SQLiteBackend:
             if current_requests >= max_requests:
                 cursor.execute(
                     "SELECT MIN(timestamp) FROM rate_limits "
-                    "WHERE identifier = ? AND endpoint_type = ? AND timestamp > ?",
+                    "WHERE identifier = ? AND endpoint_type = ? AND timestamp > ?",  # noqa: E501
                     (identifier, endpoint_type, cutoff_time),
                 )
                 oldest_timestamp = cursor.fetchone()[0]
                 if oldest_timestamp:
-                    retry_after = int(window - (current_time - oldest_timestamp)) + 1
+                    retry_after = (
+                        int(window - (current_time - oldest_timestamp)) + 1
+                    )
                 else:
                     retry_after = int(window) + 1
                 return False, retry_after, 0
 
             # Insert current request
             cursor.execute(
-                "INSERT INTO rate_limits (identifier, endpoint_type, timestamp) "
+                "INSERT INTO rate_limits (identifier, endpoint_type, timestamp) "  # noqa: E501
                 "VALUES (?, ?, ?)",
                 (identifier, endpoint_type, current_time),
             )
@@ -254,7 +275,9 @@ class SQLiteBackend:
     def get_stats(self):
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT COUNT(DISTINCT identifier) FROM rate_limits")
+            cursor.execute(
+                "SELECT COUNT(DISTINCT identifier) FROM rate_limits"
+            )
             total_identifiers = cursor.fetchone()[0]
             cursor.execute("SELECT COUNT(*) FROM rate_limits")
             total_requests = cursor.fetchone()[0]
@@ -294,7 +317,7 @@ class RateLimiter:
                 print(f"[OK] RateLimiter using Redis backend ({redis_url})")
             except Exception as e:
                 print(
-                    f"[WARN] Failed to initialize Redis backend: {e}. Falling back to in_memory."
+                    f"[WARN] Failed to initialize Redis backend: {e}. Falling back to in_memory."  # noqa: E501
                 )
                 self.backend = InMemoryBackend()
         elif backend_type == "sqlite":
@@ -333,7 +356,9 @@ class RateLimiter:
         auth_token = request_obj.headers.get("Authorization", "")
 
         if auth_token:
-            identifier = hashlib.sha256(f"{ip}:{auth_token}".encode()).hexdigest()
+            identifier = hashlib.sha256(
+                f"{ip}:{auth_token}".encode()
+            ).hexdigest()
         else:
             identifier = hashlib.sha256(ip.encode()).hexdigest()
 
@@ -344,7 +369,7 @@ class RateLimiter:
         Check if request is within rate limit.
 
         Args:
-            endpoint_type: Type of endpoint (default, prediction, ml_analysis, report)
+            endpoint_type: Type of endpoint (default, prediction, ml_analysis, report)  # noqa: E501
 
         Returns:
             Tuple of (allowed: bool, retry_after: int, remaining: int)
@@ -423,7 +448,10 @@ class SecurityValidator:
         # Check for SQL injection
         for pattern in self.SQL_PATTERNS:
             if re.search(pattern, data_str, re.IGNORECASE):
-                return False, f"Potential SQL injection detected in {field_name}"
+                return (
+                    False,
+                    f"Potential SQL injection detected in {field_name}",
+                )
 
         return True, None
 
@@ -541,7 +569,7 @@ def rate_limit(endpoint_type="default"):
                 response = jsonify(
                     {
                         "error": "Rate limit exceeded",
-                        "message": f"Too many requests. Please try again in {retry_after} seconds.",
+                        "message": f"Too many requests. Please try again in {retry_after} seconds.",  # noqa: E501
                         "retry_after": retry_after,
                     }
                 )
@@ -628,7 +656,9 @@ def validate_request_data(required_fields=None, optional_fields=None):
                     )
 
             # Validate all fields
-            allowed_fields = set(required_fields or []) | set(optional_fields or [])
+            allowed_fields = set(required_fields or []) | set(
+                optional_fields or []
+            )
 
             for field, value in data.items():
                 # Check if field is allowed
@@ -644,11 +674,16 @@ def validate_request_data(required_fields=None, optional_fields=None):
                     )
 
                 # Validate field value
-                is_valid, error = security_validator.validate_input(value, field)
+                is_valid, error = security_validator.validate_input(
+                    value, field
+                )
                 if not is_valid:
                     return (
                         jsonify(
-                            {"error": "Security validation failed", "message": error}
+                            {
+                                "error": "Security validation failed",
+                                "message": error,
+                            }
                         ),
                         400,
                     )
@@ -715,9 +750,11 @@ def log_request(f):
         duration = time.time() - start_time
 
         # Log response
-        status_code = response.status_code if hasattr(response, "status_code") else 200
+        status_code = (
+            response.status_code if hasattr(response, "status_code") else 200
+        )
         print(
-            f"[{datetime.now().isoformat()}] Response: {status_code} ({duration:.3f}s)"
+            f"[{datetime.now().isoformat()}] Response: {status_code} ({duration:.3f}s)"  # noqa: E501
         )
 
         return response

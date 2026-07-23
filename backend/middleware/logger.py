@@ -53,7 +53,8 @@ class StructuredLogger:
 
         # Simple format for console
         formatter = logging.Formatter(
-            "%(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+            "%(asctime)s [%(levelname)s] %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
         )
         console_handler.setFormatter(formatter)
 
@@ -62,19 +63,25 @@ class StructuredLogger:
     def _add_file_handlers(self):
         """Add file handlers for different log levels."""
         # All logs
-        all_handler = logging.FileHandler(os.path.join(self.log_dir, "app.log"))
+        all_handler = logging.FileHandler(
+            os.path.join(self.log_dir, "app.log")
+        )
         all_handler.setLevel(logging.DEBUG)
         all_handler.setFormatter(self._get_json_formatter())
         self.logger.addHandler(all_handler)
 
         # Error logs
-        error_handler = logging.FileHandler(os.path.join(self.log_dir, "error.log"))
+        error_handler = logging.FileHandler(
+            os.path.join(self.log_dir, "error.log")
+        )
         error_handler.setLevel(logging.ERROR)
         error_handler.setFormatter(self._get_json_formatter())
         self.logger.addHandler(error_handler)
 
         # API logs
-        api_handler = logging.FileHandler(os.path.join(self.log_dir, "api.log"))
+        api_handler = logging.FileHandler(
+            os.path.join(self.log_dir, "api.log")
+        )
         api_handler.setLevel(logging.INFO)
         api_handler.setFormatter(self._get_json_formatter())
         self.logger.addHandler(api_handler)
@@ -103,7 +110,9 @@ class StructuredLogger:
                         "path": request.path,
                         "method": request.method,
                         "remote_addr": request.remote_addr,
-                        "user_agent": request.headers.get("User-Agent", "Unknown"),
+                        "user_agent": request.headers.get(
+                            "User-Agent", "Unknown"
+                        ),
                     }
                 )
 
@@ -136,7 +145,9 @@ class StructuredLogger:
         """Log critical message."""
         self.logger.critical(message, extra=self._add_context(kwargs))
 
-    def log_api_request(self, endpoint, method, status_code, duration, **kwargs):
+    def log_api_request(
+        self, endpoint, method, status_code, duration, **kwargs
+    ):
         """
         Log API request with details.
 
@@ -156,7 +167,9 @@ class StructuredLogger:
             **kwargs,
         )
 
-    def log_prediction(self, disease, symptoms, probability, duration, **kwargs):
+    def log_prediction(
+        self, disease, symptoms, probability, duration, **kwargs
+    ):
         """
         Log disease prediction.
 
@@ -193,7 +206,9 @@ class StructuredLogger:
             **kwargs,
         )
 
-    def log_security_event(self, event_type, message, severity="warning", **kwargs):
+    def log_security_event(
+        self, event_type, message, severity="warning", **kwargs
+    ):
         """
         Log security event.
 
@@ -313,7 +328,8 @@ def log_request(f):
 
         # Log request start
         logger.debug(
-            f"Request started: {request.method} {request.path}", request_id=request_id
+            f"Request started: {request.method} {request.path}",
+            request_id=request_id,
         )
 
         # Execute function
