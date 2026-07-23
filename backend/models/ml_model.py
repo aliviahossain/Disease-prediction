@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -1167,7 +1167,7 @@ class DiseaseMLModel:
         self,
         disease_key: str,
         top_impacts: List[Dict],
-        bmi_category: str | None,
+        bmi_category: Optional[str],
         confidence_score: float,
     ) -> str:
         """Build a concise explanation summary for the diagnosis."""

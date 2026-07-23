@@ -3,6 +3,15 @@ import itertools
 import math
 
 
+def clamp_probability(value: float, min_val: float = 0.0, max_val: float = 1.0) -> float:
+    """
+    Clamp a probability value to the range [min_val, max_val].
+    Ensures probability values stay within valid bounds [0.0, 1.0].
+    Useful for handling floating-point precision errors in Bayesian calculations.
+    """
+    return max(min_val, min(max_val, value))
+
+
 def bayesian_survival(prevalence, sensitivity, false_positive):
     """
     Calculate posterior probability using Bayes' Theorem.
@@ -84,13 +93,14 @@ class BayesCalculator:
         likelihood: float,
         false_positive_rate: float = 0.05,
     ) -> float:
-        """Compute the raw posterior value without rounding."""
+        """Compute the raw posterior value without rounding, clamped to [0, 1]."""
         complement_prior = 1.0 - prior
         numerator = likelihood * prior
         denominator = numerator + (false_positive_rate * complement_prior)
         if math.isclose(denominator, 0.0):
             return 0.0
-        return numerator / denominator
+        posterior = numerator / denominator
+        return clamp_probability(posterior)
 
     def calculate_posterior(
         self,
@@ -99,7 +109,8 @@ class BayesCalculator:
         false_positive_rate: float = 0.05,
     ) -> dict:
         """
-        Calculates the posterior probability using Bayes' Theorem for ML models.  # noqa: E501
+        Calculates the posterior probability using Bayes' Theorem for ML models.
+        Automatically clamps probability values to valid [0,1] range.  # noqa: E501
         """
         try:
             prior = float(prior)
@@ -108,15 +119,11 @@ class BayesCalculator:
         except (TypeError, ValueError):
             raise ValueError("Non-numeric input provided")
 
-        for name, value in [
-            ("Prior probability", prior),
-            ("Likelihood", likelihood),
-            ("False positive rate", false_positive_rate),
-        ]:
-            if not (0.0 <= value <= 1.0):
-                raise ValueError(
-                    f"{name} must be between 0 and 1. Got {value}"
-                )
+        # Clamp all probability inputs to valid [0, 1] range
+        # This handles floating-point precision errors from ML models
+        prior = clamp_probability(prior)
+        likelihood = clamp_probability(likelihood)
+        false_positive_rate = clamp_probability(false_positive_rate)
 
         posterior = self._compute_posterior_value(
             prior, likelihood, false_positive_rate
@@ -233,6 +240,7 @@ class BayesCalculator:
     ) -> dict:
         """
         Calculate posterior probability based on diagnostic test result.
+        Automatically clamps probability values to valid [0,1] range.
         """
         try:
             prior = float(prior)
@@ -241,15 +249,11 @@ class BayesCalculator:
         except (TypeError, ValueError):
             raise ValueError("Non-numeric input provided")
 
-        for name, value in [
-            ("Prior probability", prior),
-            ("Sensitivity", sensitivity),
-            ("Specificity", specificity),
-        ]:
-            if not (0.0 <= value <= 1.0):
-                raise ValueError(
-                    f"{name} must be between 0 and 1. Got {value}"
-                )
+        # Clamp all probability inputs to valid [0, 1] range
+        # This handles floating-point precision errors from ML models
+        prior = clamp_probability(prior)
+        sensitivity = clamp_probability(sensitivity)
+        specificity = clamp_probability(specificity)
 
         false_positive_rate = 1.0 - specificity
 
@@ -264,6 +268,9 @@ class BayesCalculator:
             posterior = 0.0
         else:
             posterior = numerator / denominator
+
+        # Clamp posterior to valid [0, 1] range
+        posterior = clamp_probability(posterior)
 
         if posterior < 0.35:
             risk_category = "Low"

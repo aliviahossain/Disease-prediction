@@ -85,6 +85,27 @@ def create_app():
         template_folder=os.path.join(backend_root, "templates"),
     )
 
+    # SECURITY: Explicitly disable debug mode in production
+    # Parse debug flag from environment, defaulting to False for safety
+    flask_debug_env = os.getenv("FLASK_DEBUG", "0").lower()
+    debug_mode = flask_debug_env in ("1", "true", "yes")
+    flask_env = os.getenv("FLASK_ENV", "production").lower()
+
+    # In production, always disable debug mode regardless of environment variable
+    if flask_env == "production":
+        debug_mode = False
+        if flask_debug_env in ("1", "true", "yes"):
+            print("[WARN] WARNING: FLASK_DEBUG=1 found but FLASK_ENV=production")
+            print("       Debug mode forcibly disabled for security. Set FLASK_ENV=development to enable debug.")
+
+    app.debug = debug_mode
+    if debug_mode:
+        print("[WARN] WARNING: Flask debug mode is ENABLED. This should NEVER be enabled in production.")
+        print("       Remote code execution is possible via the Werkzeug debugger PIN bypass.")
+    else:
+        print("[OK] Flask debug mode is DISABLED (secure)")
+
+
     # Configure Database
     database_url = os.getenv("DATABASE_URL")
 

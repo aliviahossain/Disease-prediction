@@ -19,6 +19,7 @@ Usage:
 """
 
 import os
+from typing import Optional
 
 # ── Configurable thresholds ──────────────────────────────────────────────────
 
@@ -70,7 +71,7 @@ class UncertaintyHandler:
     def evaluate(
         self,
         confidence_score: float,
-        top2_score: float | None = None,
+        top2_score: Optional[float] = None,
         disease_name: str = "",
         top2_disease: str = "",
     ) -> dict:

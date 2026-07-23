@@ -24,6 +24,26 @@
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
 
+    <!-- Global Fetch Interceptor for CSRF -->
+    <script>
+        const originalFetch = window.fetch;
+        window.fetch = async function(resource, config) {
+            config = config || {};
+            if (config.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(config.method.toUpperCase())) {
+                const tokenElement = document.querySelector('meta[name="csrf-token"]');
+                if (tokenElement && tokenElement.content) {
+                    config.headers = config.headers || {};
+                    if (config.headers instanceof Headers) {
+                        config.headers.append('X-CSRFToken', tokenElement.content);
+                    } else {
+                        config.headers['X-CSRFToken'] = tokenElement.content;
+                    }
+                }
+            }
+            return originalFetch(resource, config);
+        };
+    </script>
+
     <!-- Global Error Boundary -->
     <script>
         window.onerror = function (message, source, lineno, colno, error) {

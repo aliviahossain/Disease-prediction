@@ -161,7 +161,7 @@ def process_history(messages):
                     ],  # Wrapped properly
                 )
             )
-        return formatted_history
+        return formatted_history[::-1]
     except Exception as e:
         logger.error(str(e))
         return []

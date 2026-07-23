@@ -7,7 +7,7 @@ chat_bp = Blueprint("chat", __name__)
 
 
 @chat_bp.route("/api/chat", methods=["POST"])
-@rate_limit("default")
+@rate_limit("gemini")
 def chat():
     """
     API endpoint to handle chatbot messages.
