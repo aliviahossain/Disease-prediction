@@ -14,6 +14,10 @@ from backend.services.history_service import save_history
 from backend.utils.gradcam import generate_gradcam_overlay  # NEW
 from backend.utils.gradcam import generate_tflite_scorecam_overlay
 
+from functools import wraps
+from flask import jsonify, request
+from flask_login import current_user
+
 # Import TensorFlow models
 
 
@@ -206,6 +210,28 @@ def _validate_image_magic(stream) -> bool:
         return True
     return False
 
+# Custom decorator to require login for API routes, returning JSON error if not authenticated
+def api_login_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if current_user.is_authenticated:
+            return view(*args, **kwargs)
+
+        wants_json = (
+            request.is_json
+            or request.path.startswith("/api")
+            or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            or "application/json" in request.headers.get("Accept", "")
+        )
+
+        if wants_json:
+            return jsonify({"error": "Authentication required"}), 401
+
+        from flask import redirect, url_for
+
+        return redirect(url_for("auth.login", next=request.url))
+
+    return wrapped
 
 # Pre-warm model cache on first request to this blueprint
 @predict_disease_type_bp.before_request
@@ -217,7 +243,7 @@ def _warm_cache_on_first_request():
 #  Main prediction route
 @predict_disease_type_bp.route("/predict", methods=["POST"])
 @rate_limit("prediction")
-@login_required
+@api_login_required
 def predict():
     # Accept file as "image" or "file"
     if "image" not in request.files:
@@ -268,7 +294,7 @@ def predict():
     try:
         # NEW: Save the upload to a temp file on disk so Grad-CAM can read
         # it by path (PIL.open from a stream can only be read once).
-        suffix = os.path.splitext(image_file.filename or ".jpg")[1] or ".jpg"
+        suffix = ".jpg"
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
             image_file.save(tmp)
             tmp_path = tmp.name
@@ -290,19 +316,14 @@ def predict():
 
             print(f"Prediction: {predicted_class}, " f"Confidence: {confidence:.4f}")
 
-            if confidence < CONFIDENCE_THRESHOLD:
-                return (
-                    jsonify(
-                        {
-                            "error": (
-                                f"The uploaded image does not appear to be a valid "
-                                f"{model_type} disease image. "
-                                "Please upload a clear medical image."
-                            ),
-                            "confidence": round(confidence * 100, 2),
-                        }
-                    ),
-                    400,
+            # Flag low-confidence predictions instead of treating them as invalid requests.
+            low_confidence = confidence < CONFIDENCE_THRESHOLD
+
+            warning_message = None
+            if low_confidence:
+                warning_message = (
+                    "Prediction confidence is low. "
+                    "Please upload a clearer medical image for a more reliable result."
                 )
 
             # 4. NEW: Generate Grad-CAM / Score-CAM heatmap
@@ -367,9 +388,11 @@ def predict():
                     "prediction": predicted_class,
                     "confidence": round(confidence * 100, 2),
                     "type": model_type,
-                    "gradcam_overlay": gradcam_overlay,  # NEW: base64 PNG, image + heatmap blended
-                    "gradcam_heatmap": gradcam_heatmap,  # NEW: base64 PNG, raw heatmap only
-                    "explanation_method": explanation_method,  # NEW: "grad-cam" | "score-cam" | None
+                    "low_confidence": low_confidence,
+                    "warning": warning_message,
+                    "gradcam_overlay": gradcam_overlay,
+                    "gradcam_heatmap": gradcam_heatmap,
+                    "explanation_method": explanation_method,
                 }
             ),
             200,
