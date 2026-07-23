@@ -1,6 +1,6 @@
 """
 Tests for Doctor Dashboard functionality.
-Tests database persistence, data aggregation, percentage calculations, and error handling.
+Tests database persistence, data aggregation, percentage calculations, and error handling.  # noqa: E501
 """
 
 import json
@@ -15,7 +15,7 @@ from backend.models.user import User
 
 @pytest.fixture
 def app():
-    """Create and configure a test application instance with an isolated SQLite DB."""
+    """Create and configure a test application instance with an isolated SQLite DB."""  # noqa: E501
     import os
     import tempfile
     import time
@@ -125,7 +125,10 @@ def sample_predictions(app, test_user):
                 prediction_type="symptom",
                 disease="covid19",
                 inputs_json=json.dumps(
-                    {"symptoms": ["fever", "cough", "loss_taste_smell"], "age": 65}
+                    {
+                        "symptoms": ["fever", "cough", "loss_taste_smell"],
+                        "age": 65,
+                    }
                 ),
                 results_json=json.dumps(
                     {"ml_probability": 0.90, "bayesian_posterior": 0.95}
@@ -174,7 +177,9 @@ class TestDoctorDashboardAPI:
         assert risk_dist["high"]["count"] == 1
         assert risk_dist["critical"]["count"] == 1
 
-    def test_dashboard_percentages_sum_to_100(self, auth_client, sample_predictions):
+    def test_dashboard_percentages_sum_to_100(
+        self, auth_client, sample_predictions
+    ):
         """Test that risk percentages sum to exactly 100%."""
         response = auth_client.get("/api/doctor/dashboard")
         data = json.loads(response.data)
@@ -202,7 +207,7 @@ class TestDoctorDashboardAPI:
         response = auth_client.get("/api/doctor/dashboard")
         data = json.loads(response.data)
 
-        # All sample predictions were created now, so they should be in new_cases
+        # All sample predictions were created now, so they should be in new_cases # noqa: E501
         assert data["data"]["new_cases"] == 4
 
     def test_dashboard_high_risk_count(self, auth_client, sample_predictions):
@@ -212,7 +217,9 @@ class TestDoctorDashboardAPI:
 
         assert data["data"]["high_risk_count"] == 1
 
-    def test_dashboard_critical_risk_count(self, auth_client, sample_predictions):
+    def test_dashboard_critical_risk_count(
+        self, auth_client, sample_predictions
+    ):
         """Test that critical risk count is correct."""
         response = auth_client.get("/api/doctor/dashboard")
         data = json.loads(response.data)
@@ -232,7 +239,9 @@ class TestPredictionPersistence:
         }
 
         response = auth_client.post(
-            "/api/ml/predict", data=json.dumps(payload), content_type="application/json"
+            "/api/ml/predict",
+            data=json.dumps(payload),
+            content_type="application/json",
         )
 
         assert response.status_code == 200
@@ -258,14 +267,21 @@ class TestPredictionPersistence:
         }
 
         response = auth_client.post(
-            "/api/ml/predict", data=json.dumps(payload), content_type="application/json"
+            "/api/ml/predict",
+            data=json.dumps(payload),
+            content_type="application/json",
         )
 
         assert response.status_code == 200
 
         with app.app_context():
             prediction = PatientHistory.query.first()
-            assert prediction.risk_level in ["low", "medium", "high", "critical"]
+            assert prediction.risk_level in [
+                "low",
+                "medium",
+                "high",
+                "critical",
+            ]
 
     def test_prediction_symptoms_stored_as_json(self, auth_client, app):
         """Test that symptoms are stored as JSON string."""
@@ -276,7 +292,9 @@ class TestPredictionPersistence:
         }
 
         auth_client.post(
-            "/api/ml/predict", data=json.dumps(payload), content_type="application/json"
+            "/api/ml/predict",
+            data=json.dumps(payload),
+            content_type="application/json",
         )
 
         with app.app_context():
@@ -295,7 +313,7 @@ class TestDoctorDashboardPage:
         assert response.status_code == 200
 
     def test_patient_dashboard_requires_login(self, client):
-        """Test that patient dashboard redirects unauthenticated users to login."""
+        """Test that patient dashboard redirects unauthenticated users to login."""  # noqa: E501
         response = client.get("/patient-dashboard")
         # Should redirect to login page
         assert response.status_code == 302

@@ -9,9 +9,7 @@ from backend.models.patient_history import PatientHistory
 from backend.preprocessing import PreprocessingError, clean_prediction_payload
 from backend.services.history_service import save_history
 from backend.utils.calculator import BayesCalculator
-from backend.utils.cache_utils import (
-    make_user_cache_key,
-)  # noqa: F401 — imported so callers can use it with @cache.cached
+
 from backend.utils.uncertainty_handler import uncertainty_handler  # NEW
 from backend.middleware import rate_limit
 
@@ -32,10 +30,15 @@ def ml_prediction_page():
             }
 
         return render_template(
-            "ml_prediction.html", diseases=disease_data, active_page="ml_prediction"
+            "ml_prediction.html",
+            diseases=disease_data,
+            active_page="ml_prediction",
         )
     except TemplateNotFound as e:
-        return render_template("error.html", error=f"Missing template: {e.name}"), 500
+        return (
+            render_template("error.html", error=f"Missing template: {e.name}"),
+            500,
+        )
     except Exception as e:
         return render_template("error.html", error=str(e)), 500
 
@@ -81,7 +84,9 @@ def predict_disease():
 
         cleaned = clean_prediction_payload(
             data,
-            valid_symptoms=(item["key"] for item in ml_model.get_all_unique_symptoms()),
+            valid_symptoms=(
+                item["key"] for item in ml_model.get_all_unique_symptoms()
+            ),
             require_disease=True,
         )
         disease = cleaned.disease
@@ -102,7 +107,7 @@ def predict_disease():
         )
         if not uncertainty_check["is_sufficient"]:
             # Return early with a structured "insufficient data" response.
-            # The frontend reads is_sufficient=False and renders the warning card.
+            # The frontend reads is_sufficient=False and renders the warning card. # noqa: E501
             return (
                 jsonify(
                     {
@@ -111,7 +116,9 @@ def predict_disease():
                         "disease": disease.replace("_", " ").title(),
                         "confidence": round(confidence_score * 100, 2),
                         "reason": uncertainty_check["reason"],
-                        "feature_impacts": ml_prediction.get("feature_impacts", []),
+                        "feature_impacts": ml_prediction.get(
+                            "feature_impacts", []
+                        ),
                         "explanation_summary": ml_prediction.get(
                             "explanation_summary", ""
                         ),
@@ -176,7 +183,9 @@ def predict_disease():
                     prev_vitals = TemporalAnalysisEngine.analyze_vitals(
                         heart_rate=prev_inputs.get("heart_rate"),
                         bp_systolic=prev_inputs.get("blood_pressure_systolic"),
-                        bp_diastolic=prev_inputs.get("blood_pressure_diastolic"),
+                        bp_diastolic=prev_inputs.get(
+                            "blood_pressure_diastolic"
+                        ),
                         blood_glucose=prev_inputs.get("blood_glucose"),
                         temperature=prev_inputs.get("temperature"),
                     )
@@ -197,7 +206,7 @@ def predict_disease():
             # (vitals, diagnoses) with no data subject linkage, making it
             # impossible to honour deletion requests and causing the table
             # to grow unboundedly with orphaned rows.
-            # (Removed direct inserts to PredictionHistory here. Handled by save_history below.)
+            # (Removed direct inserts to PredictionHistory here. Handled by save_history below.) # noqa: E501
         except Exception as db_error:
             print(f"Failed to process temporal analysis: {db_error}")
             traceback.print_exc()
@@ -223,7 +232,9 @@ def predict_disease():
                     ml_prediction.get("raw_probability", 0) * 100, 2
                 ),
                 "calibrated_probability": (
-                    round(ml_prediction.get("calibrated_probability", 0) * 100, 2)
+                    round(
+                        ml_prediction.get("calibrated_probability", 0) * 100, 2
+                    )
                     if ml_prediction.get("calibrated_probability") is not None
                     else None
                 ),
@@ -241,7 +252,9 @@ def predict_disease():
                 "symptoms_analyzed": ml_prediction.get("symptoms_matched", []),
                 "missing_symptoms": missing_symptoms,
                 "explanations": {
-                    "feature_impacts": ml_prediction.get("feature_impacts", []),
+                    "feature_impacts": ml_prediction.get(
+                        "feature_impacts", []
+                    ),
                     "symptom_contributions": ml_prediction.get(
                         "symptom_contributions", {}
                     ),
@@ -276,7 +289,7 @@ def predict_disease():
                     "weight_kg": weight,
                     "heart_rate": cleaned.heart_rate,
                     "blood_pressure_systolic": cleaned.blood_pressure_systolic,
-                    "blood_pressure_diastolic": cleaned.blood_pressure_diastolic,
+                    "blood_pressure_diastolic": cleaned.blood_pressure_diastolic,  # noqa: E501
                     "blood_glucose": cleaned.blood_glucose,
                     "temperature": cleaned.temperature,
                 },
@@ -329,7 +342,9 @@ def predict_multiple_diseases():
 
         cleaned = clean_prediction_payload(
             data,
-            valid_symptoms=(item["key"] for item in ml_model.get_all_unique_symptoms()),
+            valid_symptoms=(
+                item["key"] for item in ml_model.get_all_unique_symptoms()
+            ),
             require_disease=False,
         )
         symptoms = cleaned.symptoms
@@ -355,7 +370,9 @@ def predict_multiple_diseases():
                 false_positive_rate=0.05,
             )
 
-            missing = ml_model.analyze_missing_symptoms(pred["disease"], symptoms)
+            missing = ml_model.analyze_missing_symptoms(
+                pred["disease"], symptoms
+            )
 
             confidence_score = pred["confidence_score"]
             top2_score = (
@@ -399,7 +416,9 @@ def predict_multiple_diseases():
                 "bmi_effect": pred.get("bmi_effect", 0),
                 "explanations": {
                     "feature_impacts": pred.get("feature_impacts", []),
-                    "symptom_contributions": pred.get("symptom_contributions", {}),
+                    "symptom_contributions": pred.get(
+                        "symptom_contributions", {}
+                    ),
                     "summary": pred.get("explanation_summary", ""),
                     "bias": pred.get("bias", 0),
                     "bmi_effect": pred.get("bmi_effect", 0),
@@ -414,14 +433,16 @@ def predict_multiple_diseases():
         results.sort(key=lambda x: x["posterior"], reverse=True)
         top_predictions = results[:5]
 
-        # If user is authenticated, save the top prediction to history to enable temporal progression tracking!
+        # If user is authenticated, save the top prediction to history to enable temporal progression tracking! # noqa: E501
         if current_user.is_authenticated and top_predictions:
             try:
                 top_pred = top_predictions[0]
                 # Normalize disease key
                 disease_key = top_pred["disease"].lower().replace(" ", "_")
 
-                from backend.utils.temporal_analysis import TemporalAnalysisEngine
+                from backend.utils.temporal_analysis import (
+                    TemporalAnalysisEngine,
+                )
 
                 # Analyze current vitals
                 vitals_analysis = TemporalAnalysisEngine.analyze_vitals(
@@ -445,7 +466,9 @@ def predict_multiple_diseases():
                     prev_vitals = TemporalAnalysisEngine.analyze_vitals(
                         heart_rate=prev_inputs.get("heart_rate"),
                         bp_systolic=prev_inputs.get("blood_pressure_systolic"),
-                        bp_diastolic=prev_inputs.get("blood_pressure_diastolic"),
+                        bp_diastolic=prev_inputs.get(
+                            "blood_pressure_diastolic"
+                        ),
                         blood_glucose=prev_inputs.get("blood_glucose"),
                         temperature=prev_inputs.get("temperature"),
                     )
@@ -457,10 +480,14 @@ def predict_multiple_diseases():
 
                 # Dynamic survival probability
                 posterior_prob = top_pred["posterior"] / 100.0
-                survival_prob = TemporalAnalysisEngine.calculate_dynamic_survival(
-                    disease_posterior=posterior_prob,
-                    vitals_health_score=vitals_analysis["vitals_health_score"],
-                    trend_factor=trend_factor,
+                survival_prob = (
+                    TemporalAnalysisEngine.calculate_dynamic_survival(
+                        disease_posterior=posterior_prob,
+                        vitals_health_score=vitals_analysis[
+                            "vitals_health_score"
+                        ],
+                        trend_factor=trend_factor,
+                    )
                 )
 
                 risk_level_map = {
@@ -473,9 +500,9 @@ def predict_multiple_diseases():
                     top_pred["risk_level"]["level"], "medium"
                 )
 
-                # (Removed direct inserts to PredictionHistory here. Handled by save_history below.)
+                # (Removed direct inserts to PredictionHistory here. Handled by save_history below.) # noqa: E501
                 print(
-                    f"✅ Processed temporal analysis: {disease_key}, risk={risk_level_db}, survival_prob={survival_prob}%"
+                    f"✅ Processed temporal analysis: {disease_key}, risk={risk_level_db}, survival_prob={survival_prob}%"  # noqa: E501
                 )
             except Exception as db_err:
                 print(f"⚠️ Failed to process temporal analysis: {db_err}")
@@ -498,7 +525,7 @@ def predict_multiple_diseases():
                     "weight_kg": weight,
                     "heart_rate": cleaned.heart_rate,
                     "blood_pressure_systolic": cleaned.blood_pressure_systolic,
-                    "blood_pressure_diastolic": cleaned.blood_pressure_diastolic,
+                    "blood_pressure_diastolic": cleaned.blood_pressure_diastolic,  # noqa: E501
                     "blood_glucose": cleaned.blood_glucose,
                     "temperature": cleaned.temperature,
                     "differential": True,
@@ -555,7 +582,9 @@ def get_disease_symptoms(disease):
     """Get symptoms for a specific disease"""
     try:
         symptoms = ml_model.get_disease_symptoms(disease.lower())
-        symptom_list = [{"key": key, "name": name} for key, name in symptoms.items()]
+        symptom_list = [
+            {"key": key, "name": name} for key, name in symptoms.items()
+        ]
         return (
             jsonify(
                 {
@@ -578,7 +607,9 @@ def get_all_symptoms():
     try:
         symptoms = ml_model.get_all_unique_symptoms()
         return (
-            jsonify({"success": True, "symptoms": symptoms, "count": len(symptoms)}),
+            jsonify(
+                {"success": True, "symptoms": symptoms, "count": len(symptoms)}
+            ),
             200,
         )
     except Exception as e:
@@ -640,10 +671,14 @@ def explain_prediction():
         shap_values = ml_model.compute_shap_values(disease_key, symptoms)
 
         positive = {
-            k: v for k, v in shap_values.items() if v["direction"] == "positive"
+            k: v
+            for k, v in shap_values.items()
+            if v["direction"] == "positive"
         }
         negative = {
-            k: v for k, v in shap_values.items() if v["direction"] == "negative"
+            k: v
+            for k, v in shap_values.items()
+            if v["direction"] == "negative"
         }
 
         top_positive = sorted(
@@ -651,7 +686,8 @@ def explain_prediction():
         )[:3]
 
         summary_parts = [
-            f"{v['display_name']} (+{v['contribution']:.2f})" for _, v in top_positive
+            f"{v['display_name']} (+{v['contribution']:.2f})"
+            for _, v in top_positive
         ]
         summary = (
             f"Top contributing symptoms: {', '.join(summary_parts)}"
@@ -674,7 +710,7 @@ def explain_prediction():
                         "summary": summary,
                         "baseline_info": (
                             "Positive values increase disease probability. "
-                            "Negative values indicate important absent symptoms."
+                            "Negative values indicate important absent symptoms."  # noqa: E501
                         ),
                     },
                 }
@@ -714,11 +750,11 @@ def get_risk_level(probability):
         return {
             "level": "High",
             "color": "danger",
-            "description": "High probability - immediate medical consultation recommended",
+            "description": "High probability - immediate medical consultation recommended",  # noqa: E501
         }
     else:
         return {
             "level": "Critical",
             "color": "dark",
-            "description": "Critical risk level - urgent medical attention required",
+            "description": "Critical risk level - urgent medical attention required",  # noqa: E501
         }
