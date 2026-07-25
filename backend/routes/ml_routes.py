@@ -375,16 +375,20 @@ def predict_multiple_diseases():
             )
 
             confidence_score = pred["confidence_score"]
-            top2_score = (
-                predictions[i + 1]["confidence_score"]
-                if i + 1 < len(predictions)
-                else None
-            )
-            top2_disease = (
-                predictions[i + 1]["disease"].replace("_", " ").title()
-                if top2_score
-                else None
-            )
+            if i == 0:
+                top2_score = (
+                    predictions[i + 1]["confidence_score"]
+                    if i + 1 < len(predictions)
+                    else None
+                )
+                top2_disease = (
+                    predictions[i + 1]["disease"].replace("_", " ").title()
+                    if top2_score
+                    else None
+                )
+            else:
+                top2_score = None
+                top2_disease = None
 
             # ── Uncertainty check per disease entry ──────────────────────
             uncertainty_check = uncertainty_handler.evaluate(
