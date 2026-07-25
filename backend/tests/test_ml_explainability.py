@@ -12,9 +12,15 @@ def test_ml_prediction_returns_feature_impacts_and_summary():
 
     assert "feature_impacts" in result
     assert isinstance(result["feature_impacts"], list)
-    assert result["feature_impacts"], "Expected at least one feature impact entry."
-    assert any(item["direction"] == "positive" for item in result["feature_impacts"])
-    assert any(item["direction"] == "negative" for item in result["feature_impacts"])
+    assert result[
+        "feature_impacts"
+    ], "Expected at least one feature impact entry."
+    assert any(
+        item["direction"] == "positive" for item in result["feature_impacts"]
+    )
+    assert any(
+        item["direction"] == "negative" for item in result["feature_impacts"]
+    )
 
     assert "explanation_summary" in result
     assert isinstance(result["explanation_summary"], str)

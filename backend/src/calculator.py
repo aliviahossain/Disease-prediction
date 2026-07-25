@@ -4,7 +4,9 @@ import pandas as pd
 def validate_probability(value, name="probability", strict_validation=True):
     if strict_validation:
         if not 0.0 <= value <= 1.0:
-            raise ValueError(f"{name} must be between 0 and 1. Received {value}")
+            raise ValueError(
+                f"{name} must be between 0 and 1. Received {value}"
+            )
         return value
 
     return max(0.0, min(1.0, value))
@@ -28,7 +30,7 @@ def bayesian_survival(prior, sensitivity, specificity):
         specificity = float(specificity)
     except (TypeError, ValueError):
         raise ValueError(
-            f"Non-numeric input: prior={prior}, sensitivity={sensitivity}, specificity={specificity}"
+            f"Non-numeric input: prior={prior}, sensitivity={sensitivity}, specificity={specificity}"  # noqa: E501
         )
 
     prior = validate_probability(prior, "prior")
@@ -135,7 +137,7 @@ def read_data(filepath):
     expected_cols = {"prior", "sensitivity", "specificity"}
     if not expected_cols.issubset(df.columns):
         raise ValueError(
-            f"CSV must contain columns: {expected_cols}, found {df.columns.tolist()}"
+            f"CSV must contain columns: {expected_cols}, found {df.columns.tolist()}"  # noqa: E501
         )
     return df
 
@@ -161,7 +163,7 @@ def clean_data(df, strict=False):
         dropped_count = nan_mask.sum()
         if dropped_count > 0:
             print(
-                f"Warning: Dropped {dropped_count} invalid row(s) due to non-numeric values."
+                f"Warning: Dropped {dropped_count} invalid row(s) due to non-numeric values."  # noqa: E501
             )
         return df[~nan_mask]
 
@@ -193,7 +195,9 @@ def load_data(filepath, strict=False, save_results_flag=False, save_path=None):
 
     if save_results_flag:
         if save_path is None:
-            raise ValueError("save_path must be provided if save_results_flag=True")
+            raise ValueError(
+                "save_path must be provided if save_results_flag=True"
+            )
         if df.empty:
             raise ValueError("No valid rows to save after data cleaning.")
         save_results(df, save_path)
@@ -206,7 +210,7 @@ def display_results(results):
     for row in results:
         print(
             f"Prior: {row['prior']}, Sensitivity: {row['sensitivity']}, "
-            f"Specificity: {row['specificity']}, Posterior: {row['posterior']:.4f}"
+            f"Specificity: {row['specificity']}, Posterior: {row['posterior']:.4f}"  # noqa: E501
         )
 
 

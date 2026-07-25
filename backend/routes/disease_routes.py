@@ -10,7 +10,13 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.platypus import (
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
 
 from backend.middleware import rate_limit
 from backend.models.ml_model import ml_model
@@ -41,7 +47,9 @@ def _sanitize_name(value: str) -> str:
 
 
 def get_project_root():
-    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    return os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    )
 
 
 def load_diseases():
@@ -95,7 +103,9 @@ def preset():
                     false_pos = 1.0 - float(row["specificity"])
 
                     try:
-                        p_d_given_pos = bayesian_survival(p_d, sensitivity, false_pos)
+                        p_d_given_pos = bayesian_survival(
+                            p_d, sensitivity, false_pos
+                        )
                     except ValueError as e:
                         return jsonify({"error": str(e)}), 400
 
@@ -132,7 +142,11 @@ def disease():
 
     if missing_keys:
         return (
-            jsonify({"error": f"Missing required fields: {', '.join(missing_keys)}"}),
+            jsonify(
+                {
+                    "error": f"Missing required fields: {', '.join(missing_keys)}"  # noqa: E501
+                }
+            ),
             400,
         )
 
@@ -153,7 +167,9 @@ def disease():
                 )
 
         if test_result not in ALLOWED_TEST_RESULTS:
-            raise ValueError('testResult must be either "positive" or "negative".')
+            raise ValueError(
+                'testResult must be either "positive" or "negative".'
+            )
 
         specificity = 1 - false_pos
 
@@ -168,7 +184,7 @@ def disease():
             return (
                 jsonify(
                     {
-                        "error": "Calculation error: Division by zero. Please check your input values."
+                        "error": "Calculation error: Division by zero. Please check your input values."  # noqa: E501
                     }
                 ),
                 400,
@@ -224,7 +240,7 @@ def gemini_recommendations():
                 jsonify(
                     {
                         "success": False,
-                        "error": "Invalid test_result value. Must be 'positive' or 'negative'.",
+                        "error": "Invalid test_result value. Must be 'positive' or 'negative'.",  # noqa: E501
                     }
                 ),
                 400,
@@ -236,7 +252,7 @@ def gemini_recommendations():
                 jsonify(
                     {
                         "success": False,
-                        "error": f"Invalid language. Allowed: {', '.join(sorted(ALLOWED_LANGUAGES))}",
+                        "error": f"Invalid language. Allowed: {', '.join(sorted(ALLOWED_LANGUAGES))}",  # noqa: E501
                     }
                 ),
                 400,
@@ -258,7 +274,7 @@ def gemini_recommendations():
                 {
                     "success": False,
                     "error": f"Invalid input: {str(e)}",
-                    "recommendations": "Unable to generate recommendations. Please check your inputs.",
+                    "recommendations": "Unable to generate recommendations. Please check your inputs.",  # noqa: E501
                 }
             ),
             400,
@@ -269,7 +285,7 @@ def gemini_recommendations():
                 {
                     "success": False,
                     "error": str(e),
-                    "recommendations": "Unable to generate recommendations. Please try again later.",
+                    "recommendations": "Unable to generate recommendations. Please try again later.",  # noqa: E501
                 }
             ),
             500,
@@ -293,7 +309,10 @@ def download_results():
 
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(
-            buffer, pagesize=letter, topMargin=0.5 * inch, bottomMargin=0.5 * inch
+            buffer,
+            pagesize=letter,
+            topMargin=0.5 * inch,
+            bottomMargin=0.5 * inch,
         )
 
         styles = getSampleStyleSheet()
@@ -331,7 +350,12 @@ def download_results():
         table.setStyle(
             TableStyle(
                 [
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f77b4")),
+                    (
+                        "BACKGROUND",
+                        (0, 0),
+                        (-1, 0),
+                        colors.HexColor("#1f77b4"),
+                    ),
                     ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                     ("ALIGN", (0, 0), (-1, -1), "CENTER"),
                     ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
@@ -356,7 +380,9 @@ def download_results():
         )
 
         story.append(
-            Paragraph(f"<b>Risk Assessment:</b> {risk_level}", styles["Normal"])
+            Paragraph(
+                f"<b>Risk Assessment:</b> {risk_level}", styles["Normal"]
+            )
         )
         story.append(Spacer(1, 0.2 * inch))
         story.append(
@@ -398,7 +424,10 @@ def download_ml_results():
 
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(
-            buffer, pagesize=letter, topMargin=0.5 * inch, bottomMargin=0.5 * inch
+            buffer,
+            pagesize=letter,
+            topMargin=0.5 * inch,
+            bottomMargin=0.5 * inch,
         )
         styles = getSampleStyleSheet()
         title_style = ParagraphStyle(
@@ -412,15 +441,22 @@ def download_ml_results():
 
         story = []
         story.append(
-            Paragraph("ML Disease Prediction Report\n(Bayesian Analysis)", title_style)
+            Paragraph(
+                "ML Disease Prediction Report\n(Bayesian Analysis)",
+                title_style,
+            )
         )
         story.append(Spacer(1, 0.3 * inch))
 
-        timestamp_text = f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        timestamp_text = (
+            f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        )
         story.append(Paragraph(timestamp_text, styles["Normal"]))
         story.append(Spacer(1, 0.2 * inch))
 
-        story.append(Paragraph(f"<b>Disease:</b> {disease_name}", styles["Normal"]))
+        story.append(
+            Paragraph(f"<b>Disease:</b> {disease_name}", styles["Normal"])
+        )
         story.append(Spacer(1, 0.1 * inch))
         story.append(
             Paragraph(
@@ -442,7 +478,12 @@ def download_ml_results():
         table.setStyle(
             TableStyle(
                 [
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f77b4")),
+                    (
+                        "BACKGROUND",
+                        (0, 0),
+                        (-1, 0),
+                        colors.HexColor("#1f77b4"),
+                    ),
                     ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                     ("ALIGN", (0, 0), (-1, -1), "CENTER"),
                     ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
@@ -464,7 +505,9 @@ def download_ml_results():
         story.append(Spacer(1, 0.3 * inch))
 
         if missing_symptoms:
-            story.append(Paragraph("<b>Missing Key Symptoms</b>", styles["Normal"]))
+            story.append(
+                Paragraph("<b>Missing Key Symptoms</b>", styles["Normal"])
+            )
             story.append(Spacer(1, 0.1 * inch))
 
             ms_data = [["Symptom", "Importance"]]
@@ -475,7 +518,12 @@ def download_ml_results():
             ms_table.setStyle(
                 TableStyle(
                     [
-                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e74c3c")),
+                        (
+                            "BACKGROUND",
+                            (0, 0),
+                            (-1, 0),
+                            colors.HexColor("#e74c3c"),
+                        ),
                         ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                         ("ALIGN", (0, 0), (-1, -1), "CENTER"),
                         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
@@ -493,21 +541,19 @@ def download_ml_results():
         )
         story.append(
             Paragraph(
-                f"<font color='{risk_color}'><b>Risk Level: {risk_level}</b></font>",
+                f"<font color='{risk_color}'><b>Risk Level: {risk_level}</b></font>",  # noqa: E501
                 styles["Normal"],
             )
         )
         story.append(Spacer(1, 0.2 * inch))
 
-        disclaimer = "<i>Note: This report is for educational purposes only. Always consult with healthcare professionals for medical advice.</i>"
+        disclaimer = "<i>Note: This report is for educational purposes only. Always consult with healthcare professionals for medical advice.</i>"  # noqa: E501
         story.append(Paragraph(disclaimer, styles["Normal"]))
 
         doc.build(story)
         buffer.seek(0)
 
-        filename = (
-            f"ml_prediction_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-        )
+        filename = f"ml_prediction_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"  # noqa: E501
         return send_file(
             buffer,
             mimetype="application/pdf",
@@ -537,7 +583,7 @@ def text_to_speech():
         return (
             jsonify(
                 {
-                    "error": f"Text exceeds maximum allowed length of {MAX_TTS_LENGTH} characters."
+                    "error": f"Text exceeds maximum allowed length of {MAX_TTS_LENGTH} characters."  # noqa: E501
                 }
             ),
             400,
@@ -548,7 +594,7 @@ def text_to_speech():
         return (
             jsonify(
                 {
-                    "error": f"Invalid language. Allowed: {', '.join(sorted(ALLOWED_LANGUAGES))}"
+                    "error": f"Invalid language. Allowed: {', '.join(sorted(ALLOWED_LANGUAGES))}"  # noqa: E501
                 }
             ),
             400,

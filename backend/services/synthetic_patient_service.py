@@ -1,4 +1,4 @@
-"""Minimal synthetic patient generator for testing rare disease combinations."""
+"""Minimal synthetic patient generator for testing rare disease combinations."""  # noqa: E501
 
 import random
 from typing import Any, Dict, List, Optional
@@ -70,8 +70,12 @@ class SyntheticPatientGenerator:
 
         # Disease-specific adjustments
         if disease == "hypertension":
-            vitals["blood_pressure_systolic"] = round(np.random.normal(150, 20), 1)
-            vitals["blood_pressure_diastolic"] = round(np.random.normal(95, 10), 1)
+            vitals["blood_pressure_systolic"] = round(
+                np.random.normal(150, 20), 1
+            )
+            vitals["blood_pressure_diastolic"] = round(
+                np.random.normal(95, 10), 1
+            )
         elif disease == "diabetes":
             vitals["blood_glucose"] = round(np.random.normal(180, 40), 1)
         elif disease in ["influenza", "covid19", "malaria"]:
@@ -87,7 +91,9 @@ class SyntheticPatientGenerator:
         """Generate population of synthetic patients."""
         return [self.generate_patient() for _ in range(count)]
 
-    def generate_rare_combinations(self, count: int = 10) -> List[Dict[str, Any]]:
+    def generate_rare_combinations(
+        self, count: int = 10
+    ) -> List[Dict[str, Any]]:
         """Generate rare symptom combinations across diseases."""
         rare = []
         diseases = list(self.ml_model.disease_weights.keys())
@@ -96,17 +102,25 @@ class SyntheticPatientGenerator:
             primary = random.choice(diseases)
             secondary = random.choice([d for d in diseases if d != primary])
 
-            patient = self.generate_patient(disease=primary, symptom_intensity=0.3)
+            patient = self.generate_patient(
+                disease=primary, symptom_intensity=0.3
+            )
 
             # Add rare symptoms from secondary disease
             if secondary in self.ml_model.disease_weights:
                 secondary_symptoms = list(
-                    self.ml_model.disease_weights[secondary].get("symptoms", {}).keys()
+                    self.ml_model.disease_weights[secondary]
+                    .get("symptoms", {})
+                    .keys()
                 )
                 if secondary_symptoms:
-                    patient["symptoms"].append(random.choice(secondary_symptoms))
+                    patient["symptoms"].append(
+                        random.choice(secondary_symptoms)
+                    )
 
-            patient["rarity_note"] = f"Mixing {primary} with {secondary} symptoms"
+            patient["rarity_note"] = (
+                f"Mixing {primary} with {secondary} symptoms"
+            )
             rare.append(patient)
 
         return rare

@@ -15,7 +15,10 @@ import sys
 
 import pytest
 
-from backend.utils.uncertainty_handler import CONFIDENCE_THRESHOLD, UncertaintyHandler
+from backend.utils.uncertainty_handler import (
+    CONFIDENCE_THRESHOLD,
+    UncertaintyHandler,
+)
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -28,12 +31,16 @@ class TestConfiguration:
         assert h.confidence_threshold == CONFIDENCE_THRESHOLD
 
     def test_custom_thresholds_stored(self):
-        h = UncertaintyHandler(confidence_threshold=0.65, margin_threshold=0.05)
+        h = UncertaintyHandler(
+            confidence_threshold=0.65, margin_threshold=0.05
+        )
         assert h.confidence_threshold == 0.65
         assert h.margin_threshold == 0.05
 
     def test_get_config_returns_both_thresholds(self):
-        h = UncertaintyHandler(confidence_threshold=0.55, margin_threshold=0.08)
+        h = UncertaintyHandler(
+            confidence_threshold=0.55, margin_threshold=0.08
+        )
         cfg = h.get_config()
         assert cfg["confidence_threshold"] == 0.55
         assert cfg["margin_threshold"] == 0.08
@@ -52,7 +59,9 @@ class TestConfiguration:
 
 class TestLowConfidenceDetection:
     def setup_method(self):
-        self.h = UncertaintyHandler(confidence_threshold=0.40, margin_threshold=0.10)
+        self.h = UncertaintyHandler(
+            confidence_threshold=0.40, margin_threshold=0.10
+        )
 
     def test_below_threshold_is_insufficient(self):
         result = self.h.evaluate(confidence_score=0.25)
@@ -92,7 +101,9 @@ class TestLowConfidenceDetection:
 
 class TestUserFacingMessages:
     def setup_method(self):
-        self.h = UncertaintyHandler(confidence_threshold=0.40, margin_threshold=0.10)
+        self.h = UncertaintyHandler(
+            confidence_threshold=0.40, margin_threshold=0.10
+        )
 
     def test_reason_is_non_empty_for_low_confidence(self):
         result = self.h.evaluate(confidence_score=0.20)
@@ -123,7 +134,9 @@ class TestUserFacingMessages:
 
 class TestHighConfidencePredictions:
     def setup_method(self):
-        self.h = UncertaintyHandler(confidence_threshold=0.40, margin_threshold=0.10)
+        self.h = UncertaintyHandler(
+            confidence_threshold=0.40, margin_threshold=0.10
+        )
 
     def test_high_score_is_sufficient(self):
         result = self.h.evaluate(confidence_score=0.88, top2_score=0.07)
@@ -134,16 +147,22 @@ class TestHighConfidencePredictions:
         assert result["is_sufficient"] is True
 
     def test_low_threshold_variant_accepts_lower_score(self):
-        h = UncertaintyHandler(confidence_threshold=0.25, margin_threshold=0.05)
+        h = UncertaintyHandler(
+            confidence_threshold=0.25, margin_threshold=0.05
+        )
         result = h.evaluate(confidence_score=0.30, top2_score=0.10)
         assert result["is_sufficient"] is True
 
     def test_strict_threshold_rejects_borderline(self):
-        h = UncertaintyHandler(confidence_threshold=0.70, margin_threshold=0.15)
+        h = UncertaintyHandler(
+            confidence_threshold=0.70, margin_threshold=0.15
+        )
         result = h.evaluate(confidence_score=0.65, top2_score=0.10)
         assert result["is_sufficient"] is False
 
     def test_strict_threshold_accepts_high_confidence(self):
-        h = UncertaintyHandler(confidence_threshold=0.70, margin_threshold=0.15)
+        h = UncertaintyHandler(
+            confidence_threshold=0.70, margin_threshold=0.15
+        )
         result = h.evaluate(confidence_score=0.90, top2_score=0.05)
         assert result["is_sufficient"] is True

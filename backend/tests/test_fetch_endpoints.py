@@ -46,7 +46,7 @@ class TestHistoryEndpoint:
     """Test /api/history endpoint fetch error handling"""
 
     def test_history_unauthenticated_returns_401_json(self, client):
-        """Test that unauthenticated history request returns 401 JSON response"""
+        """Test that unauthenticated history request returns 401 JSON response"""  # noqa: E501
         rv = client.get("/api/history")
         assert rv.status_code == 401
 
@@ -64,9 +64,9 @@ class TestHistoryEndpoint:
         assert rv.status_code in [302, 401]
 
     def test_history_authenticated_returns_paginated_response(self, client):
-        """Test that authenticated history request returns proper response structure"""
-        # This test validates response format when making an authenticated request
-        # We'll test the response format by checking that the endpoint at minimum returns
+        """Test that authenticated history request returns proper response structure"""  # noqa: E501
+        # This test validates response format when making an authenticated request # noqa: E501
+        # We'll test the response format by checking that the endpoint at minimum returns # noqa: E501
         # proper JSON structure (even if 401 due to no session)
         rv = client.get("/api/history")
 
@@ -197,7 +197,9 @@ class TestErrorHandling:
         """Test that 400 errors return JSON"""
         payload = {"invalid": "data"}
         rv = client.post(
-            "/api/ml/predict", data=json.dumps(payload), content_type="application/json"
+            "/api/ml/predict",
+            data=json.dumps(payload),
+            content_type="application/json",
         )
 
         # Should return JSON error
@@ -207,7 +209,7 @@ class TestErrorHandling:
 
     def test_server_error_returns_json(self, client):
         """Test that 500 errors return JSON"""
-        # Note: 404 responses from Flask test client may return HTML for non-existent routes.
+        # Note: 404 responses from Flask test client may return HTML for non-existent routes. # noqa: E501
         # Instead test with an actual endpoint that validates its inputs
         rv = client.post(
             "/api/ml/predict",

@@ -21,7 +21,9 @@ def export_to_json(user_id):
                 "disease": e.disease,
                 "probability": float(e.probability) if e.probability else None,
                 "risk_level": e.risk_level,
-                "created_at": e.created_at.isoformat() if e.created_at else None,
+                "created_at": (
+                    e.created_at.isoformat() if e.created_at else None
+                ),
             }
             for e in entries
         ],

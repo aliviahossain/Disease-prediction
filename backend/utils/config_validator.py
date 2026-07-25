@@ -8,14 +8,16 @@ import os
 def validate_startup_config(app):
     """
     Validates that necessary environment variables and model files are present.
-    In production mode, raises a ValueError/FileNotFoundError if any are missing or invalid.
-    In development mode, prints/logs high-visibility warning messages to standard output.
+    In production mode, raises a ValueError/FileNotFoundError if any are missing or invalid.  # noqa: E501
+    In development mode, prints/logs high-visibility warning messages to standard output.  # noqa: E501
     """
     # 1. Determine environment mode
     flask_env = os.getenv("FLASK_ENV")
     flask_debug = os.getenv("FLASK_DEBUG")
     is_production = (
-        flask_env == "production" and flask_debug != "1" and flask_env != "development"
+        flask_env == "production"
+        and flask_debug != "1"
+        and flask_env != "development"
     )
 
     # 2. Check SECRET_KEY
@@ -23,12 +25,12 @@ def validate_startup_config(app):
     if is_production:
         if not secret_key:
             raise ValueError(
-                "\n[ERROR] CRITICAL ERROR: SECRET_KEY environment variable is required in production!\n"
-                "   Please set SECRET_KEY in your .env file or environment settings.\n"
+                "\n[ERROR] CRITICAL ERROR: SECRET_KEY environment variable is required in production!\n"  # noqa: E501
+                "   Please set SECRET_KEY in your .env file or environment settings.\n"  # noqa: E501
             )
         if len(secret_key) < 16:
             raise ValueError(
-                f"\n[ERROR] CRITICAL ERROR: SECRET_KEY is too weak! Got length {len(secret_key)}, expected at least 16 characters.\n"
+                f"\n[ERROR] CRITICAL ERROR: SECRET_KEY is too weak! Got length {len(secret_key)}, expected at least 16 characters.\n"  # noqa: E501
                 "   Please generate a strong random key for production.\n"
             )
 
@@ -37,8 +39,8 @@ def validate_startup_config(app):
     if not gemini_key:
         if is_production:
             raise ValueError(
-                "\n[ERROR] CRITICAL ERROR: GEMINI_API_KEY environment variable is required in production!\n"
-                "   Please set GEMINI_API_KEY in your environment/Render configuration.\n"
+                "\n[ERROR] CRITICAL ERROR: GEMINI_API_KEY environment variable is required in production!\n"  # noqa: E501
+                "   Please set GEMINI_API_KEY in your environment/Render configuration.\n"  # noqa: E501
             )
         else:
             print("\n=======================================================")
@@ -72,15 +74,21 @@ def validate_startup_config(app):
         if not os.path.exists(model_path):
             if is_production:
                 raise FileNotFoundError(
-                    f"\n[ERROR] CRITICAL ERROR: Required ML model file '{info['name']}' not found at:\n"
+                    f"\n[ERROR] CRITICAL ERROR: Required ML model file '{info['name']}' not found at:\n"  # noqa: E501
                     f"   {model_path}\n"
-                    f"   Please ensure all models are committed or pulled before starting in production.\n"
+                    f"   Please ensure all models are committed or pulled before starting in production.\n"  # noqa: E501
                 )
             else:
-                print("\n=======================================================")
-                print(f"[WARN] WARNING: ML model file '{info['name']}' not found!")
+                print(
+                    "\n======================================================="
+                )
+                print(
+                    f"[WARN] WARNING: ML model file '{info['name']}' not found!"  # noqa: E501
+                )
                 print(f"   Path checked: {model_path}")
                 print(
-                    f"   Image-based predictions for '{model_type}' will fail at runtime."
+                    f"   Image-based predictions for '{model_type}' will fail at runtime."  # noqa: E501
                 )
-                print("=======================================================\n")
+                print(
+                    "=======================================================\n"
+                )

@@ -26,7 +26,14 @@ import io
 import logging
 from typing import Optional
 
-from flask import Blueprint, abort, jsonify, make_response, render_template, request
+from flask import (
+    Blueprint,
+    abort,
+    jsonify,
+    make_response,
+    render_template,
+    request,
+)
 from flask_login import current_user, login_required
 
 from backend import db
@@ -110,7 +117,10 @@ def list_history():
         page = max(int(request.args.get("page", 1)), 1)
         per_page = min(max(int(request.args.get("per_page", 20)), 1), 100)
     except ValueError:
-        return jsonify(error="Invalid pagination parameters. Must be integers."), 400
+        return (
+            jsonify(error="Invalid pagination parameters. Must be integers."),
+            400,
+        )
     type_filter: Optional[str] = request.args.get("type") or None
 
     query = PatientHistory.query.filter_by(user_id=user_id).order_by(
@@ -177,7 +187,7 @@ def add_history_entry():
     if prediction_type not in ALLOWED_PREDICTION_TYPES:
         return (
             jsonify(
-                error=f"Invalid prediction_type. Allowed values: {', '.join(sorted(ALLOWED_PREDICTION_TYPES))}"
+                error=f"Invalid prediction_type. Allowed values: {', '.join(sorted(ALLOWED_PREDICTION_TYPES))}"  # noqa: E501
             ),
             400,
         )

@@ -1,7 +1,7 @@
 """Encryption service for medical data."""
 
 from cryptography.fernet import Fernet
-import os, logging
+import os, logging  # noqa
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ class EncryptionService:
         if key:
             try:
                 self.cipher = Fernet(key)
-            except:
+            except:  # noqa
                 pass
 
     def encrypt(self, text):
@@ -28,7 +28,7 @@ class EncryptionService:
             return text
         try:
             return self.cipher.encrypt(text.encode()).decode()
-        except:
+        except:  # noqa
             return text
 
     def decrypt(self, text):
@@ -39,7 +39,7 @@ class EncryptionService:
             return text
         try:
             return self.cipher.decrypt(text.encode()).decode()
-        except:
+        except:  # noqa
             return text
 
 

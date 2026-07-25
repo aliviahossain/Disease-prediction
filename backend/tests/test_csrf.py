@@ -10,14 +10,18 @@ from backend.models.user import User
 def app(monkeypatch, tmp_path):
     monkeypatch.setenv("SECRET_KEY", "csrf-test-secret-key-for-testing")
     monkeypatch.setenv("FLASK_ENV", "development")
-    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 'test_csrf.db'}")
+    monkeypatch.setenv(
+        "DATABASE_URL", f"sqlite:///{tmp_path / 'test_csrf.db'}"
+    )
 
     app = create_app()
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = (
         True  # re-enable: create_app() disables when TESTING=True
     )
-    app.config["WTF_CSRF_TIME_LIMIT"] = None  # prevent token expiry during test run
+    app.config["WTF_CSRF_TIME_LIMIT"] = (
+        None  # prevent token expiry during test run
+    )
     return app
 
 
@@ -40,7 +44,7 @@ def _get_csrf_token(client):
 
 
 def test_csrf_token_present_on_auth_page(client):
-    """Auth page must render csrf_token hidden input in both login and signup forms."""
+    """Auth page must render csrf_token hidden input in both login and signup forms."""  # noqa: E501
     resp = client.get("/login")
     assert resp.status_code == 200
     assert resp.data.count(b'name="csrf_token"') >= 2
@@ -52,7 +56,9 @@ def test_csrf_token_present_on_profile_page(app, client):
         user = User(
             username="profilecsrf",
             email="profilecsrf@example.com",
-            password_hash=bcrypt.generate_password_hash("Secure123!").decode("utf-8"),
+            password_hash=bcrypt.generate_password_hash("Secure123!").decode(
+                "utf-8"
+            ),
         )
         db.session.add(user)
         db.session.commit()
@@ -103,7 +109,9 @@ def test_profile_update_without_csrf_returns_400(app, client):
         user = User(
             username="csrfuser",
             email="csrf@example.com",
-            password_hash=bcrypt.generate_password_hash("Secure123!").decode("utf-8"),
+            password_hash=bcrypt.generate_password_hash("Secure123!").decode(
+                "utf-8"
+            ),
         )
         db.session.add(user)
         db.session.commit()
@@ -126,7 +134,7 @@ def test_profile_update_without_csrf_returns_400(app, client):
 
 
 def test_login_with_valid_csrf_is_not_rejected_for_csrf(client):
-    """POST /login with a valid CSRF token must not return 400 (CSRF passes, auth may still fail)."""
+    """POST /login with a valid CSRF token must not return 400 (CSRF passes, auth may still fail)."""  # noqa: E501
     token = _get_csrf_token(client)
     resp = client.post(
         "/login",
@@ -141,7 +149,7 @@ def test_login_with_valid_csrf_is_not_rejected_for_csrf(client):
 
 
 def test_signup_with_valid_csrf_is_not_rejected_for_csrf(client):
-    """POST /signup with a valid CSRF token must not return 400 (CSRF passes)."""
+    """POST /signup with a valid CSRF token must not return 400 (CSRF passes)."""  # noqa: E501
     token = _get_csrf_token(client)
     resp = client.post(
         "/signup",

@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def test_production_missing_secret_key(monkeypatch):
-    """Test that ValueError is raised in production when SECRET_KEY is missing"""
+    """Test that ValueError is raised in production when SECRET_KEY is missing"""  # noqa: E501
     monkeypatch.setenv("FLASK_ENV", "production")
     monkeypatch.delenv("FLASK_DEBUG", raising=False)
     monkeypatch.delenv("SECRET_KEY", raising=False)
@@ -32,7 +32,7 @@ def test_production_missing_secret_key(monkeypatch):
 
 
 def test_production_weak_secret_key(monkeypatch):
-    """Test that ValueError is raised in production when SECRET_KEY is too short/weak"""
+    """Test that ValueError is raised in production when SECRET_KEY is too short/weak"""  # noqa: E501
     monkeypatch.setenv("FLASK_ENV", "production")
     monkeypatch.delenv("FLASK_DEBUG", raising=False)
     monkeypatch.setenv("SECRET_KEY", "too_short")  # Only 9 chars
@@ -47,7 +47,7 @@ def test_production_weak_secret_key(monkeypatch):
 
 
 def test_production_missing_gemini_key(monkeypatch):
-    """Test that ValueError is raised in production when GEMINI_API_KEY is missing"""
+    """Test that ValueError is raised in production when GEMINI_API_KEY is missing"""  # noqa: E501
     monkeypatch.setenv("FLASK_ENV", "production")
     monkeypatch.delenv("FLASK_DEBUG", raising=False)
     monkeypatch.setenv("SECRET_KEY", "super_secret_production_key_123456")
@@ -58,13 +58,14 @@ def test_production_missing_gemini_key(monkeypatch):
     with pytest.raises(ValueError) as exc_info:
         validate_startup_config(app)
 
-    assert "GEMINI_API_KEY environment variable is required in production" in str(
-        exc_info.value
+    assert (
+        "GEMINI_API_KEY environment variable is required in production"
+        in str(exc_info.value)
     )
 
 
 def test_production_missing_model_files(monkeypatch):
-    """Test that FileNotFoundError is raised in production when a model file is missing"""
+    """Test that FileNotFoundError is raised in production when a model file is missing"""  # noqa: E501
     monkeypatch.setenv("FLASK_ENV", "production")
     monkeypatch.delenv("FLASK_DEBUG", raising=False)
     monkeypatch.setenv("SECRET_KEY", "super_secret_production_key_123456")
@@ -82,7 +83,7 @@ def test_production_missing_model_files(monkeypatch):
 
 
 def test_development_mode_missing_keys_succeeds(monkeypatch, capsys):
-    """Test that in development mode, missing keys/models print warning but do NOT raise errors"""
+    """Test that in development mode, missing keys/models print warning but do NOT raise errors"""  # noqa: E501
     monkeypatch.setenv("FLASK_ENV", "development")
     monkeypatch.setenv("FLASK_DEBUG", "1")
     monkeypatch.delenv("SECRET_KEY", raising=False)
@@ -103,7 +104,7 @@ def test_development_mode_missing_keys_succeeds(monkeypatch, capsys):
 
 
 def test_validation_passes_when_valid(monkeypatch):
-    """Test that validation passes completely without warning/error when everything is present"""
+    """Test that validation passes completely without warning/error when everything is present"""  # noqa: E501
     monkeypatch.setenv("FLASK_ENV", "production")
     monkeypatch.delenv("FLASK_DEBUG", raising=False)
     monkeypatch.setenv("SECRET_KEY", "super_secret_production_key_123456")

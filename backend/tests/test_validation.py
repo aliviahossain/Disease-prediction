@@ -91,7 +91,9 @@ def test_mid_range_probabilities():
 
 
 def test_float_precision():
-    assert round(bayes_theorem(0.1234, 0.5678, 0.9101, "positive"), 4) == 0.4706
+    assert (
+        round(bayes_theorem(0.1234, 0.5678, 0.9101, "positive"), 4) == 0.4706
+    )
 
 
 def test_high_probabilities():

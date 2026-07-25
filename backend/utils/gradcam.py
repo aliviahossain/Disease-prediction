@@ -114,7 +114,7 @@ def _preprocess_image(
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Load, resize, and preprocess an image using ResNet50's preprocess_input
-    (ImageNet mean subtraction) — identical to what predict_disease_type_routes.py
+    (ImageNet mean subtraction) — identical to what predict_disease_type_routes.py  # noqa: E501
     does, so the heatmap is computed on the exact same tensor the model saw.
 
     Returns
@@ -122,7 +122,11 @@ def _preprocess_image(
     img_array   : float32 array of shape (1, H, W, 3), ResNet50-normalised
     original_img: uint8 array of shape (H, W, 3) for overlay blending
     """
-    img = Image.open(img_path).convert("RGB").resize((target_size[1], target_size[0]))
+    img = (
+        Image.open(img_path)
+        .convert("RGB")
+        .resize((target_size[1], target_size[0]))
+    )
     original_img = np.array(img, dtype=np.uint8)  # (H, W, 3)
 
     img_array = np.array(img, dtype=np.float32)
@@ -194,7 +198,9 @@ def _compute_gradcam_heatmap(
     return heatmap.astype(np.float32)
 
 
-def _heatmap_to_colormap(heatmap: np.ndarray, target_hw: tuple[int, int]) -> np.ndarray:
+def _heatmap_to_colormap(
+    heatmap: np.ndarray, target_hw: tuple[int, int]
+) -> np.ndarray:
     """
     Resize the raw heatmap to target (H, W) and apply the COLORMAP_JET
     colour palette, returning a uint8 RGB array of shape (H, W, 3).
@@ -340,9 +346,13 @@ def _tflite_infer(
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
 
-    interpreter.set_tensor(input_details[0]["index"], img_array.astype(np.float32))
+    interpreter.set_tensor(
+        input_details[0]["index"], img_array.astype(np.float32)
+    )
     interpreter.invoke()
-    return interpreter.get_tensor(output_details[0]["index"])  # (1, num_classes)
+    return interpreter.get_tensor(
+        output_details[0]["index"]
+    )  # (1, num_classes)
 
 
 def _tflite_infer_with_feature(
@@ -362,10 +372,14 @@ def _tflite_infer_with_feature(
     output_details = interpreter.get_output_details()
 
     interpreter.allocate_tensors()
-    interpreter.set_tensor(input_details[0]["index"], img_array.astype(np.float32))
+    interpreter.set_tensor(
+        input_details[0]["index"], img_array.astype(np.float32)
+    )
     interpreter.invoke()
 
-    feature_map = interpreter.get_tensor(feature_tensor_index)[0]  # drop batch dim
+    feature_map = interpreter.get_tensor(feature_tensor_index)[
+        0
+    ]  # drop batch dim
     predictions = interpreter.get_tensor(output_details[0]["index"])[0]
     return feature_map, predictions
 
@@ -383,10 +397,10 @@ def _compute_scorecam_heatmap(
     Parameters
     ----------
     interpreter          : Allocated TFLite Interpreter.
-    img_array            : Preprocessed input, shape (1, H, W, 3), float32 [0,1].
+    img_array            : Preprocessed input, shape (1, H, W, 3), float32 [0,1].  # noqa: E501
     class_index          : Predicted class index.
     feature_tensor_index : Index of the intermediate spatial tensor to use.
-    max_channels         : Cap on number of channels to probe (speed vs fidelity).
+    max_channels         : Cap on number of channels to probe (speed vs fidelity).  # noqa: E501
 
     Returns
     -------
@@ -428,7 +442,9 @@ def _compute_scorecam_heatmap(
         masked_img = img_array * mask_3c  # (1, H, W, 3)
 
         # (d) Forward pass on masked image
-        masked_preds = _tflite_infer(interpreter, masked_img)  # (1, num_classes)
+        masked_preds = _tflite_infer(
+            interpreter, masked_img
+        )  # (1, num_classes)
         score = float(masked_preds[0, class_index])
 
         # (e) Accumulate: weight activation map by the class score
@@ -464,7 +480,7 @@ def generate_tflite_scorecam_overlay(
     feature_tensor_index : Index of the intermediate tensor to use as the
                            feature map.  Auto-detected when None.
     heatmap_alpha        : Blend strength of the heatmap overlay (0–1).
-    max_channels         : Max activation channels to probe (speed vs fidelity).
+    max_channels         : Max activation channels to probe (speed vs fidelity).  # noqa: E501
 
     Returns
     -------
@@ -484,7 +500,9 @@ def generate_tflite_scorecam_overlay(
 
     h, w = original_img.shape[:2]
     coloured_heatmap = _heatmap_to_colormap(heatmap, target_hw=(h, w))
-    overlay = _blend_overlay(original_img, coloured_heatmap, alpha=heatmap_alpha)
+    overlay = _blend_overlay(
+        original_img, coloured_heatmap, alpha=heatmap_alpha
+    )
 
     overlay_b64 = _array_to_base64_png(overlay)
     heatmap_b64 = _array_to_base64_png(coloured_heatmap)
@@ -519,17 +537,17 @@ def generate_gradcam_overlay(
     ----------
     model                : Loaded Keras model (eye disease or skin disease).
     img_path             : Filesystem path to the uploaded image.
-    class_index          : Integer class index returned by np.argmax(predictions).
-    target_size          : (H, W) — must match what the model expects (default 224×224).
+    class_index          : Integer class index returned by np.argmax(predictions).  # noqa: E501
+    target_size          : (H, W) — must match what the model expects (default 224×224).  # noqa: E501
     last_conv_layer_name : Name of the conv layer to hook into.  If None, the
                            last Conv2D/Add layer is discovered automatically.
-    heatmap_alpha        : Blending weight of the heatmap (0 = invisible, 1 = opaque).
-                           0.45 gives a legible overlay without washing out anatomy.
+    heatmap_alpha        : Blending weight of the heatmap (0 = invisible, 1 = opaque).  # noqa: E501
+                           0.45 gives a legible overlay without washing out anatomy.  # noqa: E501
 
     Returns
     -------
     overlay_b64  : base64 PNG — original image with heatmap blended on top.
-    heatmap_b64  : base64 PNG — raw coloured heatmap (useful for side-by-side display).
+    heatmap_b64  : base64 PNG — raw coloured heatmap (useful for side-by-side display).  # noqa: E501
 
     Raises
     ------
@@ -554,7 +572,9 @@ def generate_gradcam_overlay(
     coloured_heatmap = _heatmap_to_colormap(heatmap, target_hw=(h, w))
 
     # 5. Blend over original
-    overlay = _blend_overlay(original_img, coloured_heatmap, alpha=heatmap_alpha)
+    overlay = _blend_overlay(
+        original_img, coloured_heatmap, alpha=heatmap_alpha
+    )
 
     # 6. Encode both as base64 PNG data URIs
     overlay_b64 = _array_to_base64_png(overlay)
@@ -603,10 +623,10 @@ def predict_with_gradcam(
     class_names          : Ordered list of class labels.
     target_size          : Model input (H, W); default (224, 224).
     confidence_threshold : Predictions below this are flagged "uncertain".
-    last_conv_layer_name : [Keras only] Conv layer to hook; auto-detected when None.
+    last_conv_layer_name : [Keras only] Conv layer to hook; auto-detected when None.  # noqa: E501
     tflite_path          : [TFLite only] Path to the .tflite file — needed to
                            reload the interpreter for Score-CAM's extra passes.
-    feature_tensor_index : [TFLite only] Intermediate tensor index; auto-detected.
+    feature_tensor_index : [TFLite only] Intermediate tensor index; auto-detected.  # noqa: E501
     max_scorecam_channels: [TFLite only] Channel budget for Score-CAM.
     heatmap_alpha        : Heatmap blend strength (0–1).
 
@@ -648,18 +668,20 @@ def predict_with_gradcam(
             if is_tflite:
                 if tflite_path is None:
                     raise ValueError(
-                        "tflite_path must be supplied for Score-CAM on a TFLite model. "
+                        "tflite_path must be supplied for Score-CAM on a TFLite model. "  # noqa: E501
                         "Example: predict_with_gradcam(model=interpreter, "
-                        "tflite_path='models/resnet50_models/skin_model.tflite', ...)"
+                        "tflite_path='models/resnet50_models/skin_model.tflite', ...)"  # noqa: E501
                     )
-                gradcam_overlay, gradcam_heatmap = generate_tflite_scorecam_overlay(
-                    tflite_path=tflite_path,
-                    img_path=img_path,
-                    class_index=predicted_index,
-                    target_size=target_size,
-                    feature_tensor_index=feature_tensor_index,
-                    heatmap_alpha=heatmap_alpha,
-                    max_channels=max_scorecam_channels,
+                gradcam_overlay, gradcam_heatmap = (
+                    generate_tflite_scorecam_overlay(
+                        tflite_path=tflite_path,
+                        img_path=img_path,
+                        class_index=predicted_index,
+                        target_size=target_size,
+                        feature_tensor_index=feature_tensor_index,
+                        heatmap_alpha=heatmap_alpha,
+                        max_channels=max_scorecam_channels,
+                    )
                 )
                 explanation_method = "score-cam"
             else:
@@ -676,7 +698,9 @@ def predict_with_gradcam(
         except Exception as cam_err:
             # Explainability failure must NOT kill the prediction response
             logger.warning(
-                "Heatmap generation failed (%s): %s", explanation_method, cam_err
+                "Heatmap generation failed (%s): %s",
+                explanation_method,
+                cam_err,
             )
 
         # ── Uncertainty gate ────────────────────────────────────────────────

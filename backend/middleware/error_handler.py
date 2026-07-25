@@ -107,7 +107,9 @@ class RateLimitError(AppError):
             retry_after: Seconds until retry is allowed
         """
         message = f"Rate limit exceeded. Try again in {retry_after} seconds."
-        super().__init__(message, status_code=429, payload={"retry_after": retry_after})
+        super().__init__(
+            message, status_code=429, payload={"retry_after": retry_after}
+        )
 
 
 class PredictionError(AppError):
@@ -184,14 +186,19 @@ class ErrorHandler:
         self._log_error(error, error.status_code)
 
         if not self._wants_json():
-            return render_template("error.html", error=error.message), error.status_code
+            return (
+                render_template("error.html", error=error.message),
+                error.status_code,
+            )
 
         response = jsonify(error.to_dict())
         response.status_code = error.status_code
 
         # Add retry-after header for rate limit errors
         if isinstance(error, RateLimitError):
-            response.headers["Retry-After"] = str(error.payload.get("retry_after", 60))
+            response.headers["Retry-After"] = str(
+                error.payload.get("retry_after", 60)
+            )
 
         return response
 
@@ -201,7 +208,7 @@ class ErrorHandler:
             jsonify(
                 {
                     "error": "BadRequest",
-                    "message": "The request could not be understood or was missing required parameters",
+                    "message": "The request could not be understood or was missing required parameters",  # noqa: E501
                     "timestamp": datetime.now().isoformat(),
                 }
             ),
@@ -214,7 +221,7 @@ class ErrorHandler:
             jsonify(
                 {
                     "error": "Unauthorized",
-                    "message": "Authentication is required to access this resource",
+                    "message": "Authentication is required to access this resource",  # noqa: E501
                     "timestamp": datetime.now().isoformat(),
                 }
             ),
@@ -230,7 +237,7 @@ class ErrorHandler:
             jsonify(
                 {
                     "error": "NotFound",
-                    "message": f"The requested resource was not found: {request.path}",
+                    "message": f"The requested resource was not found: {request.path}",  # noqa: E501
                     "path": request.path,
                     "timestamp": datetime.now().isoformat(),
                 }
@@ -244,7 +251,7 @@ class ErrorHandler:
             jsonify(
                 {
                     "error": "MethodNotAllowed",
-                    "message": f"Method {request.method} is not allowed for {request.path}",
+                    "message": f"Method {request.method} is not allowed for {request.path}",  # noqa: E501
                     "method": request.method,
                     "path": request.path,
                     "timestamp": datetime.now().isoformat(),
@@ -261,7 +268,7 @@ class ErrorHandler:
             return (
                 render_template(
                     "error.html",
-                    error="An internal server error occurred. Please try again later.",
+                    error="An internal server error occurred. Please try again later.",  # noqa: E501
                 ),
                 500,
             )
@@ -270,7 +277,7 @@ class ErrorHandler:
             jsonify(
                 {
                     "error": "InternalServerError",
-                    "message": "An internal server error occurred. Please try again later.",
+                    "message": "An internal server error occurred. Please try again later.",  # noqa: E501
                     "timestamp": datetime.now().isoformat(),
                 }
             ),
@@ -294,7 +301,7 @@ class ErrorHandler:
             return (
                 render_template(
                     "error.html",
-                    error="An unexpected error occurred. Please try again later.",
+                    error="An unexpected error occurred. Please try again later.",  # noqa: E501
                 ),
                 500,
             )
@@ -304,7 +311,7 @@ class ErrorHandler:
             jsonify(
                 {
                     "error": "InternalServerError",
-                    "message": "An unexpected error occurred. Please try again later.",
+                    "message": "An unexpected error occurred. Please try again later.",  # noqa: E501
                     "timestamp": datetime.now().isoformat(),
                 }
             ),
@@ -412,7 +419,8 @@ def validate_json_request(f):
     def decorated_function(*args, **kwargs):
         if not request.is_json:
             raise ValidationError(
-                "Request must be JSON", payload={"content_type": request.content_type}
+                "Request must be JSON",
+                payload={"content_type": request.content_type},
             )
 
         try:
@@ -450,7 +458,9 @@ def require_fields(*required_fields):
             if not data:
                 raise ValidationError("Request body is empty")
 
-            missing_fields = [field for field in required_fields if field not in data]
+            missing_fields = [
+                field for field in required_fields if field not in data
+            ]
 
             if missing_fields:
                 raise ValidationError(

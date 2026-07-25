@@ -1,14 +1,14 @@
 """
 Input cleaning helpers for ML prediction requests.
-This module provides functions to normalize and validate user-provided input data for disease prediction. It includes:
+This module provides functions to normalize and validate user-provided input data for disease prediction. It includes:  # noqa: E501
 - Normalizing disease names and symptom labels into a consistent format.
 - Validating that required fields are present and correctly formatted.
-- Enforcing limits on the number of symptoms and acceptable ranges for numeric fields like age, height, and weight.
-- Collecting metadata about any dropped symptoms for transparency and debugging purposes.
+- Enforcing limits on the number of symptoms and acceptable ranges for numeric fields like age, height, and weight.  # noqa: E501
+- Collecting metadata about any dropped symptoms for transparency and debugging purposes.  # noqa: E501
 
-Also this was kept separate so that we can easily update things in future without any sudden huddles in the main codebase.
-I have used "Type hints" format to make things more clear and easy to understand.
-Proper regex pattern evaluation is used to make keep things more stable and efficient.
+Also this was kept separate so that we can easily update things in future without any sudden huddles in the main codebase.  # noqa: E501
+I have used "Type hints" format to make things more clear and easy to understand.  # noqa: E501
+Proper regex pattern evaluation is used to make keep things more stable and efficient.  # noqa: E501
 """
 
 import math
@@ -85,7 +85,9 @@ def clean_symptoms(
         raise PreprocessingError("Symptoms must be provided as a list")
 
     if len(symptoms) > max_count:
-        raise PreprocessingError(f"Too many symptoms provided (maximum {max_count})")
+        raise PreprocessingError(
+            f"Too many symptoms provided (maximum {max_count})"
+        )
 
     valid_lookup: Optional[Set[str]] = None
     if valid_symptoms is not None:
@@ -175,21 +177,33 @@ def clean_prediction_payload(
     )
 
     return CleanedPredictionInput(
-        disease=clean_disease(payload.get("disease"), required=require_disease),
+        disease=clean_disease(
+            payload.get("disease"), required=require_disease
+        ),
         symptoms=symptoms,
         age=clean_int(payload.get("age"), "Age", 0, 120),
         height_cm=clean_float(payload.get("height_cm"), "Height", 30, 272),
         weight_kg=clean_float(payload.get("weight_kg"), "Weight", 1, 635),
-        heart_rate=clean_float(payload.get("heart_rate"), "Heart Rate", 20, 250),
+        heart_rate=clean_float(
+            payload.get("heart_rate"), "Heart Rate", 20, 250
+        ),
         blood_pressure_systolic=clean_float(
-            payload.get("blood_pressure_systolic"), "Systolic Blood Pressure", 50, 250
+            payload.get("blood_pressure_systolic"),
+            "Systolic Blood Pressure",
+            50,
+            250,
         ),
         blood_pressure_diastolic=clean_float(
-            payload.get("blood_pressure_diastolic"), "Diastolic Blood Pressure", 30, 150
+            payload.get("blood_pressure_diastolic"),
+            "Diastolic Blood Pressure",
+            30,
+            150,
         ),
         blood_glucose=clean_float(
             payload.get("blood_glucose"), "Blood Glucose", 20, 600
         ),
-        temperature=clean_float(payload.get("temperature"), "Temperature", 25, 45),
+        temperature=clean_float(
+            payload.get("temperature"), "Temperature", 25, 45
+        ),
         dropped_symptoms=dropped,
     )

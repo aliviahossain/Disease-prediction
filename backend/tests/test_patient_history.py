@@ -100,7 +100,9 @@ def make_user(app):
         pw_hash = bcrypt.generate_password_hash(password).decode("utf-8")
 
         # Setup kwargs to match User model columns
-        u = User(username=email.split("@")[0], email=email, password_hash=pw_hash)
+        u = User(
+            username=email.split("@")[0], email=email, password_hash=pw_hash
+        )
 
         db.session.add(u)
         db.session.commit()
@@ -247,13 +249,22 @@ class TestHistoryAPI:
             user1_id, _, _ = make_user()
             user2_id, _, _ = make_user()
             save_history(
-                user_id=user1_id, prediction_type="bayes", disease="A", probability=0.4
+                user_id=user1_id,
+                prediction_type="bayes",
+                disease="A",
+                probability=0.4,
             )
             save_history(
-                user_id=user1_id, prediction_type="bayes", disease="B", probability=0.6
+                user_id=user1_id,
+                prediction_type="bayes",
+                disease="B",
+                probability=0.6,
             )
             save_history(
-                user_id=user2_id, prediction_type="bayes", disease="C", probability=0.8
+                user_id=user2_id,
+                prediction_type="bayes",
+                disease="C",
+                probability=0.8,
             )
 
         login_session(client, user1_id)
@@ -324,13 +335,22 @@ class TestHistoryAPI:
             user1_id, _, _ = make_user()
             user2_id, _, _ = make_user()
             save_history(
-                user_id=user1_id, prediction_type="bayes", disease="X", probability=0.1
+                user_id=user1_id,
+                prediction_type="bayes",
+                disease="X",
+                probability=0.1,
             )
             save_history(
-                user_id=user1_id, prediction_type="bayes", disease="Y", probability=0.2
+                user_id=user1_id,
+                prediction_type="bayes",
+                disease="Y",
+                probability=0.2,
             )
             save_history(
-                user_id=user2_id, prediction_type="bayes", disease="Z", probability=0.3
+                user_id=user2_id,
+                prediction_type="bayes",
+                disease="Z",
+                probability=0.3,
             )
 
         login_session(client, user1_id)
@@ -347,7 +367,10 @@ class TestHistoryAPI:
         with app.app_context():
             user_id, _, _ = make_user()
             save_history(
-                user_id=user_id, prediction_type="bayes", disease="A", probability=0.2
+                user_id=user_id,
+                prediction_type="bayes",
+                disease="A",
+                probability=0.2,
             )
             save_history(
                 user_id=user_id,

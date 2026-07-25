@@ -846,7 +846,11 @@ class DiseaseMLModel:
                 "bias": -3.0,
             },
             "herniated_disc": {
-                "symptoms": {"arm_leg_pain": 0.90, "numbness": 0.85, "weakness": 0.80},
+                "symptoms": {
+                    "arm_leg_pain": 0.90,
+                    "numbness": 0.85,
+                    "weakness": 0.80,
+                },
                 "bias": -2.5,
             },
             "scoliosis": {
@@ -1009,7 +1013,7 @@ class DiseaseMLModel:
 
     # NOTE:
     # Raw sigmoid probabilities tend to be overconfident.
-    # Temperature scaling is applied to improve calibration and interpretability.
+    # Temperature scaling is applied to improve calibration and interpretability. # noqa: E501
 
     def calibrated_sigmoid(self, z: float, temperature: float = 1.8) -> float:
         """Temperature-scaled sigmoid for probability calibration."""
@@ -1044,7 +1048,7 @@ class DiseaseMLModel:
         if disease_key in self.disease_weights:
             return disease_key
 
-        # Fuzzy match: try to find a key that matches when underscores are removed
+        # Fuzzy match: try to find a key that matches when underscores are removed # noqa: E501
         normalized_input = disease_key.replace("_", "")
         for key in self.disease_weights.keys():
             if key.replace("_", "") == normalized_input:
@@ -1151,7 +1155,9 @@ class DiseaseMLModel:
                     else ("positive" if item >= 0 else "negative")
                 ),
                 "weight": (
-                    float(item.get("weight", 0)) if isinstance(item, dict) else 0.0
+                    float(item.get("weight", 0))
+                    if isinstance(item, dict)
+                    else 0.0
                 ),
             }
             for key, item in top_items
@@ -1165,16 +1171,24 @@ class DiseaseMLModel:
         confidence_score: float,
     ) -> str:
         """Build a concise explanation summary for the diagnosis."""
-        positives = [item for item in top_impacts if item["direction"] == "positive"]
-        negatives = [item for item in top_impacts if item["direction"] == "negative"]
+        positives = [
+            item for item in top_impacts if item["direction"] == "positive"
+        ]
+        negatives = [
+            item for item in top_impacts if item["direction"] == "negative"
+        ]
 
         parts = []
         if positives:
             positive_names = ", ".join(item["name"] for item in positives[:3])
-            parts.append(f"Strong positive evidence came from {positive_names}.")
+            parts.append(
+                f"Strong positive evidence came from {positive_names}."
+            )
         if negatives:
             negative_names = ", ".join(item["name"] for item in negatives[:3])
-            parts.append(f"The absence of {negative_names} reduced confidence.")
+            parts.append(
+                f"The absence of {negative_names} reduced confidence."
+            )
         if bmi_category:
             parts.append(f"BMI category is {bmi_category}.")
 
@@ -1182,10 +1196,12 @@ class DiseaseMLModel:
             parts.append("The model is highly confident in this result.")
         elif confidence_score >= 0.5:
             parts.append(
-                "The model is moderately confident, with some uncertainty remaining."
+                "The model is moderately confident, with some uncertainty remaining."  # noqa: E501
             )
         else:
-            parts.append("The model is currently less confident in this prediction.")
+            parts.append(
+                "The model is currently less confident in this prediction."
+            )
 
         return " ".join(parts)
 
@@ -1295,7 +1311,9 @@ class DiseaseMLModel:
 
         symptom_keys = self.disease_weights[disease_key]["symptoms"].keys()
         return {
-            key: self.symptom_display_names.get(key, key.replace("_", " ").title())
+            key: self.symptom_display_names.get(
+                key, key.replace("_", " ").title()
+            )
             for key in symptom_keys
         }
 
@@ -1310,14 +1328,20 @@ class DiseaseMLModel:
         for disease in self.disease_weights.keys():
             try:
                 prediction = self.predict_disease_probability(
-                    disease, symptoms, age=age, height_cm=height_cm, weight_kg=weight_kg
+                    disease,
+                    symptoms,
+                    age=age,
+                    height_cm=height_cm,
+                    weight_kg=weight_kg,
                 )
                 predictions.append(prediction)
             except Exception:
                 logger.error(
                     f"Prediction failed for disease '{disease}'", exc_info=True
                 )
-        predictions.sort(key=lambda x: x["calibrated_probability"], reverse=True)
+        predictions.sort(
+            key=lambda x: x["calibrated_probability"], reverse=True
+        )
         return predictions
 
     def get_symptom_importance(self, disease: str) -> Dict[str, float]:
@@ -1328,7 +1352,9 @@ class DiseaseMLModel:
             self.symptom_display_names.get(key, key): weight
             for key, weight in symptoms.items()
         }
-        return dict(sorted(importance.items(), key=lambda x: x[1], reverse=True))
+        return dict(
+            sorted(importance.items(), key=lambda x: x[1], reverse=True)
+        )
 
     def analyze_missing_symptoms(
         self, disease: str, present_symptoms: List[str]
@@ -1368,8 +1394,10 @@ class DiseaseMLModel:
         for disease, data in self.disease_weights.items():
             for symptom_key in data["symptoms"].keys():
                 if symptom_key not in unique_symptoms:
-                    unique_symptoms[symptom_key] = self.symptom_display_names.get(
-                        symptom_key, symptom_key.replace("_", " ").title()
+                    unique_symptoms[symptom_key] = (
+                        self.symptom_display_names.get(
+                            symptom_key, symptom_key.replace("_", " ").title()
+                        )
                     )
 
         # Convert to list and sort by name

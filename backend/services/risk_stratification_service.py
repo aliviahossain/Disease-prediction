@@ -30,7 +30,7 @@ def stratify_risk(
     elif score >= 40:
         base_risk = RiskLevel.MEDIUM
     else:
-        base_risk = RiskLevel.LOW
+        base_risk = RiskLevel.LOW  # noqa
 
     # Age factor
     age_factor = 0
@@ -85,5 +85,5 @@ def stratify_risk(
         "probability": round(probability * 100, 1),
         "risk_factors": factors,
         "recommendations": recommendations[final_risk],
-        "prognosis": f"Based on current factors, monitoring and {recommendations[final_risk][0].lower()}",
+        "prognosis": f"Based on current factors, monitoring and {recommendations[final_risk][0].lower()}",  # noqa: E501
     }
