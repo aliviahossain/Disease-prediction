@@ -3,7 +3,9 @@ import itertools
 import math
 
 
-def clamp_probability(value: float, min_val: float = 0.0, max_val: float = 1.0) -> float:
+def clamp_probability(
+    value: float, min_val: float = 0.0, max_val: float = 1.0
+) -> float:
     """
     Clamp a probability value to the range [min_val, max_val].
     Ensures probability values stay within valid bounds [0.0, 1.0].
