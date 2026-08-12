@@ -19,6 +19,12 @@ from backend.services.history_service import save_history
 from backend.utils.calculator import bayesian_survival
 from backend.utils.gemini_helper import generate_recommendations
 from backend.utils.tts_helper import generate_tts_audio
+from backend.utils.validators import AILanguageSchema
+from marshmallow import ValidationError
+
+SUPPORTED_LANGUAGES = ["en", "hi", "gu", "ta"]
+_lang_schema = AILanguageSchema()
+
 
 disease_bp = Blueprint("disease", __name__)
 

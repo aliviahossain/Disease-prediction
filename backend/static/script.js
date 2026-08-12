@@ -19,6 +19,32 @@ let contentGenerated = false;
 // Dark Mode Toggle Functionality (Removed - handled globally in base.html)
 // ============================================
 
+// ============================================================
+// Dark Mode Persistence (Issue #598)
+// ============================================================
+
+(function initDarkMode() {
+  const saved = localStorage.getItem('darkMode');
+  if (saved === 'true') {
+    document.documentElement.classList.add('dark-mode');
+    document.body.classList.add('dark-mode');
+  }
+})();
+
+function toggleDarkMode() {
+  const isDark = document.body.classList.toggle('dark-mode');
+  document.documentElement.classList.toggle('dark-mode', isDark);
+  localStorage.setItem('darkMode', isDark ? 'true' : 'false');
+}
+
+// Wire up to any existing dark mode button
+document.addEventListener('DOMContentLoaded', function () {
+  const toggleBtn = document.querySelector('.dark-mode-toggle, #darkModeToggle, [data-theme-toggle]');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', toggleDarkMode);
+  }
+});
+
 // ============================================
 // Dashboard Menu Functionality
 // ============================================
@@ -141,6 +167,61 @@ function renderProbabilityChart(prior, posterior) {
     }
   });
 }
+
+// ============================================================
+// AI Recommendation Button — Error Handling (Issue #598)
+// ============================================================
+
+function showToast(message, type = 'error') {
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    background: ${type === 'error' ? '#e53e3e' : '#38a169'};
+    color: white; padding: 12px 20px; border-radius: 8px;
+    font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: opacity 0.3s ease;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
+async function fetchAIRecommendation(payload) {
+  const AI_TIMEOUT_MS = 10000; // 10 seconds
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+
+  try {
+    const response = await fetch('/ai-recommend', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || `Server error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      showToast('AI recommendation timed out. Please try again.');
+    } else {
+      showToast(err.message || 'AI recommendation failed. Please try again.');
+    }
+    throw err;
+  }
+}
+
 
 // ============================================
 // Prior Sensitivity Analysis
