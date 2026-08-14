@@ -1,43 +1,40 @@
-import os
-
-from dotenv import load_dotenv
-
+# run.py
 from backend import create_app
+from dotenv import load_dotenv
+import os
+import logging
 
-# Load environment variables from .env file
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 load_dotenv()
 
-# Create Flask app using the factory function
+# ---------------------------------------------------------------------------
+# Startup environment checks
+# ---------------------------------------------------------------------------
+
+def _check_environment():
+    """Warn about missing optional keys and fail fast on required ones."""
+    gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not gemini_key:
+        logger.warning(
+            "\n"
+            "  ⚠️  GEMINI_API_KEY is not set.\n"
+            "  AI recommendation endpoints will be disabled gracefully.\n"
+            "  To enable, add GEMINI_API_KEY=your_key to your .env file.\n"
+        )
+        # Mark key as absent so routes can check os.environ.get("GEMINI_API_KEY")
+        os.environ["GEMINI_AVAILABLE"] = "false"
+    else:
+        os.environ["GEMINI_AVAILABLE"] = "true"
+        logger.info("✅ GEMINI_API_KEY detected — AI recommendations enabled.")
+
+
+_check_environment()
 app = create_app()
 
-# For Gunicorn or other WSGI servers
-# Gunicorn will use "app" automatically.
-
 if __name__ == "__main__":
-    # Run locally for development
     print("\n" + "=" * 50)
-    print("Starting Flask Development Server")
+    print("  Disease Prediction — Flask Development Server")
     print("=" * 50 + "\n")
-
-    # Parse debug mode from environment, defaulting to False for safety
-    flask_debug_env = os.environ.get("FLASK_DEBUG", "0").lower()
-    flask_env = os.environ.get("FLASK_ENV", "production").lower()
-    debug = flask_debug_env in ("1", "true", "yes")
-
-    # In production, always disable debug mode
-    if flask_env == "production":
-        debug = False
-        if flask_debug_env in ("1", "true", "yes"):
-            print(
-                "[WARN] FLASK_DEBUG=1 found but FLASK_ENV=production: debug mode forcibly disabled"
-            )
-
-    if debug:
-        print(
-            "[WARN] WARNING: Debug mode is ENABLED - remote code execution possible via Werkzeug PIN!"
-        )
-        print("       Ensure this is development-only!\n")
-    else:
-        print("[OK] Debug mode is DISABLED (secure)\n")
-
-    app.run(debug=debug, host="0.0.0.0", port=5001, use_reloader=False)
+    app.run(debug=True, host="0.0.0.0", port=5001, use_reloader=False)
