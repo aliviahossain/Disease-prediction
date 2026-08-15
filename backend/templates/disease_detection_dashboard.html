@@ -98,6 +98,25 @@
                             <button type="button" class="btn-close" onclick="hideError()" aria-label="Close"></button>
                         </div>
 
+                        <div id="warning-container"
+                            class="alert alert-warning alert-dismissible fade show shadow-sm w-100 mb-3"
+                            role="alert"
+                            style="display:none;">
+
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-exclamation-triangle fs-5 me-2"></i>
+                                <div>
+                                    <strong class="me-1">Low Confidence:</strong>
+                                    <span id="warning-message"></span>
+                                </div>
+                            </div>
+
+                            <button type="button"
+                                    class="btn-close"
+                                    onclick="hideWarning()"
+                                    aria-label="Close"></button>
+                        </div>
+
                         <!-- Result Container -->
                         <div id="results-container" style="display: none;">
                           <div class="card bg-light mb-3 shadow-sm">
@@ -326,6 +345,15 @@
     document.getElementById("error-container").style.display = "none";
   }
 
+  function hideWarning() {
+    document.getElementById("warning-container").style.display = "none";
+  }
+
+  function showWarning(message) {
+    document.getElementById("warning-message").textContent = message;
+    document.getElementById("warning-container").style.display = "block";
+  }
+
   function showPredictionError(message) {
     document.getElementById("error-message").textContent = message;
     document.getElementById("error-container").style.display = "block";
@@ -338,9 +366,10 @@
       return;
     }
 
-    // Hide previous errors & results
+    // Hide previous errors, warnings & results
     hideError();
-    document.getElementById('results-container').style.display = 'none';
+    hideWarning();
+    document.getElementById("results-container").style.display = "none";
 
     // Show loading
     document.getElementById('loading').style.display = 'block';
@@ -364,20 +393,29 @@
       const data = await response.json();
 
       if (response.ok) {
-        // Insert the prediction results in the DOM
-        document.getElementById("ml-prediction-label").innerText = data.prediction;
-        document.getElementById("ml-probability").innerText = data.confidence + "%";
-        document.getElementById("results-container").style.display = "block";
+          document.getElementById("ml-prediction-label").innerText = data.prediction;
+          document.getElementById("ml-probability").innerText = data.confidence + "%";
+          document.getElementById("results-container").style.display = "block";
 
-        // Grad-CAM heatmap
-        if (data.gradcam_overlay && data.gradcam_heatmap) {
-          document.getElementById("gradcam-overlay").src = data.gradcam_overlay;
-          document.getElementById("gradcam-heatmap").src = data.gradcam_heatmap;
-          document.getElementById("explanation-method-badge").innerText = data.explanation_method || "";
-          document.getElementById("gradcam-container").style.display = "block";
-        } else {
-          document.getElementById("gradcam-container").style.display = "none";
-        }
+          // Show warning for low-confidence predictions
+          if (data.low_confidence) {
+              showWarning(
+                  data.warning ||
+                  "Prediction confidence is low. Please upload a clearer medical image."
+              );
+          }
+
+          // Grad-CAM heatmap
+          if (data.gradcam_overlay && data.gradcam_heatmap) {
+              document.getElementById("gradcam-overlay").src = data.gradcam_overlay;
+              document.getElementById("gradcam-heatmap").src = data.gradcam_heatmap;
+              document.getElementById("explanation-method-badge").innerText =
+                  data.explanation_method || "";
+              document.getElementById("gradcam-container").style.display = "block";
+          } else {
+              document.getElementById("gradcam-container").style.display = "none";
+          }
+        
       } else {
         showPredictionError(data.error || 'Prediction failed');
       }
