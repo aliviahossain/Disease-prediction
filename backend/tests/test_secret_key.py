@@ -89,23 +89,35 @@ def test_secret_key_with_flask_debug_flag(monkeypatch):
     assert len(app.config["SECRET_KEY"]) == 64
 
 
-def test_secret_key_length_validation(monkeypatch):
-    """Test that app requires a reasonably long SECRET_KEY"""
-    # Setup
+def test_secret_key_length_validation_rejected_in_production(monkeypatch):
+    """A short SECRET_KEY must be rejected in production."""
+    monkeypatch.setenv("SECRET_KEY", "short")  # Too short
+    monkeypatch.setenv("FLASK_ENV", "production")
+    monkeypatch.delenv("FLASK_DEBUG", raising=False)
+    monkeypatch.setenv("DATABASE_URL", "")
+
+    from backend import create_app
+
+    with pytest.raises(ValueError) as exc_info:
+        create_app()
+
+    assert "too weak" in str(exc_info.value)
+
+
+def test_secret_key_length_validation_rejected_in_development(monkeypatch):
+    """A weak, human-guessable SECRET_KEY is forgeable regardless of
+    environment label, so it must be rejected in development too instead
+    of being silently accepted (issue #594)."""
     monkeypatch.setenv("SECRET_KEY", "short")  # Too short
     monkeypatch.setenv("FLASK_ENV", "development")
     monkeypatch.setenv("DATABASE_URL", "")
 
-    # Import after setting env vars
     from backend import create_app
 
-    # Execute
-    app = create_app()
+    with pytest.raises(ValueError) as exc_info:
+        create_app()
 
-    # Assert - app should accept even short keys, but it's insecure
-    assert app.config["SECRET_KEY"] == "short"
-    # Note: A real implementation might validate minimum length, but this test
-    # documents current behavior
+    assert "too weak" in str(exc_info.value)
 
 
 def test_secret_key_not_hardcoded():
