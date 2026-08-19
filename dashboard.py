@@ -170,7 +170,10 @@ if app_mode == "Prediction":
         with col2:
             st.metric("Confidence Score", f"{result['confidence_score'] * 100:.1f}%")
         with col3:
-            st.metric("Symptoms Matched", f"{result['symptoms_matched']} / {result['total_symptoms']}")
+            st.metric(
+                "Symptoms Matched",
+                f"{result['symptoms_matched']} / {result['total_symptoms']}",
+            )
 
         st.write("### Risk Probability")
         st.progress(result["raw_probability"])
@@ -180,13 +183,17 @@ if app_mode == "Prediction":
         if prob < 30:
             st.success("✅ Low Risk: Symptoms do not strongly indicate this disease.")
         elif prob < 60:
-            st.warning("⚠️ Moderate Risk: Consider consulting a doctor for further evaluation.")
+            st.warning(
+                "⚠️ Moderate Risk: Consider consulting a doctor for further evaluation."
+            )
         else:
             st.error("🚨 High Risk: Immediate medical attention is recommended.")
 
         st.divider()
         st.subheader("Bayesian Probability Concept")
-        st.write("This prediction system uses probabilistic reasoning inspired by Bayes' Theorem to estimate disease likelihood based on symptoms.")
+        st.write(
+            "This prediction system uses probabilistic reasoning inspired by Bayes' Theorem to estimate disease likelihood based on symptoms."
+        )
         st.latex(r"P(D \mid S)=\frac{P(S \mid D)\cdot P(D)}{P(S)}")
         st.caption("D = Disease | S = Symptoms")
 

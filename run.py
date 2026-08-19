@@ -13,6 +13,7 @@ load_dotenv()
 # Startup environment checks
 # ---------------------------------------------------------------------------
 
+
 def _check_environment():
     """Warn about missing optional keys and fail fast on required ones."""
     gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
