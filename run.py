@@ -13,6 +13,7 @@ load_dotenv()
 # Startup environment checks
 # ---------------------------------------------------------------------------
 
+
 def _check_environment():
     """Warn about missing optional keys and fail fast on required ones."""
     gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
@@ -37,4 +38,9 @@ if __name__ == "__main__":
     print("\n" + "=" * 50)
     print("  Disease Prediction — Flask Development Server")
     print("=" * 50 + "\n")
-    app.run(debug=True, host="0.0.0.0", port=5001, use_reloader=False)
+    # SECURITY: debug mode must never be hardcoded to True. create_app()
+    # already derives app.debug from FLASK_DEBUG/FLASK_ENV and forces it
+    # off in production; reuse that value instead of overriding it here,
+    # otherwise the Werkzeug debugger (arbitrary code execution) is always
+    # reachable regardless of environment configuration.
+    app.run(debug=app.debug, host="0.0.0.0", port=5001, use_reloader=False)
