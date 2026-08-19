@@ -247,5 +247,90 @@ class TestResponseOkCheck:
         assert rv_error.status_code >= 400
 
 
+class TestGeminiRecommendationsRouteResilience:
+    """
+    Regression coverage for issue #596: a malformed or failing Gemini API
+    response must never surface as an unhandled 500 with a stack trace.
+    generate_recommendations() already returns a clean {"success": False,
+    ...} dict on any internal failure; these tests confirm the route
+    forwards that as a normal JSON response instead of letting anything
+    escape uncaught.
+    """
+
+    def test_route_returns_json_when_gemini_fails(self, client, monkeypatch):
+        import backend.routes.disease_routes as disease_routes
+
+        app.config["WTF_CSRF_ENABLED"] = False
+
+        def _failing_generate_recommendations(**kwargs):
+            return {
+                "success": False,
+                "error": "Response has no text; finish_reason=SAFETY",
+                "recommendations": "Unable to generate recommendations at this time. Please try again later.",
+            }
+
+        monkeypatch.setattr(
+            disease_routes,
+            "generate_recommendations",
+            _failing_generate_recommendations,
+        )
+
+        payload = {
+            "disease_name": "flu",
+            "prior_probability": 0.2,
+            "posterior_probability": 0.6,
+            "test_result": "positive",
+            "language": "english",
+        }
+
+        rv = client.post(
+            "/gemini-recommendations",
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+
+        assert rv.content_type == "application/json"
+        data = json.loads(rv.data)
+        assert data["success"] is False
+        assert "recommendations" in data
+
+    def test_route_returns_json_when_gemini_raises_unexpectedly(
+        self, client, monkeypatch
+    ):
+        import backend.routes.disease_routes as disease_routes
+
+        app.config["WTF_CSRF_ENABLED"] = False
+
+        def _raising_generate_recommendations(**kwargs):
+            raise RuntimeError("simulated upstream failure")
+
+        monkeypatch.setattr(
+            disease_routes,
+            "generate_recommendations",
+            _raising_generate_recommendations,
+        )
+
+        payload = {
+            "disease_name": "flu",
+            "prior_probability": 0.2,
+            "posterior_probability": 0.6,
+            "test_result": "positive",
+            "language": "english",
+        }
+
+        rv = client.post(
+            "/gemini-recommendations",
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+
+        # The route's own try/except must still turn this into a clean
+        # JSON error response, never an HTML traceback page.
+        assert rv.content_type == "application/json"
+        data = json.loads(rv.data)
+        assert data["success"] is False
+        assert "error" in data
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
