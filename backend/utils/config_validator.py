@@ -20,17 +20,30 @@ def validate_startup_config(app):
 
     # 2. Check SECRET_KEY
     secret_key = os.getenv("SECRET_KEY")
-    if is_production:
-        if not secret_key:
-            raise ValueError(
-                "\n[ERROR] CRITICAL ERROR: SECRET_KEY environment variable is required in production!\n"
-                "   Please set SECRET_KEY in your .env file or environment settings.\n"
-            )
-        if len(secret_key) < 16:
-            raise ValueError(
-                f"\n[ERROR] CRITICAL ERROR: SECRET_KEY is too weak! Got length {len(secret_key)}, expected at least 16 characters.\n"
-                "   Please generate a strong random key for production.\n"
-            )
+    if is_production and not secret_key:
+        raise ValueError(
+            "\n[ERROR] CRITICAL ERROR: SECRET_KEY environment variable is required in production!\n"
+            "   Please set SECRET_KEY in your .env file or environment settings.\n"
+        )
+
+    # A weak, human-guessable SECRET_KEY is just as forgeable as a hardcoded
+    # default: session cookies signed with it can be forged by anyone who
+    # can brute-force or guess the short value. This check previously only
+    # ran when is_production was True, so a short SECRET_KEY set in a
+    # development or staging environment (a common misconfiguration) was
+    # silently accepted with no warning at all. Enforce it whenever a key
+    # was explicitly provided, regardless of environment; the auto-generated
+    # secrets.token_hex(32) fallback used when no key is set is always well
+    # above this threshold, so this never blocks the zero-config dev path.
+    if secret_key and len(secret_key) < 16:
+        message = (
+            f"SECRET_KEY is too weak! Got length {len(secret_key)}, expected at least 16 characters.\n"
+            "   Please generate a strong random key: "
+            'python -c "import secrets; print(secrets.token_hex(32))"\n'
+        )
+        if is_production:
+            raise ValueError(f"\n[ERROR] CRITICAL ERROR: {message}")
+        raise ValueError(f"\n[ERROR] CONFIGURATION ERROR: {message}")
 
     # 3. Check GEMINI_API_KEY
     gemini_key = os.getenv("GEMINI_API_KEY")
