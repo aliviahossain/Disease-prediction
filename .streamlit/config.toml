@@ -1,0 +1,13 @@
+# Streamlit server defaults for the analytics dashboard (dashboard.py).
+#
+# server.address defaults Streamlit to binding on localhost only. The
+# dashboard exposes aggregate patient prediction data and requires
+# authentication (see backend/utils/dashboard_auth.py); it must not be
+# directly reachable from outside the host unless deliberately placed
+# behind an authenticated reverse proxy, which can override this value
+# explicitly at launch time (see start.sh / STREAMLIT_ADDRESS).
+[server]
+address = "127.0.0.1"
+
+[browser]
+gatherUsageStats = false
