@@ -155,7 +155,7 @@ def create_app():
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     # Only send the cookie over HTTPS in non-development environments.
     _is_dev = os.getenv("FLASK_ENV") == "development" or os.getenv("FLASK_DEBUG") == "1"
-    app.config["SESSION_COOKIE_SECURE"] = not _is_dev
+    app.config["SESSION_COOKIE_SECURE"] = True
     # Apply the same hardening to Flask-Login's "remember me" cookie.
     app.config["REMEMBER_COOKIE_HTTPONLY"] = True
     app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=7)
