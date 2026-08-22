@@ -1,5 +1,6 @@
 import hashlib
 import os
+import random
 import re
 import sqlite3
 import threading
@@ -8,7 +9,11 @@ from collections import defaultdict
 from datetime import datetime
 from functools import wraps
 
-from flask import jsonify, request
+try:
+    from flask import jsonify, request
+except ImportError:
+    jsonify = None
+    request = None
 
 try:
     import redis
@@ -160,11 +165,15 @@ class RedisBackend:
 class SQLiteBackend:
     """
     SQLite-based rate limit backend.
-    Uses WAL mode for high concurrency support among Gunicorn workers.
+    Uses WAL mode for high concurrency support among Gunicorn workers,
+    with exponential backoff retry for lock contention handling.
     """
 
-    def __init__(self, db_path="backend/rate_limit.db", cleanup_interval=60):
+    def __init__(self, db_path="backend/rate_limit.db", cleanup_interval=60, max_retries=5, base_delay=0.05, max_delay=1.0):
         self.db_path = db_path
+        self.max_retries = max_retries
+        self.base_delay = base_delay
+        self.max_delay = max_delay
         self._init_db()
         self._cleanup_interval = cleanup_interval
         self._stop_cleanup = threading.Event()
@@ -174,13 +183,60 @@ class SQLiteBackend:
         self._cleanup_thread.start()
 
     def _get_connection(self):
-        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        conn = sqlite3.connect(self.db_path, timeout=30.0, isolation_level=None)
         conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout=30000")
+        conn.execute("PRAGMA synchronous=NORMAL")
         return conn
 
+    def _execute_with_retry(self, operation_fn):
+        """
+        Executes a database operation with exponential backoff and jitter retry
+        in case sqlite3.OperationalError occurs due to database locking.
+        """
+        for attempt in range(self.max_retries + 1):
+            conn = None
+            try:
+                conn = self._get_connection()
+                result = operation_fn(conn)
+                return result
+            except sqlite3.OperationalError as e:
+                if conn:
+                    try:
+                        conn.execute("ROLLBACK")
+                    except Exception:
+                        pass
+                err_msg = str(e).lower()
+                is_locked_error = "locked" in err_msg or "busy" in err_msg
+                if is_locked_error and attempt < self.max_retries:
+                    # Exponential backoff: base_delay * 2^attempt capped at max_delay
+                    delay = min(self.base_delay * (2 ** attempt), self.max_delay)
+                    # Add jitter to prevent thundering herd
+                    jitter = random.uniform(0, delay * 0.5)
+                    time.sleep(delay + jitter)
+                else:
+                    raise
+            except Exception:
+                if conn:
+                    try:
+                        conn.execute("ROLLBACK")
+                    except Exception:
+                        pass
+                raise
+            finally:
+                if conn:
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
+
     def _init_db(self):
-        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
-        with self._get_connection() as conn:
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir:
+            os.makedirs(db_dir, exist_ok=True)
+
+        def _op(conn):
+            conn.execute("BEGIN IMMEDIATE")
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS rate_limits (
                     identifier TEXT,
@@ -192,7 +248,9 @@ class SQLiteBackend:
                 "CREATE INDEX IF NOT EXISTS idx_rate_limits "
                 "ON rate_limits (identifier, endpoint_type, timestamp)"
             )
-            conn.commit()
+            conn.execute("COMMIT")
+
+        self._execute_with_retry(_op)
 
     def _periodic_cleanup(self):
         while not self._stop_cleanup.wait(self._cleanup_interval):
@@ -203,16 +261,22 @@ class SQLiteBackend:
 
     def prune_stale_entries(self):
         cutoff = time.time() - 300  # 5 minutes buffer
-        with self._get_connection() as conn:
+
+        def _op(conn):
+            conn.execute("BEGIN IMMEDIATE")
             conn.execute("DELETE FROM rate_limits WHERE timestamp < ?", (cutoff,))
-            conn.commit()
+            conn.execute("COMMIT")
+
+        self._execute_with_retry(_op)
 
     def check_rate_limit(self, identifier, endpoint_type, max_requests, window):
         current_time = time.time()
         cutoff_time = current_time - window
 
-        with self._get_connection() as conn:
+        def _op(conn):
+            conn.execute("BEGIN IMMEDIATE")
             cursor = conn.cursor()
+
             # Clean old records for this identifier
             cursor.execute(
                 "DELETE FROM rate_limits WHERE identifier = ? AND timestamp < ?",
@@ -238,6 +302,7 @@ class SQLiteBackend:
                     retry_after = int(window - (current_time - oldest_timestamp)) + 1
                 else:
                     retry_after = int(window) + 1
+                conn.execute("COMMIT")
                 return False, retry_after, 0
 
             # Insert current request
@@ -246,23 +311,27 @@ class SQLiteBackend:
                 "VALUES (?, ?, ?)",
                 (identifier, endpoint_type, current_time),
             )
-            conn.commit()
+            conn.execute("COMMIT")
 
             remaining = max_requests - current_requests - 1
             return True, 0, remaining
 
+        return self._execute_with_retry(_op)
+
     def get_stats(self):
-        with self._get_connection() as conn:
+        def _op(conn):
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(DISTINCT identifier) FROM rate_limits")
             total_identifiers = cursor.fetchone()[0]
             cursor.execute("SELECT COUNT(*) FROM rate_limits")
             total_requests = cursor.fetchone()[0]
 
-        return {
-            "total_identifiers": total_identifiers,
-            "total_requests": total_requests,
-        }
+            return {
+                "total_identifiers": total_identifiers,
+                "total_requests": total_requests,
+            }
+
+        return self._execute_with_retry(_op)
 
     def stop(self):
         self._stop_cleanup.set()
