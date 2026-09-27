@@ -31,10 +31,57 @@ from backend.models.ml_model import ml_model
 # Import history manager
 from backend.utils.history_manager import clear_history, load_history, save_history
 
+# Import dashboard authentication helpers
+from backend.utils.dashboard_auth import (
+    is_dashboard_auth_configured,
+    is_production_environment,
+    verify_dashboard_password,
+)
+
 # =========================
 # PAGE CONFIG
 # =========================
 st.set_page_config(page_title="🩺 Multi-Disease Prediction Dashboard", layout="wide")
+
+# =========================
+# AUTHENTICATION GATE
+# =========================
+# This dashboard exposes aggregate patient prediction statistics. It was
+# previously served with no authentication at all, so anyone who could
+# reach the host on port 8501 had full access (issue #595). Require a
+# shared DASHBOARD_PASSWORD before rendering anything below this point.
+# In production the app refuses to start unauthenticated; in development
+# a missing password only prints a warning, matching how SECRET_KEY and
+# GEMINI_API_KEY are handled elsewhere at startup.
+if is_dashboard_auth_configured():
+    if not st.session_state.get("dashboard_authenticated", False):
+        st.title("🔒 Dashboard Login")
+        st.caption(
+            "This dashboard contains patient prediction data and requires authentication."
+        )
+        with st.form("dashboard_login_form"):
+            password_input = st.text_input("Password", type="password")
+            submitted = st.form_submit_button("Log in")
+        if submitted:
+            if verify_dashboard_password(
+                password_input, os.getenv("DASHBOARD_PASSWORD", "")
+            ):
+                st.session_state["dashboard_authenticated"] = True
+                st.rerun()
+            else:
+                st.error("Incorrect password.")
+        st.stop()
+elif is_production_environment():
+    st.error(
+        "DASHBOARD_PASSWORD environment variable is required in production. "
+        "The dashboard cannot start without it."
+    )
+    st.stop()
+else:
+    st.warning(
+        "⚠️ DASHBOARD_PASSWORD is not set. Running without authentication "
+        "(development only — set DASHBOARD_PASSWORD before any public deployment)."
+    )
 
 # =========================
 # TITLE
