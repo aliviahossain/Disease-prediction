@@ -1017,8 +1017,21 @@ class DiseaseMLModel:
         return 1 / (1 + np.exp(-(z / temperature)))
 
     def _calculate_bmi(self, height_cm: float, weight_kg: float) -> float:
-        if not height_cm or not weight_kg:
+        # Guard against zero, negative, or non-numeric anthropometrics.
+        # `not height_cm` alone only catches 0/None; it lets negative values
+        # through, which square away their sign and yield a plausible-looking
+        # but medically meaningless BMI (or a negative BMI when only weight
+        # is negative). Reject anything outside a physiologically valid range
+        # instead, so callers never receive a fabricated or crashing result.
+        try:
+            height_cm = float(height_cm)
+            weight_kg = float(weight_kg)
+        except (TypeError, ValueError):
             return None
+
+        if not (30 <= height_cm <= 272) or not (1 <= weight_kg <= 635):
+            return None
+
         height_m = height_cm / 100
         return weight_kg / (height_m**2)
 
