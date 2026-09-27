@@ -210,6 +210,7 @@ def _validate_image_magic(stream) -> bool:
         return True
     return False
 
+
 # Custom decorator to require login for API routes, returning JSON error if not authenticated
 def api_login_required(view):
     @wraps(view)
@@ -232,6 +233,7 @@ def api_login_required(view):
         return redirect(url_for("auth.login", next=request.url))
 
     return wrapped
+
 
 # Pre-warm model cache on first request to this blueprint
 @predict_disease_type_bp.before_request

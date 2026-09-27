@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 # Load known disease names from hospital_data.csv at startup
 # ---------------------------------------------------------------------------
 
+
 def _load_known_diseases() -> list[str]:
     """Read disease names from hospital_data.csv. Returns empty list on failure."""
     csv_path = os.path.join(os.path.dirname(__file__), "..", "..", "hospital_data.csv")
@@ -32,7 +33,9 @@ def _load_known_diseases() -> list[str]:
                 if name and name.strip() not in diseases:
                     diseases.append(name.strip())
     except FileNotFoundError:
-        logger.warning("hospital_data.csv not found — disease name validation will be skipped.")
+        logger.warning(
+            "hospital_data.csv not found — disease name validation will be skipped."
+        )
     except Exception as exc:
         logger.warning("Could not load disease names for validation: %s", exc)
     return diseases
@@ -48,11 +51,17 @@ SUPPORTED_LANGUAGES: list[str] = ["en", "hi", "gu", "ta"]
 # Marshmallow Schemas
 # ---------------------------------------------------------------------------
 
+
 class BayesInputSchema(Schema):
     """Validates input for the Bayesian calculator endpoint."""
+
     disease = fields.Str(
         required=True,
-        validate=validate.OneOf(KNOWN_DISEASES) if KNOWN_DISEASES else validate.Length(min=1, max=100),
+        validate=(
+            validate.OneOf(KNOWN_DISEASES)
+            if KNOWN_DISEASES
+            else validate.Length(min=1, max=100)
+        ),
         error_messages={"required": "disease is required."},
     )
     prior = fields.Float(
@@ -83,6 +92,7 @@ class BayesInputSchema(Schema):
 
 class SymptomInputSchema(Schema):
     """Validates input for the ML symptom-based prediction endpoint."""
+
     symptoms = fields.List(
         fields.Str(validate=validate.Length(min=1, max=100)),
         required=True,
@@ -102,6 +112,7 @@ class SymptomInputSchema(Schema):
 
 class AILanguageSchema(Schema):
     """Validates the language parameter for AI recommendation routes."""
+
     language = fields.Str(
         load_default="en",
         validate=validate.OneOf(
@@ -134,6 +145,7 @@ def validate_input(schema_name: str):
             data = request.validated_data   # pre-validated dict
             ...
     """
+
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
@@ -151,11 +163,15 @@ def validate_input(schema_name: str):
             try:
                 validated = schema.load(raw)
             except ValidationError as err:
-                return jsonify({"error": "Validation failed.", "details": err.messages}), 400
+                return (
+                    jsonify({"error": "Validation failed.", "details": err.messages}),
+                    400,
+                )
 
             # Attach validated data to request for use in the view
             request.validated_data = validated
             return f(*args, **kwargs)
 
         return wrapper
+
     return decorator

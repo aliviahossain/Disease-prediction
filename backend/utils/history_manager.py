@@ -4,7 +4,16 @@ import os
 # =========================
 # HISTORY FILE PATH
 # =========================
-HISTORY_FILE = "prediction_history.json"
+# Health-related prediction records must never live inside the repository
+# working directory, since that risks the file being committed to version
+# control (see issue #592). Default to a data directory outside the repo;
+# HISTORY_DATA_DIR can override this for deployments with their own
+# persistent storage location.
+_HISTORY_DIR = os.environ.get(
+    "HISTORY_DATA_DIR", os.path.join(os.path.expanduser("~"), ".disease_prediction")
+)
+os.makedirs(_HISTORY_DIR, exist_ok=True)
+HISTORY_FILE = os.path.join(_HISTORY_DIR, "prediction_history.json")
 
 
 # =========================
