@@ -1,8 +1,10 @@
 import os
 import sys
 
-# Add project root to path
-sys.path.append(os.getcwd())
+# Run from the repository root regardless of where this script is launched.
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
+os.chdir(ROOT)
 
 from backend import create_app, db
 from backend.models.user import User

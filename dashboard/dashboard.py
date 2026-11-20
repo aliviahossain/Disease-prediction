@@ -19,8 +19,8 @@ def highlight_text(text: str, query: str) -> str:
     )
 
 
-# Add the current directory to sys.path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Add the repository root to sys.path so `backend` is importable
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import disease descriptions
 from backend.data.disease_info import DISEASE_INFO

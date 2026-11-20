@@ -53,7 +53,9 @@ source venv/bin/activate
 
 ---
 
-## 3. Configure Environment Variables
+## 3. Configure Environment Variables (Optional for local use)
+
+> **Running locally?** You can skip this step. `python run.py` starts in development mode with a temporary `SECRET_KEY`, and AI features are simply disabled until you add a `GEMINI_API_KEY`. Create a `.env` when you want AI features or a persistent key.
 
 Create a `.env` file in the project root directory by copying the example:
 
@@ -101,21 +103,22 @@ pip install flask numpy pandas scikit-learn matplotlib seaborn
 
 ## 5. Run the Application
 
-Run the main application file using one of the following commands:
+From the project root, run:
 
 ```bash
 python run.py
 ```
 
-If the project uses Flask CLI, run:
+To use a different port or host:
 
 ```bash
-flask run
+PORT=8000 python run.py               # macOS / Linux
+$env:PORT=8000; python run.py         # Windows (PowerShell)
 ```
 
 ---
 
-## 5. Access the Web Application
+## 6. Access the Web Application
 
 After starting the application, open your browser and visit:
 
@@ -141,7 +144,7 @@ pip install -r requirements.txt
 ### Port Already in Use
 
 - Stop any other service using port 5001
-- Or change the port number in the Flask app
+- Or start on another port: `PORT=8000 python run.py`
 
 ### Virtual Environment Activation Issues (Windows)
 

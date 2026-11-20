@@ -1,10 +1,10 @@
 """
-Authentication helpers for the Streamlit analytics dashboard (dashboard.py).
+Authentication helpers for the Streamlit analytics dashboard (dashboard/dashboard.py).
 
 The dashboard has historically been served with no authentication layer at
 all: anyone who could reach the server's IP on port 8501 got full access to
 aggregate patient prediction data. These helpers gate access behind a shared
-password read from DASHBOARD_PASSWORD, kept separate from dashboard.py so
+password read from DASHBOARD_PASSWORD, kept separate from dashboard/dashboard.py so
 the logic can be unit tested without a running Streamlit session.
 """
 

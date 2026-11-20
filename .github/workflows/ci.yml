@@ -21,12 +21,12 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Check code formatting with Black
-        run: black --check backend/ data/ run.py dashboard.py
+        run: black --check backend/ scripts/ dashboard/ run.py
 
       - name: Lint with Flake8
         run: |
-          flake8 backend/ data/ run.py dashboard.py --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 backend/ data/ run.py dashboard.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          flake8 backend/ scripts/ dashboard/ run.py --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 backend/ scripts/ dashboard/ run.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
   CI_HEALTH_CHECK:
     needs: linting
@@ -47,7 +47,7 @@ jobs:
         run: pip install -r requirements.txt
         
       - name: Streamlit Dashboard Health Check
-        run: python -m py_compile dashboard.py
+        run: python -m py_compile dashboard/dashboard.py
 
       - name: Run and check
         env:

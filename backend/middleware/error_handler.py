@@ -8,6 +8,7 @@ from datetime import datetime
 from functools import wraps
 
 from flask import jsonify, request, render_template
+from flask_wtf.csrf import CSRFError
 
 
 class AppError(Exception):
@@ -160,6 +161,9 @@ class ErrorHandler:
         app.errorhandler(PredictionError)(self.handle_app_error)
 
         # Register HTTP error handlers
+        # CSRFError subclasses BadRequest; Flask picks the most specific
+        # handler, so this one wins over the generic 400 handler below.
+        app.errorhandler(CSRFError)(self.handle_csrf_error)
         app.errorhandler(400)(self.handle_400)
         app.errorhandler(401)(self.handle_401)
         app.errorhandler(404)(self.handle_404)
@@ -194,6 +198,20 @@ class ErrorHandler:
             response.headers["Retry-After"] = str(error.payload.get("retry_after", 60))
 
         return response
+
+    def handle_csrf_error(self, error):
+        """Handle a missing/invalid CSRF token (usually a stale page or expired session)."""
+        return (
+            jsonify(
+                {
+                    "error": "Your session has expired. Please refresh the page and try again.",
+                    "error_type": "CSRFError",
+                    "message": error.description,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            ),
+            400,
+        )
 
     def handle_400(self, error):
         """Handle 400 Bad Request errors."""

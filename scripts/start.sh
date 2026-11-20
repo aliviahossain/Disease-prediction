@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Always run from the repository root (this script lives in scripts/).
+cd "$(dirname "$0")/.." || exit 1
+
 # Start the Flask backend in the background
 echo "Starting Flask Backend..."
 gunicorn --bind 0.0.0.0:5001 --workers 2 --timeout 120 run:app &
@@ -13,7 +16,7 @@ FLASK_PID=$!
 # is intentionally served through an authenticated reverse proxy.
 echo "Starting Streamlit Dashboard..."
 STREAMLIT_ADDRESS="${STREAMLIT_ADDRESS:-127.0.0.1}"
-streamlit run dashboard.py --server.port 8501 --server.address "$STREAMLIT_ADDRESS" --browser.gatherUsageStats false &
+streamlit run dashboard/dashboard.py --server.port 8501 --server.address "$STREAMLIT_ADDRESS" --browser.gatherUsageStats false &
 STREAMLIT_PID=$!
 
 # Function to handle shutdown

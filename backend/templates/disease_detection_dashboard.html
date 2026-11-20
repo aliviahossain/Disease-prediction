@@ -416,6 +416,8 @@
               document.getElementById("gradcam-container").style.display = "none";
           }
         
+      } else if (response.status === 401) {
+        showPredictionError('Please log in to use image-based prediction.');
       } else {
         showPredictionError(data.error || 'Prediction failed');
       }

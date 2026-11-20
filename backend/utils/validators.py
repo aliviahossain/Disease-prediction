@@ -21,7 +21,9 @@ logger = logging.getLogger(__name__)
 
 def _load_known_diseases() -> list[str]:
     """Read disease names from hospital_data.csv. Returns empty list on failure."""
-    csv_path = os.path.join(os.path.dirname(__file__), "..", "..", "hospital_data.csv")
+    csv_path = os.path.join(
+        os.path.dirname(__file__), "..", "..", "data", "hospital_data.csv"
+    )
     csv_path = os.path.normpath(csv_path)
     diseases = []
     try:

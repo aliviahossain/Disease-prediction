@@ -30,5 +30,3 @@ def bayes_theorem(prior_probability, test_sensitivity, test_specificity, test_re
 
 def survival_chance(prior, sensitivity, specificity, test_result):
     return bayes_theorem(prior, sensitivity, specificity, test_result)
-
-

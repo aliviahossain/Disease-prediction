@@ -304,9 +304,6 @@ def predict():
             tmp_path = tmp.name
 
         try:
-            with tmp:
-                image_file.save(tmp)
-
             # 1. Preprocess image
             img_array = preprocess_image(tmp_path, model_type)
 

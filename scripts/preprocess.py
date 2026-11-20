@@ -1,3 +1,11 @@
+import os
+import sys
+
+# Run from the repository root regardless of where this script is launched.
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
+os.chdir(ROOT)
+
 import pandas as pd
 import numpy as np
 
@@ -80,8 +88,8 @@ def build_hospital_data():
     ]
     df = pd.DataFrame(rows)
     df.to_csv("data/cleaned/hospital_data_cleaned.csv", index=False)
-    df.to_csv("hospital_data.csv", index=False)
-    print("Done! hospital_data.csv updated.")
+    df.to_csv("data/hospital_data.csv", index=False)
+    print("Done! data/hospital_data.csv updated.")
 
 
 if __name__ == "__main__":

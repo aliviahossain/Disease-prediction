@@ -1,4 +1,10 @@
 import os
+import sys
+
+# Run from the repository root regardless of where this script is launched.
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
+os.chdir(ROOT)
 
 from dotenv import load_dotenv
 

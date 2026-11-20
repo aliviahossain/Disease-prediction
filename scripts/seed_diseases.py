@@ -1,3 +1,11 @@
+import os
+import sys
+
+# Run from the repository root regardless of where this script is launched.
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
+os.chdir(ROOT)
+
 import pandas as pd
 from dotenv import load_dotenv
 
@@ -11,7 +19,7 @@ app = create_app()
 
 
 def seed():
-    df = pd.read_csv("hospital_data.csv")
+    df = pd.read_csv("data/hospital_data.csv")
 
     with app.app_context():
         # Ensure tables are created in the ACTIVE database (MySQL)

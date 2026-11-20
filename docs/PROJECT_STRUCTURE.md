@@ -56,7 +56,7 @@ This folder holds "static" files, meaning they don't change. The web server send
 
 ### 💾 Data and Testing
 
-#### 📄 `hospital_data.csv`
+#### 📄 `data/hospital_data.csv`
 * **WHAT**: A CSV (Comma-Separated Values) file, which is a simple, plain-text format for storing spreadsheet-like data.
 * **WHY**: This file holds the sample data our calculator might use. Keeping data separate from code is great because you can easily update the dataset without having to change a single line of code!
 * **HOW**: Our Python script can open and read this file to pull in the numbers needed for the probability calculations.

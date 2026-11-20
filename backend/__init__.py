@@ -67,6 +67,34 @@ def _ensure_user_profile_columns(engine):
                 )
 
 
+def _load_or_create_dev_secret_key(backend_root):
+    """Return a development SECRET_KEY that persists across restarts.
+
+    A fresh random key on every start would invalidate all existing sessions
+    and CSRF tokens, so pages left open across a restart fail with
+    400 BadRequest and users get logged out. The key is stored in a
+    git-ignored file and is only used when SECRET_KEY is unset in development.
+    """
+    key_path = os.path.join(backend_root, ".dev_secret_key")
+    try:
+        with open(key_path, encoding="utf-8") as f:
+            key = f.read().strip()
+        if len(key) >= 32:
+            return key
+    except OSError:
+        pass
+
+    key = secrets.token_hex(32)
+    try:
+        with open(key_path, "w", encoding="utf-8") as f:
+            f.write(key)
+    except OSError as e:
+        print(
+            f"[WARN] Could not persist dev SECRET_KEY ({e}); sessions reset on restart."
+        )
+    return key
+
+
 def create_app():
     # Get the backend directory (where this __init__.py file is)
     backend_root = os.path.dirname(os.path.abspath(__file__))
@@ -130,9 +158,11 @@ def create_app():
         )
 
         if is_development:
-            secret_key = secrets.token_hex(32)
+            secret_key = _load_or_create_dev_secret_key(backend_root)
             print("\n[WARN] WARNING: SECRET_KEY not set in environment.")
-            print("   Using random key for development only.")
+            print(
+                "   Using a locally generated development key (backend/.dev_secret_key)."
+            )
             print("   For production, set SECRET_KEY in your .env file!\n")
         else:
             raise ValueError(
@@ -149,6 +179,13 @@ def create_app():
     # --- Session & Cookie Security (Issue 5) --------------------------------
     # Sessions expire after 2 hours of inactivity.
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=2)
+    # Use app-specific cookie names. Browsers share cookies across all ports
+    # of a host, so the default "session" name collides with any other Flask
+    # app on localhost (or stale cookies from older runs). The browser then
+    # sends the wrong cookie, the CSRF token never matches, and every POST
+    # fails with "session expired".
+    app.config["SESSION_COOKIE_NAME"] = "disease_prediction_session"
+    app.config["REMEMBER_COOKIE_NAME"] = "disease_prediction_remember"
     # Prevent JavaScript from reading the session cookie (XSS mitigation).
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     # Block the cookie from being sent on cross-site navigations (CSRF mitigation).

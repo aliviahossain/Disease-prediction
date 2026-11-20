@@ -52,7 +52,7 @@ def get_project_root():
 
 
 def load_diseases():
-    csv_path = os.path.join(get_project_root(), "hospital_data.csv")
+    csv_path = os.path.join(get_project_root(), "data", "hospital_data.csv")
     diseases = []
     try:
         with open(csv_path, newline="", encoding="utf-8") as csvfile:
@@ -91,7 +91,7 @@ def preset():
         return jsonify({"error": "Invalid disease name"}), 400
 
     try:
-        csv_path = os.path.join(get_project_root(), "hospital_data.csv")
+        csv_path = os.path.join(get_project_root(), "data", "hospital_data.csv")
 
         with open(csv_path, newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)

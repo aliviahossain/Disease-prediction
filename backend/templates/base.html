@@ -27,20 +27,59 @@
     <!-- Global Fetch Interceptor for CSRF -->
     <script>
         const originalFetch = window.fetch;
+
+        function isSameOrigin(resource) {
+            try {
+                const url = resource instanceof Request ? resource.url : String(resource);
+                return new URL(url, window.location.href).origin === window.location.origin;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function withHeaders(config, csrfToken) {
+            const headers = new Headers(config.headers || {});
+            // Lets the server answer auth failures with JSON 401 instead of a login redirect.
+            headers.set('X-Requested-With', 'XMLHttpRequest');
+            if (csrfToken) headers.set('X-CSRFToken', csrfToken);
+            return Object.assign({}, config, { headers: headers });
+        }
+
+        async function refreshCsrfToken() {
+            const res = await originalFetch('/csrf-token', { credentials: 'same-origin', cache: 'no-store' });
+            const data = await res.json();
+            const meta = document.querySelector('meta[name="csrf-token"]');
+            if (meta && data.csrf_token) meta.content = data.csrf_token;
+            return data.csrf_token;
+        }
+
         window.fetch = async function(resource, config) {
             config = config || {};
-            if (config.method && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(config.method.toUpperCase())) {
-                const tokenElement = document.querySelector('meta[name="csrf-token"]');
-                if (tokenElement && tokenElement.content) {
-                    config.headers = config.headers || {};
-                    if (config.headers instanceof Headers) {
-                        config.headers.append('X-CSRFToken', tokenElement.content);
-                    } else {
-                        config.headers['X-CSRFToken'] = tokenElement.content;
+            const method = (config.method || 'GET').toUpperCase();
+            const unsafe = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method);
+
+            // Never attach our CSRF token to third-party requests.
+            if (!unsafe || !isSameOrigin(resource)) {
+                return originalFetch(resource, config);
+            }
+
+            const meta = document.querySelector('meta[name="csrf-token"]');
+            let response = await originalFetch(resource, withHeaders(config, meta && meta.content));
+
+            // A stale token (page left open, server restarted) -> refresh once and retry.
+            // Request objects can't be resent once their body is consumed, so skip those.
+            if (response.status === 400 && !(resource instanceof Request)) {
+                const body = await response.clone().json().catch(() => null);
+                if (body && body.error_type === 'CSRFError') {
+                    try {
+                        const freshToken = await refreshCsrfToken();
+                        response = await originalFetch(resource, withHeaders(config, freshToken));
+                    } catch (e) {
+                        console.warn('CSRF token refresh failed:', e);
                     }
                 }
             }
-            return originalFetch(resource, config);
+            return response;
         };
     </script>
 

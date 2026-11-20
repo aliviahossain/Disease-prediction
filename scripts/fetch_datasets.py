@@ -1,6 +1,13 @@
+import os
+import sys
+
+# Run from the repository root regardless of where this script is launched.
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
+os.chdir(ROOT)
+
 import pandas as pd
 import numpy as np
-import os
 from ucimlrepo import fetch_ucirepo
 from sklearn.datasets import load_breast_cancer
 

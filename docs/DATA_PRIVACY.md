@@ -6,7 +6,7 @@ This application uses hospital statistical data for disease prediction analysis.
 ## Sensitive Files
 
 The following files contain sensitive healthcare data and should NEVER be committed to version control:
-- `hospital_data.csv` - Hospital prevalence, sensitivity, and specificity statistics
+- `data/hospital_data.csv` - Hospital prevalence, sensitivity, and specificity statistics
 - `patient_data*.csv` - Any patient-specific or demographic data
 - `*.health_data.csv` - Any healthcare-related data files
 - `healthcare_*.csv` - Healthcare statistics files
@@ -21,7 +21,7 @@ Contact the hospital data administrator or your healthcare partner to obtain the
 ### 2. Setup Local File
 ```bash
 # Copy the sensitive data to your local environment
-cp hospital_data.csv .local/  # Store in local, untracked directory
+cp data/hospital_data.csv .local/  # Store in local, untracked directory
 
 # Or place it directly in the project root (will be ignored by git)
 # Do NOT commit this file
@@ -32,23 +32,23 @@ Ensure your `.env` file is also in `.gitignore` (it should be):
 ```bash
 # .env file should never be committed
 # Set DATA_PATH environment variable if using non-default location
-export DATA_PATH=./hospital_data.csv
+export DATA_PATH=./data/hospital_data.csv
 ```
 
 ### 4. Verify File is Ignored
 ```bash
 # Confirm git ignores the hospital data
-git check-ignore -v hospital_data.csv
-# Output: hospital_data.csv     .gitignore:207
+git check-ignore -v data/hospital_data.csv
+# Output: data/hospital_data.csv     .gitignore:207
 
 # Verify the file won't be committed
 git status
-# hospital_data.csv should NOT appear in "Untracked files"
+# data/hospital_data.csv should NOT appear in "Untracked files"
 ```
 
 ## Using the Example File
 
-The `hospital_data.example.csv` file shows the expected CSV format without actual data:
+The `data/hospital_data.example.csv` file shows the expected CSV format without actual data:
 
 ```csv
 disease,prior_probability,sensitivity,specificity
@@ -86,7 +86,7 @@ When deploying to production or Docker:
 To verify sensitive data is not in git history:
 ```bash
 # Search for previously committed hospital data
-git log -p --all -- hospital_data.csv | head -20
+git log -p --all -- data/hospital_data.csv | head -20
 
 # If found, the data was previously committed and should be removed from history
 # This requires a git history rewrite (git filter-branch or similar)

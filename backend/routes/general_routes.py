@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app, render_template
+from flask import Blueprint, current_app, jsonify, render_template
 
 general_bp = Blueprint("general", __name__, template_folder="../templates")
 
@@ -31,6 +31,16 @@ def connect():
 @general_bp.route("/service-worker.js")
 def service_worker():
     return current_app.send_static_file("service-worker.js")
+
+
+@general_bp.route("/csrf-token")
+def csrf_token():
+    """Return a fresh CSRF token so long-open pages can recover from expiry."""
+    from flask_wtf.csrf import generate_csrf
+
+    response = jsonify({"csrf_token": generate_csrf()})
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @general_bp.route("/health")
