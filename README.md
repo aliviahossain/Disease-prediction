@@ -12,6 +12,12 @@
 
 [🚀 Live Demo](https://disease-prediction-nwnu.onrender.com) · [🐛 Report a Bug](https://github.com/aliviahossain/Disease-prediction/issues) · [💡 Request a Feature](https://github.com/aliviahossain/Disease-prediction/issues)
 
+### 🎬 Watch the 60-second demo
+
+[![Disease Prediction — 60 second demo video](docs/media/demo-poster.jpg)](docs/media/demo-video.mp4)
+
+<sub>Click the preview to play the demo video (MP4, 1080p, with sound).</sub>
+
 </div>
 
 ---
