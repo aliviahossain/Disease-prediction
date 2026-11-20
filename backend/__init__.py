@@ -1,5 +1,4 @@
 import os
-import secrets
 from datetime import datetime, timedelta
 
 from dotenv import load_dotenv
@@ -67,40 +66,41 @@ def _ensure_user_profile_columns(engine):
                 )
 
 
-def _load_or_create_dev_secret_key(backend_root):
-    """Return a development SECRET_KEY that persists across restarts.
+# (module, blueprint attribute, required). Required blueprints fail loudly;
+# optional ones only log a warning if their dependencies are missing.
+_BLUEPRINTS = [
+    ("backend.routes.disease_routes", "disease_bp", True),
+    ("backend.routes.ml_routes", "ml_bp", False),
+    ("backend.routes.auth_routes", "auth_bp", True),
+    ("backend.routes.doctor_routes", "doctor_bp", False),
+    ("backend.routes.history_routes", "history_bp", False),
+    ("backend.routes.predict_disease_type_routes", "predict_disease_type_bp", False),
+    ("backend.routes.general_routes", "general_bp", False),
+    ("backend.routes.scalability_routes", "scalability_bp", False),
+    ("backend.routes.chat_routes", "chat_bp", False),
+    ("backend.routes.bias_routes", "bias_bp", False),
+    ("backend.routes.synthetic_routes", "synthetic_bp", False),
+]
 
-    A fresh random key on every start would invalidate all existing sessions
-    and CSRF tokens, so pages left open across a restart fail with
-    400 BadRequest and users get logged out. The key is stored in a
-    git-ignored file and is only used when SECRET_KEY is unset in development.
-    """
-    key_path = os.path.join(backend_root, ".dev_secret_key")
-    try:
-        with open(key_path, encoding="utf-8") as f:
-            key = f.read().strip()
-        if len(key) >= 32:
-            return key
-    except OSError:
-        pass
 
-    key = secrets.token_hex(32)
-    try:
-        with open(key_path, "w", encoding="utf-8") as f:
-            f.write(key)
-    except OSError as e:
-        print(
-            f"[WARN] Could not persist dev SECRET_KEY ({e}); sessions reset on restart."
-        )
-    return key
+def _register_blueprints(app):
+    import importlib
+
+    for module_name, attr, required in _BLUEPRINTS:
+        try:
+            module = importlib.import_module(module_name)
+        except ImportError as e:
+            if required:
+                raise
+            print(f"[WARN] Could not import '{module_name}': {e}")
+            continue
+        app.register_blueprint(getattr(module, attr))
+    print(f"[OK] Registered {len(app.blueprints)} blueprints")
 
 
 def create_app():
     # Get the backend directory (where this __init__.py file is)
     backend_root = os.path.dirname(os.path.abspath(__file__))
-
-    print(f"Backend root: {backend_root}")
-    print(f"Templates folder: {os.path.join(backend_root, 'templates')}")
 
     # Initialize Flask app with correct paths
     app = Flask(
@@ -135,18 +135,12 @@ def create_app():
     else:
         print("[OK] Flask debug mode is DISABLED (secure)")
 
-    # Configure Database
-    database_url = os.getenv("DATABASE_URL")
+    # Configure Database: one dedicated store for users, passwords, profiles
+    # and history (see backend/storage.py). DATABASE_URL overrides it.
+    from backend.storage import get_database_uri, load_or_create_dev_secret_key
 
-    if database_url:
-        # Compatibility fix for newer SQLAlchemy versions and Heroku-style URLs
-        if database_url.startswith("postgres://"):
-            database_url = database_url.replace("postgres://", "postgresql://", 1)
-        app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-    else:
-        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(
-            backend_root, "site.db"
-        )
+    app.config["SQLALCHEMY_DATABASE_URI"] = get_database_uri()
+    print(f"[OK] Database: {app.config['SQLALCHEMY_DATABASE_URI'].split('@')[-1]}")
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -158,10 +152,10 @@ def create_app():
         )
 
         if is_development:
-            secret_key = _load_or_create_dev_secret_key(backend_root)
+            secret_key = load_or_create_dev_secret_key()
             print("\n[WARN] WARNING: SECRET_KEY not set in environment.")
             print(
-                "   Using a locally generated development key (backend/.dev_secret_key)."
+                "   Using a locally generated development key (database/.secret_key)."
             )
             print("   For production, set SECRET_KEY in your .env file!\n")
         else:
@@ -195,7 +189,8 @@ def create_app():
     app.config["SESSION_COOKIE_SECURE"] = not _is_dev
     # Apply the same hardening to Flask-Login's "remember me" cookie.
     app.config["REMEMBER_COOKIE_HTTPONLY"] = True
-    app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=7)
+    # Logged-in users stay logged in for 30 days (also across server restarts).
+    app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
     app.config["REMEMBER_COOKIE_SECURE"] = not _is_dev
     # -------------------------------------------------------------------------
 
@@ -225,96 +220,10 @@ def create_app():
     # --- Models -------------------------------------------------------
     # Import the models so SQLAlchemy registers them with `db` before create_all() is called below.
     # Without this import the patient_history table is never created, which is one half of the bug where history is "not being recorded".
-    from backend.models.user import User
-    from backend.models.prediction import PredictionHistory
+    from backend.models.user import User  # noqa: F401
+    from backend.models.prediction import PredictionHistory  # noqa: F401
 
-    # Register Disease Routes Blueprint
-    from backend.routes.disease_routes import disease_bp
-
-    app.register_blueprint(disease_bp)
-    print("'disease_routes' blueprint registered successfully")
-
-    # Register ML Routes Blueprint
-    try:
-        from backend.routes.ml_routes import ml_bp  # type: ignore
-
-        app.register_blueprint(ml_bp)
-        print("'ml_routes' blueprint registered successfully")
-    except ImportError as e:
-        print(f"Warning: Could not import 'ml_routes'. Error: {e}")
-
-    # Register Auth Routes Blueprint
-    from backend.routes.auth_routes import auth_bp
-
-    app.register_blueprint(auth_bp)
-    print("'auth_routes' blueprint registered successfully")
-
-    # Register Doctor Dashboard Routes Blueprint
-    try:
-        from backend.routes.doctor_routes import doctor_bp
-
-        app.register_blueprint(doctor_bp)
-        print("'doctor_routes' blueprint registered successfully")
-    except ImportError as e:
-        print(f"Warning: Could not import 'doctor_routes'. Error: {e}")
-
-    try:
-        from backend.routes.history_routes import history_bp
-
-        app.register_blueprint(history_bp)
-        print("[OK] 'history_routes' blueprint registered successfully")
-    except ImportError as e:
-        print(f"[WARN] Warning: Could not import 'history_routes'. Error: {e}")
-
-    try:
-        from backend.routes.predict_disease_type_routes import predict_disease_type_bp
-
-        app.register_blueprint(predict_disease_type_bp)
-        print("'predict_disease_type_bp_routes' blueprint registered successfully")
-    except ImportError as e:
-        print(f"Warning: Could not import 'predict_disease_type_bp_routes'. Error: {e}")
-
-    try:
-        from backend.routes.general_routes import general_bp
-
-        app.register_blueprint(general_bp)
-        print("'general_routes' blueprint registered successfully")
-    except ImportError as e:
-        print(f"Warning: Could not import 'general_routes'. Error: {e}")
-
-    try:
-        from backend.routes.scalability_routes import scalability_bp
-
-        app.register_blueprint(scalability_bp)
-        print("'scalability_routes' blueprint registered successfully")
-    except ImportError as e:
-        print(f"[WARN] Warning: Could not import 'scalability_routes'. Error: {e}")
-
-    try:
-        from backend.routes.chat_routes import chat_bp
-
-        app.register_blueprint(chat_bp)
-        print("[OK] 'chat_routes' blueprint registered successfully")
-    except ImportError as e:
-        print(f"[WARN] Warning: Could not import 'chat_routes'. Error: {e}")
-
-    # Keep bias routes (from main branch)
-    try:
-        from backend.routes.bias_routes import bias_bp
-
-        app.register_blueprint(bias_bp)
-        print("[OK] 'bias_routes' blueprint registered successfully")
-    except ImportError as e:
-        print(f"[WARN] Warning: Could not import 'bias_routes'. Error: {e}")
-
-    # Register synthetic patient routes
-    try:
-        from backend.routes.synthetic_routes import synthetic_bp
-
-        app.register_blueprint(synthetic_bp)
-        print("[OK] 'synthetic_routes' blueprint registered successfully")
-    except ImportError as e:
-        print(f"[WARN] Warning: Could not import 'synthetic_routes'. Error: {e}")
+    _register_blueprints(app)
 
     # Keep centralized error handler (from register-error-handler branch)
     ErrorHandler(app)

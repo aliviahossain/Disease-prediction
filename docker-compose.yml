@@ -9,4 +9,7 @@ services:
       - "5001:5001"
     env_file:
       - .env
+    volumes:
+      # Persist accounts, passwords and history across container rebuilds.
+      - ./database:/app/database
     restart: unless-stopped

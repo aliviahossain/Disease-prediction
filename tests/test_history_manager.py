@@ -1,5 +1,3 @@
-import os
-import json
 import unittest
 from backend.utils.history_manager import (
     load_history,
@@ -7,29 +5,18 @@ from backend.utils.history_manager import (
     clear_history,
     get_total_predictions,
     get_risk_distribution,
-    HISTORY_FILE,
 )
 
 
 class TestHistoryManager(unittest.TestCase):
+    # The root conftest.py points DATABASE_DIR at a temporary folder, so these
+    # tests run against a throwaway database and never touch real history.
 
     def setUp(self):
-        """Ensure clean history file state before each test."""
-        self.backup = None
-        if os.path.exists(HISTORY_FILE):
-            with open(HISTORY_FILE, "r") as f:
-                self.backup = f.read()
-
-        with open(HISTORY_FILE, "w") as f:
-            json.dump([], f)
+        clear_history()
 
     def tearDown(self):
-        """Restore previous history file state after each test."""
-        if self.backup is not None:
-            with open(HISTORY_FILE, "w") as f:
-                f.write(self.backup)
-        elif os.path.exists(HISTORY_FILE):
-            os.remove(HISTORY_FILE)
+        clear_history()
 
     def test_save_and_load_history(self):
         entry = {

@@ -22,9 +22,10 @@ def seed():
     df = pd.read_csv("data/hospital_data.csv")
 
     with app.app_context():
-        # Ensure tables are created in the ACTIVE database (MySQL)
-        db.drop_all()
-        db.create_all()
+        # Rebuild ONLY the diseases table. Never db.drop_all(): that would
+        # also erase user accounts, passwords and prediction history.
+        Disease.__table__.drop(db.engine, checkfirst=True)
+        Disease.__table__.create(db.engine)
 
         for _, row in df.iterrows():
             disease = Disease(
@@ -36,7 +37,7 @@ def seed():
             db.session.add(disease)
 
         db.session.commit()
-        print("✅ Diseases table populated successfully (MySQL)")
+        print("✅ Diseases table populated successfully")
 
 
 if __name__ == "__main__":

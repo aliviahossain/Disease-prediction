@@ -1,40 +1,17 @@
 import csv
 import io
-import importlib.util
 import os
 import sys
 import tempfile
 import unittest
 
-TEST_DIR = os.path.dirname(__file__)
-BACKEND_DIR = os.path.abspath(os.path.join(TEST_DIR, ".."))
-
-
-def _load_module_from_path(name, path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-_src_calculator = _load_module_from_path(
-    "backend_src_calculator",
-    os.path.join(BACKEND_DIR, "src", "calculator.py"),
+from backend.models.ml_model import DiseaseMLModel
+from backend.utils.calculator import (
+    BayesCalculator,
+    display_results,
+    load_data,
 )
-_ml_model_module = _load_module_from_path(
-    "backend_models_ml_model",
-    os.path.join(BACKEND_DIR, "models", "ml_model.py"),
-)
-_utils_calculator = _load_module_from_path(
-    "backend_utils_calculator",
-    os.path.join(BACKEND_DIR, "utils", "calculator.py"),
-)
-
-bayesian_survival = _src_calculator.bayesian_survival
-load_data = _src_calculator.load_data
-display_results = _src_calculator.display_results
-DiseaseMLModel = _ml_model_module.DiseaseMLModel
-BayesCalculator = _utils_calculator.BayesCalculator
+from backend.utils.calculator import posterior_given_positive as bayesian_survival
 
 
 class TestBayesianCalculator(unittest.TestCase):

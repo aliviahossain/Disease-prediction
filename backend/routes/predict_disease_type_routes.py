@@ -1,31 +1,25 @@
-# Suppress numpy warnings
 import os
-import tempfile  # NEW: needed to save upload to disk for Grad-CAM
+import tempfile
 import warnings
+from functools import wraps
 
 import numpy as np
 import tensorflow as tf
 from flask import Blueprint, jsonify, request
-from flask_login import current_user, login_required
-from PIL import Image
-from backend.middleware import rate_limit
-
-from backend.services.history_service import save_history
-from backend.utils.gradcam import generate_gradcam_overlay  # NEW
-from backend.utils.gradcam import generate_tflite_scorecam_overlay
-
-from functools import wraps
-from flask import jsonify, request
 from flask_login import current_user
+from PIL import Image
 
-# Import TensorFlow models
-
+from backend.middleware import rate_limit
+from backend.services.history_service import save_history
+from backend.utils.gradcam import (
+    generate_gradcam_overlay,
+    generate_tflite_scorecam_overlay,
+)
 
 warnings.filterwarnings("ignore", category=FutureWarning, message=".*np.object.*")
 warnings.filterwarnings(
     "ignore", message=".*tf.lite.Interpreter is deprecated.*", category=UserWarning
 )
-warnings.filterwarnings("ignore", message=".*np.object.*", category=FutureWarning)
 
 # Suppress TensorFlow logging
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
@@ -279,8 +273,6 @@ def predict():
         or "eyes"
     ).lower()
 
-    print("model_type: ", model_type)
-
     if model_type not in MODEL_CONFIG:
         return (
             jsonify(
@@ -291,12 +283,8 @@ def predict():
             400,
         )
 
-    print(model_type not in MODEL_CONFIG)
-
     try:
-        from werkzeug.utils import secure_filename
-
-        # NEW: Save the upload to a temp file on disk so Grad-CAM can read
+        # Save the upload to a temp file on disk so Grad-CAM can read
         # it by path (PIL.open from a stream can only be read once).
         suffix = ".jpg"
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:

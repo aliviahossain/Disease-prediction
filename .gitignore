@@ -228,3 +228,7 @@ patient_records.json
 *.backup
 venv312/
 
+
+# Dedicated local data store (users, passwords, history, dev secret key)
+database/*
+!database/.gitkeep

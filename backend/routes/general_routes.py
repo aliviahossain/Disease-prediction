@@ -23,11 +23,6 @@ def terms():
     return render_template("terms.html")
 
 
-@general_bp.route("/connect")
-def connect():
-    return render_template("connect.html")
-
-
 @general_bp.route("/service-worker.js")
 def service_worker():
     return current_app.send_static_file("service-worker.js")

@@ -179,6 +179,12 @@
                         <label class="form-label small fw-bold">Password</label>
                         <input type="password" class="form-control" name="password" required>
                     </div>
+                    <div class="form-check mb-3">
+                        <!-- Hidden "off" is sent when the box is unchecked; the checkbox overrides it when checked. -->
+                        <input type="hidden" name="remember" value="off">
+                        <input class="form-check-input" type="checkbox" name="remember" value="on" id="remember-me" checked>
+                        <label class="form-check-label small" for="remember-me">Keep me signed in for 30 days</label>
+                    </div>
                     <button type="submit" class="btn btn-primary btn-auth">Sign In with Email</button>
                 </form>
                 <div class="switch-text">

@@ -94,4 +94,4 @@ jobs:
           FLASK_ENV: testing
           DATABASE_URL: ""
           GEMINI_API_KEY: ""
-        run: pytest backend/tests/ -v --tb=short
+        run: pytest backend/tests/ tests/ -v --tb=short

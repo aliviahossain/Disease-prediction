@@ -240,6 +240,7 @@ Disease-prediction/
 │   ├── hospital_data.example.csv  # Format template
 │   ├── raw/                       # Source datasets
 │   └── cleaned/                   # Pipeline output
+├── database/                      # Your local data: accounts & history (git-ignored)
 ├── docs/                          # All documentation (setup, deployment, security, …)
 ├── scripts/                       # Data pipeline & maintenance scripts
 │   ├── fetch_datasets.py          # Download raw datasets
@@ -287,7 +288,27 @@ The CNN architecture is based on ResNet, inspired by He et al. (2016) — *Deep 
 - ✅ All calculations run **locally** on your machine
 - ✅ No symptoms, images, or personal data are uploaded or stored externally
 - ✅ AI requests only transmit probability values — never user identity
-- ✅ Prediction history is stored locally using JSON-based storage
+- ✅ Accounts and prediction history are stored in a local database on your machine (see below)
+
+### 🗄️ Data Storage
+
+All app data is stored in one dedicated database file:
+
+```
+database/
+├── disease_prediction.db   # accounts, password hashes, profiles, prediction history,
+│                           # and Streamlit dashboard history
+└── .secret_key             # local dev key that keeps you signed in across restarts
+```
+
+- **You only register once.** Your account is kept between runs and restarts. Signing up also signs you in straight away.
+- **You stay signed in for 30 days.** "Keep me signed in" is on by default on the login page.
+- **Passwords are never stored in plain text.** Only bcrypt hashes are saved.
+- **The folder is git-ignored**, so your data is never committed. Back it up by copying the `database/` folder.
+- **Upgrading from an older version?** Your existing `backend/site.db` and JSON history are imported automatically the first time you start the app. The old files are left in place.
+- **Docker:** `docker compose` mounts `./database` into the container, so data survives rebuilds.
+- **Custom location or external database:** set `DATABASE_DIR=/path/to/folder`, or `DATABASE_URL=postgresql://…` to use PostgreSQL or MySQL instead.
+- **Tests** use a temporary database and never touch your real data.
 
 ---
 

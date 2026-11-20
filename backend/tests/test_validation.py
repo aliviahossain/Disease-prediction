@@ -1,6 +1,6 @@
 import pytest
 
-from backend.utils.bayes import bayes_theorem, survival_chance
+from backend.utils.calculator import bayes_theorem, survival_chance
 
 
 def test_valid_bounds_positive():

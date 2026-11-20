@@ -186,7 +186,11 @@ def login():
             # Reset failed attempts on success
             LOGIN_ATTEMPTS.pop(ip, None)
 
-            login_user(user)
+            # "Remember me" is on by default so users stay signed in for
+            # REMEMBER_COOKIE_DURATION (30 days), even across restarts.
+            remember_values = request.form.getlist("remember")
+            remember = not remember_values or "on" in remember_values
+            login_user(user, remember=remember)
             session.permanent = True  # Enforce PERMANENT_SESSION_LIFETIME (2h)
             flash("Login successful!", "success")
 
@@ -274,8 +278,12 @@ def signup():
     db.session.add(new_user)
     db.session.commit()
 
-    flash("Account Created Successfully. Please Sign In.", "success")
-    return redirect(url_for("auth.login", tab="signin"))
+    # Sign the new user straight in (remembered for 30 days) instead of
+    # making them type the same credentials again.
+    login_user(new_user, remember=True)
+    session.permanent = True
+    flash("Account Created Successfully. You are now signed in.", "success")
+    return redirect(url_for("auth.profile"))
 
 
 @auth_bp.route("/profile")

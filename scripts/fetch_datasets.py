@@ -7,7 +7,6 @@ sys.path.insert(0, ROOT)
 os.chdir(ROOT)
 
 import pandas as pd
-import numpy as np
 from ucimlrepo import fetch_ucirepo
 from sklearn.datasets import load_breast_cancer
 

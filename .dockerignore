@@ -14,3 +14,6 @@ __pycache__/
 *.pyo
 *.pyd
 .pytest_cache/
+database/
+backend/site.db
+backend/.dev_secret_key

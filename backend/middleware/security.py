@@ -169,7 +169,14 @@ class SQLiteBackend:
     with exponential backoff retry for lock contention handling.
     """
 
-    def __init__(self, db_path="backend/rate_limit.db", cleanup_interval=60, max_retries=5, base_delay=0.05, max_delay=1.0):
+    def __init__(
+        self,
+        db_path="backend/rate_limit.db",
+        cleanup_interval=60,
+        max_retries=5,
+        base_delay=0.05,
+        max_delay=1.0,
+    ):
         self.db_path = db_path
         self.max_retries = max_retries
         self.base_delay = base_delay
@@ -210,7 +217,7 @@ class SQLiteBackend:
                 is_locked_error = "locked" in err_msg or "busy" in err_msg
                 if is_locked_error and attempt < self.max_retries:
                     # Exponential backoff: base_delay * 2^attempt capped at max_delay
-                    delay = min(self.base_delay * (2 ** attempt), self.max_delay)
+                    delay = min(self.base_delay * (2**attempt), self.max_delay)
                     # Add jitter to prevent thundering herd
                     jitter = random.uniform(0, delay * 0.5)
                     time.sleep(delay + jitter)
